@@ -21,7 +21,7 @@ class Main(commands.Cog):
 
     @bridge.bridge_command(aliases = ["ms"])
     async def ping(self, ctx):
-        await ctx.respond(f'Pong {round(self.client.latency*1000)}ms')
+        await ctx.respond(f'Pong {round(self.bot.latency*1000)}ms')
     
     @tasks.loop(seconds=2)
     async def restart_checker(self):
