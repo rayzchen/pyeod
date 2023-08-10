@@ -153,6 +153,7 @@ class GameInstance:
         element_combo = (self.check_element(name, user) for name in combo)
         poll = Poll(element_combo, result, user, 0)
         self.db.polls.append(poll)
+        user.active_polls += 1
         return poll
 
     def check_polls(self) -> List[Poll]:
@@ -167,9 +168,11 @@ class GameInstance:
                 self.db.elements[poll.result.lower()] = element
                 self.db.set_combo_result(poll.combo, element)
                 deleted_polls.append(poll)
+                poll.author.active_polls -= 1
             elif poll.votes <= -self.vote_req:
                 # Poll was denied
                 deleted_polls.append(poll)
+                poll.author.active_polls -= 1
             else:
                 new_polls.append(poll)
         self.db.polls = new_polls
