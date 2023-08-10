@@ -1,4 +1,5 @@
 from discord.ext import commands, tasks, bridge, pages
+from discord.utils import get
 from discord import User, Message, TextChannel
 from pyeod.model import InternalError
 from pyeod.frontend import DiscordGameInstance, InstanceManager
@@ -26,13 +27,24 @@ class Config(commands.Cog):
         if msg.guild and msg.guild not in self.manager:
             self.manager.add_instance(msg.guild.id, DiscordGameInstance())
 
-    # Idk if this will work with text commands :/
-    @bridge.bridge_command()
+    # Slash commands only cus converting to channel is busted
+    @commands.slash_command()
     async def add_play_channel(self, ctx: bridge.BridgeContext, channel: TextChannel):
         # TODO: Add permissions locks so that only certain roles can add channels
 
         if ctx.guild and ctx.guild.id not in self.manager:
             self.manager.add_instance(ctx.guild.id, DiscordGameInstance())
+
+        # If converting is fixed
+        # if isinstance(
+        #    ctx, bridge.BridgeExtContext
+        # ):  # If it's a text command convert the channel arg to an actual channel object
+        #    if "<#" in channel:
+        #        channel = self.bot.get_channel(
+        #            int(channel.replace("<#", "").replace(">", ""))
+        #        )
+        #    else:
+        #        channel = get(ctx.guild.channels, name=channel)
 
         server = self.manager.get_instance(ctx.guild.id)
 
