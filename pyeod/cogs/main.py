@@ -3,6 +3,7 @@ from pyeod.utils import format_traceback
 from pyeod import config
 import os
 
+
 class Main(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -31,6 +32,7 @@ class Main(commands.Cog):
             print("Restarting")
             self.restart_checker.stop()
             await self.bot.close()
+
 
 def setup(client):
     client.add_cog(Main(client))
