@@ -125,16 +125,19 @@ class GameInstance:
             self.db.users[user_id] = User(self.db.starters, 0, user_id)
         return self.db.users[user_id]
 
+    def check_element(self, element: Element, user: Optional[User] = None) -> None:
+        if element.name.lower() not in self.db.elements:
+            raise GameError(
+                "Not an element", "The element requested does not exist"
+            )
+        if user is not None and element not in user.inv:
+            raise GameError(
+                "Not in inv", "The user does not have the element requested"
+            )
+
     def combine(self, user: User, combo: Tuple[Element]) -> Element:
-        for i in combo:
-            if i not in user.inv:
-                raise GameError(
-                    "Not in inv", "The user does not have the element requested"
-                )
-            if i.name.lower() not in self.db.elements:
-                raise GameError(
-                    "Not an element", "The element requested does not exist"
-                )
+        for element in combo:
+            self.check_element(element, user)
         result = self.db.get_combo_result(combo)
         if result is None:
             raise GameError("Not a combo", "The combo requested does not exist")
@@ -144,15 +147,9 @@ class GameInstance:
     def suggest_element(self, user: User, combo: Tuple[Element], result: str) -> Poll:
         if user.active_polls > self.poll_limit:
             raise GameError("Too many active polls")
-        for i in combo:
-            if i not in user.inv:
-                raise GameError(
-                    "Not in inv", "The user does not have the element requested"
-                )
-            if i.name.lower() not in self.db.elements:
-                raise GameError(
-                    "Not an element", "The element requested does not exist"
-                )
+        for element in combo:
+            # Technically not needed since combine already checks
+            self.check_element(element, user)
         poll = Poll(combo, result, user, 0)
         self.db.polls.append(poll)
         return poll
