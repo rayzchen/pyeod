@@ -4,9 +4,10 @@ import time
 
 
 class ModelBaseError(Exception):
-    def __init__(self, type: str, message: str = "No Message Provided") -> None:
+    def __init__(self, type: str, message: str = "No Message Provided", meta:dict = {}) -> None:
         self.type = type
         self.message = message
+        self.meta = meta#Used to transfer useful error info
 
 
 class InternalError(ModelBaseError):
@@ -106,7 +107,7 @@ class Database:
     def set_combo_result(self, combo: Tuple[Element, ...], result: Element) -> None:
         sorted_combo = tuple(sorted(combo))
         if sorted_combo in self.combos:
-            raise InternalError("Combo exists", "The combo already exists")
+            raise InternalError("Combo exists", "That combo already exists")
         self.combos[sorted_combo] = result
 
 
@@ -149,7 +150,7 @@ class GameInstance:
 
     def check_element(self, element_name: str, user: Optional[User] = None) -> Element:
         if not self.db.has_element(element_name):
-            raise GameError("Not an element", "The element requested does not exist")
+            raise GameError("Not an element", "The element requested does not exist") # Is message needed?
         element = self.db.elements[element_name.lower()]
         if user is not None and element not in user.inv:
             raise GameError(
@@ -161,10 +162,10 @@ class GameInstance:
         element_combo = tuple(self.check_element(name, user) for name in combo)
         result = self.db.get_combo_result(element_combo)
         if result is None:
-            raise GameError("Not a combo", "The combo requested does not exist")
+            raise GameError("Not a combo", "That combo does not exist")
         if result in user.inv:
             raise GameError(
-                "Already have element", f"You made {result.name}, but already have it"
+                "Already have element", f"You made {result.name}, but you already have it"
             )
         user.inv.append(result)
         return result
