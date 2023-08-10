@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Tuple, List
+from typing import Optional, Dict, Tuple, List, Union
 import copy
 import time
 
@@ -76,6 +76,17 @@ class Database:
             polls=[],
         )
 
+    def get_combo_result(self, combo: Tuple[Element]) -> Union[Element, None]:
+        sorted_combo = tuple(sorted(combo))
+        if sorted_combo in self.combos:
+            return self.combos[sorted_combo]
+        return None
+
+    def set_combo_result(self, combo: Tuple[Element], result: Element) -> None:
+        sorted_combo = tuple(sorted(combo))
+        if sorted_combo in self.combos:
+            raise InternalError("Combo exists", "The combo already exists")
+        self.combos[sorted_combo] = result
 
 AIR = Element("Air", id=1)
 EARTH = Element("Earth", id=2)
@@ -120,9 +131,9 @@ class GameInstance:
                 raise GameError(
                     "Not an element", "The element requested does not exist"
                 )
-        if combo not in self.db.combos:
+        result = self.db.get_combo_result(combo)
+        if result is None:
             raise GameError("Not a combo", "The combo requested does not exist")
-        result = self.db.combos[sorted(combo)]
         user.inv.append(result)
         return result
 
@@ -138,7 +149,7 @@ class GameInstance:
                 raise GameError(
                     "Not an element", "The element requested does not exist"
                 )
-        self.db.polls.append(Poll(sorted(combo), result, user, 0))
+        self.db.polls.append(Poll(combo, result, user, 0))
 
     def check_polls(self) -> None:
         new_polls = []
@@ -146,7 +157,7 @@ class GameInstance:
             if poll.votes >= self.vote_req:
                 element = Element(poll.result, poll.author, time.time(), len(self.db.elements) + 1)
                 self.db.elements[poll.result.lower()] = element
-                self.db.combos[poll.combo] = element
+                self.db.set_combo_result(poll.combo, element)
             else:
                 new_polls.append(poll)
         self.db.polls = new_polls
