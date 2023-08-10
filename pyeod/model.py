@@ -44,7 +44,7 @@ class User:
 
 class Poll:
     def __init__(
-        self, combo: tuple[Element], result: str, author: User, votes: int
+        self, combo: Tuple[Element], result: str, author: User, votes: int
     ) -> None:
         self.combo = combo
         self.result = result
@@ -154,16 +154,25 @@ class GameInstance:
                 )
         self.db.polls.append(Poll(combo, result, user, 0))
 
-    def check_polls(self) -> None:
+    def check_polls(self) -> List[Poll]:
         new_polls = []
+        deleted_polls = []
         for poll in self.db.polls:
             if poll.votes >= self.vote_req:
-                element = Element(poll.result, poll.author, time.time(), len(self.db.elements) + 1)
+                # Poll was accepted
+                element = Element(
+                    poll.result, poll.author, time.time(), len(self.db.elements) + 1
+                )
                 self.db.elements[poll.result.lower()] = element
                 self.db.set_combo_result(poll.combo, element)
+                deleted_polls.append(poll)
+            elif poll.votes <= -self.vote_req:
+                # Poll was denied
+                deleted_polls.append(poll)
             else:
                 new_polls.append(poll)
         self.db.polls = new_polls
+        return deleted_polls
 
 
 if __name__ == "__main__":
