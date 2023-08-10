@@ -14,16 +14,20 @@ def reset_modules():
 def main():
     while True:
         reset_modules()
+        control = importlib.import_module("pyeod.control")
+        proc = control.run_webserver()
         try:
             bot = importlib.import_module("pyeod.bot")
             should_continue = bot.run()
-            if not should_continue:
-                break
         except Exception:
+            proc.terminate()
             print_exc()
             print("Restarting bot in 5 seconds")
             time.sleep(5)
-            continue
+        else:
+            proc.terminate()
+            if not should_continue:
+                break
 
 if __name__ == "__main__":
     main()
