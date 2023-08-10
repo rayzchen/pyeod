@@ -18,8 +18,13 @@ class Element:
         self.created = created
         self.id = id
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Name: {self.name}, Id: {self.id}>"
+
+    def __lt__(self, other: object) -> bool:
+        if isinstance(other, Element):
+            return self.name < other.name
+        return NotImplemented
 
 
 class User:
