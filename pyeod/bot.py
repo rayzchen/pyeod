@@ -34,7 +34,9 @@ def run():
     for file in glob.glob(
         os.path.join(config.package, "cogs", "**", "*.py"), recursive=True
     ):
-        submodule_name = file.replace(".py", "").replace(os.path.sep, "/")
+        submodule_name = (
+            file.replace(".py", "").replace(os.path.sep, "/").split("/")[-1]
+        )
         print("Cog", submodule_name)
         bot.load_extension("pyeod.cogs." + submodule_name)
 
