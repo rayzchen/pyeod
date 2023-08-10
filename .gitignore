@@ -1,7 +1,7 @@
 # PyEoD
 .token
-stop
-restart
+pyeod/control/stop
+pyeod/control/restart
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
