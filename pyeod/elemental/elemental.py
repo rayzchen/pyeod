@@ -2,14 +2,14 @@ from typing import Optional, Dict, Tuple, List
 
 
 class GameError(Exception):
-    def __init__(self, type: str, message="No Message Provided"):
+    def __init__(self, type: str, message: str = "No Message Provided") -> None:
         self.type = type
         self.message = message
 
 
 class Element:
     def __init__(
-        self, name: str, author: Optional["User"] = 0, created: int = 0, id=1
+        self, name: str, author: Optional["User"] = None, created: int = 0, id: int = 1
     ) -> None:  # author:User
         self.name = name
         self.author = author
@@ -21,7 +21,7 @@ class Element:
 
 
 class User:
-    def __init__(self, inv: list[Element], active_polls: int, id: int) -> None:  #
+    def __init__(self, inv: List[Element], active_polls: int, id: int) -> None:
         self.inv = inv
         self.active_polls = active_polls
         self.id = id
@@ -29,7 +29,7 @@ class User:
 
 class Poll:
     def __init__(
-        self, combo: tuple[Element], result: Element, author: User, votes: int
+        self, combo: tuple[Element], result: str, author: User, votes: int
     ) -> None:
         self.combo = combo
         self.result = result
@@ -41,10 +41,10 @@ class Database:
     def __init__(
         self,
         elements: Dict[str, Element],
-        starters: list[Element],
+        starters: List[Element],
         combos: Dict[Tuple[Element], Element],
         users: Dict[int, User],
-        polls: list[Poll],
+        polls: List[Poll],
     ) -> None:
         self.elements = elements
         self.starters = starters
@@ -57,17 +57,20 @@ AIR = Element("Air", id=1)
 EARTH = Element("Earth", id=2)
 FIRE = Element("Fire", id=3)
 WATER = Element("Water", id=4)
+STARTER_ELEMENTS = [AIR, EARTH, FIRE, WATER]
 
 
 class GameInstance:
     def __init__(
         self,
-        starting_elements: list[Element] = [AIR, EARTH, FIRE, WATER],
-        db: Database = None,
+        starting_elements: Optional[List[Element]] = None,
+        db: Optional[Database] = None,
         vote_req: int = 4,
         poll_limit: int = 21,
     ) -> None:
         self.starting_elements = starting_elements
+        if self.starting_elements is None:
+            self.starting_elements = copy.deepcopy(STARTER_ELEMENTS)
         if db == None:
             self.db = self.new_db()
         else:
@@ -107,7 +110,7 @@ class GameInstance:
         user.inv.append(result)
         return result
 
-    def suggest_element(self, user: User, combo: Tuple[Element], result: Element):
+    def suggest_element(self, user: User, combo: Tuple[Element], result: str):
         if user.active_polls > self.poll_limit:
             raise GameError("Too many active polls")
         for i in combo:
