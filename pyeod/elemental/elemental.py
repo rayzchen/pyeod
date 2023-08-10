@@ -78,14 +78,8 @@ class GameInstance:
         self.vote_req = vote_req
         self.poll_limit = poll_limit
 
-    def new_db(self) -> Database:
-        return Database(
-            elements={i.name: i for i in self.starting_elements},
-            starters=self.starting_elements,
-            combos={},
-            users={},
-            polls=[],
-        )
+    def normalize_starter(self, element: Element) -> Element:
+        return self.db.elements[element.name]
 
     def login_user(self, user_id) -> User:
         if user_id not in self.db.users:
@@ -144,7 +138,8 @@ import time
 
 game = GameInstance()
 user = game.login_user(0)
-combo = frozenset([FIRE, FIRE])
+fire = game.normalize_starter(FIRE)
+combo = (fire, fire)
 try:
     game.combine(user, combo)
 except GameError as g:
