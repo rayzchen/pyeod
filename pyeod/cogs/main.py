@@ -1,11 +1,9 @@
-import discord
 from discord.ext import commands, tasks, bridge, pages
 from discord import User
 from pyeod.utils import format_traceback
 from pyeod import config
-import os
-
 import traceback
+import os
 
 
 class Main(commands.Cog):
@@ -24,20 +22,16 @@ class Main(commands.Cog):
         self, ctx: commands.Context, err: commands.errors.CommandError
     ):
         # Handle different exceptions from parsing arguments here
-        print("".join(traceback.format_exception(type(err), err, err.__traceback__)))
         if isinstance(err, commands.errors.UserNotFound):
             await ctx.send(str(err))
         else:
+            print("".join(traceback.format_exception(type(err), err, err.__traceback__)))
             error = format_traceback(err)
             await ctx.send("There was an error processing the command:\n" + error)
 
     @bridge.bridge_command(aliases=["ms"])
     async def ping(self, ctx: bridge.BridgeContext):
         await ctx.respond(f"Pong {round(self.bot.latency*1000)}ms")
-
-    @bridge.bridge_command()
-    async def user(self, ctx: bridge.BridgeContext, user: User):
-        await ctx.respond(f"User: {user.id}")
 
     @tasks.loop(seconds=2)
     async def restart_checker(self):
