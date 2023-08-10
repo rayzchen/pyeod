@@ -1,5 +1,6 @@
 from discord.ext import commands, tasks, bridge, pages
-from discord import User, Message
+from discord import User, Message, TextChannel
+from pyeod.model import InternalError
 from pyeod.frontend import DiscordGameInstance, InstanceManager
 from pyeod.utils import format_traceback
 from pyeod import config
@@ -25,11 +26,23 @@ class Config(commands.Cog):
         if msg.guild and msg.guild not in self.manager:
             self.manager.add_instance(msg.guild.id, DiscordGameInstance())
 
+    # Idk if this will work with text commands :/
+    @bridge.bridge_command()
+    async def add_play_channel(self, ctx: bridge.BridgeContext, channel: TextChannel):
+        # TODO: Add permissions locks so that only certain roles can add channels
+
+        if ctx.guild and ctx.guild.id not in self.manager:
+            self.manager.add_instance(ctx.guild.id, DiscordGameInstance())
+
+        server = self.manager.get_instance(ctx.guild.id)
+
+        server.channels.play_channels.append(channel)
+
+        await ctx.respond(f"Successfully added {channel.name} as a play channel!")
+
     @bridge.bridge_command()
     async def user(self, ctx: bridge.BridgeContext, user: User):
         await ctx.respond(f"User: {user.id}")
-    
-    
 
 
 def setup(client):

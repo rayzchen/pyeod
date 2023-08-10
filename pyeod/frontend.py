@@ -1,13 +1,14 @@
 from typing import Optional, Tuple, List, Union, Dict
 from pyeod.model import Database, Element, GameInstance, InternalError
+from discord import TextChannel
 
 
 class ChannelList:
     def __init__(
         self,
-        news_channel: int = 0,
-        voting_channel: int = 0,
-        play_channels: Optional[List[int]] = None,
+        news_channel: TextChannel = None,
+        voting_channel: TextChannel = None,
+        play_channels: Optional[List[TextChannel]] = None,
     ) -> None:
         self.news_channel = news_channel
         self.voting_channel = voting_channel
@@ -33,10 +34,13 @@ class DiscordGameInstance(GameInstance):
         else:
             self.channels = channels
 
+
 class InstanceManager:
     current: Union["InstanceManager", None] = None
 
-    def __init__(self, instances: Optional[Dict[int, DiscordGameInstance]] = None) -> None:
+    def __init__(
+        self, instances: Optional[Dict[int, DiscordGameInstance]] = None
+    ) -> None:
         InstanceManager.current = self
         if instances is not None:
             self.instances = instances
@@ -45,10 +49,10 @@ class InstanceManager:
 
     def __contains__(self, id: int) -> bool:
         return self.has_instance(id)
-    
-    def __getitem__(self, id:int) -> DiscordGameInstance:
+
+    def __getitem__(self, id: int) -> DiscordGameInstance:
         return self.get_instance(id)
-    
+
     def add_instance(self, id: int, instance: DiscordGameInstance) -> None:
         if id in self.instances:
             raise InternalError(
