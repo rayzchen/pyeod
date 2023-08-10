@@ -138,17 +138,17 @@ class GameInstance:
                 new_polls.append(poll)
         self.db.polls = new_polls
 
-
-game = GameInstance()
-user = game.login_user(0)
-fire = game.normalize_starter(FIRE)
-combo = (fire, fire)
-try:
+if __name__ == "__main__":
+    game = GameInstance()
+    user = game.login_user(0)
+    fire = game.normalize_starter(FIRE)
+    combo = (fire, fire)
+    try:
+        game.combine(user, combo)
+    except GameError as g:
+        if g.type == "Not a combo":
+            game.suggest_element(user, combo, "Inferno")
+    game.db.polls[0].votes += 4
+    game.check_polls()
     game.combine(user, combo)
-except GameError as g:
-    if g.type == "Not a combo":
-        game.suggest_element(user, combo, "Inferno")
-game.db.polls[0].votes += 4
-game.check_polls()
-game.combine(user, combo)
-print(user.inv)
+    print(user.inv)
