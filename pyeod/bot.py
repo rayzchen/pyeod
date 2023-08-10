@@ -7,6 +7,8 @@ if sys.platform.startswith("win"):
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 from discord.ext.bridge import AutoShardedBot
+from discord.ext.commands import when_mentioned_or
+from discord import Intents
 from pyeod import config
 
 if os.path.isfile(".token"):
@@ -18,7 +20,19 @@ else:
 if not token:
     print("Token not found")
 
-opts = {"auto_sync_commands": True}
+opts = {
+    "auto_sync_commands": True,
+    "intents": Intents(
+        messages=True,
+        guilds=True,
+        reactions=True,
+        members=True,
+        presences=True,
+        message_content=True,
+    ),
+    "command_prefix": when_mentioned_or("!"),
+    "case_insenative": True,
+}
 
 if "DEBUG_SERVER" in os.environ:
     opts["debug_guilds"] = config.main_server
