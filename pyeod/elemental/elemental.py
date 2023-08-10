@@ -54,10 +54,10 @@ class Database:
         self.users = users
         self.polls = polls
 
-    def new_db(starting_elements: List[Element]) -> "Database":
+    def new_db(starter_elements: List[Element]) -> "Database":
         return Database(
-            elements={i.name: i for i in starting_elements},
-            starters=starting_elements,
+            elements={i.name: i for i in starter_elements},
+            starters=starter_elements,
             combos={},
             users={},
             polls=[],
@@ -74,16 +74,16 @@ STARTER_ELEMENTS = [AIR, EARTH, FIRE, WATER]
 class GameInstance:
     def __init__(
         self,
-        starting_elements: Optional[List[Element]] = None,
+        starter_elements: Optional[List[Element]] = None,
         db: Optional[Database] = None,
         vote_req: int = 4,
         poll_limit: int = 21,
     ) -> None:
-        self.starting_elements = starting_elements
-        if self.starting_elements is None:
-            self.starting_elements = copy.deepcopy(STARTER_ELEMENTS)
+        self.starter_elements = starter_elements
+        if self.starter_elements is None:
+            self.starter_elements = copy.deepcopy(STARTER_ELEMENTS)
         if db == None:
-            self.db = Database.new_db(self.starting_elements)
+            self.db = Database.new_db(self.starter_elements)
         else:
             self.db = db
         self.vote_req = vote_req
