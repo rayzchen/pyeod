@@ -31,3 +31,6 @@ class Main(commands.Cog):
             print("Restarting")
             self.restart_checker.stop()
             await self.bot.close()
+
+def setup(client):
+    client.add_cog(Main(client))
