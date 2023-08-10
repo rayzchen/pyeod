@@ -43,13 +43,29 @@ class User:
 
 
 class Poll:
+    def __init__(self, author: User) -> None:
+        self.author = author
+        self.votes = 0
+        self.accepted = False
+
+    def resolve(self, database):
+        pass
+
+class ElementPoll(Poll):
     def __init__(
-        self, combo: Tuple[Element], result: str, author: User, votes: int
+        self, author: User, combo: Tuple[Element], result: str, exists: bool
     ) -> None:
+        super(ElementPoll, self).__init__(author)
         self.combo = combo
         self.result = result
-        self.author = author
-        self.votes = votes
+        self.exists = exists
+
+    def resolve(self, database):
+        element = Element(
+            self.result, self.author, time.time(), len(database.elements) + 1
+        )
+        database.elements[self.result.lower()] = element
+        database.set_combo_result(self.combo, element)
 
 
 class Database:
@@ -151,7 +167,7 @@ class GameInstance:
             raise GameError("Too many active polls")
         # Technically not needed since combine already checks
         element_combo = (self.check_element(name, user) for name in combo)
-        poll = Poll(element_combo, result, user, 0)
+        poll = ElementPoll(user, element_combo, result, result.lower() in self.db.elements)
         self.db.polls.append(poll)
         user.active_polls += 1
         return poll
@@ -162,11 +178,7 @@ class GameInstance:
         for poll in self.db.polls:
             if poll.votes >= self.vote_req:
                 # Poll was accepted
-                element = Element(
-                    poll.result, poll.author, time.time(), len(self.db.elements) + 1
-                )
-                self.db.elements[poll.result.lower()] = element
-                self.db.set_combo_result(poll.combo, element)
+                poll.resolve(self.db)
                 deleted_polls.append(poll)
                 poll.author.active_polls -= 1
             elif poll.votes <= -self.vote_req:
