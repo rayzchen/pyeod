@@ -88,11 +88,12 @@ class Database:
             raise InternalError("Combo exists", "The combo already exists")
         self.combos[sorted_combo] = result
 
+
 AIR = Element("Air", id=1)
 EARTH = Element("Earth", id=2)
 FIRE = Element("Fire", id=3)
 WATER = Element("Water", id=4)
-STARTER_ELEMENTS = [AIR, EARTH, FIRE, WATER]
+DEFAULT_STARTER_ELEMENTS = (AIR, EARTH, FIRE, WATER)
 
 
 class GameInstance:
@@ -105,7 +106,7 @@ class GameInstance:
     ) -> None:
         self.starter_elements = starter_elements
         if self.starter_elements is None:
-            self.starter_elements = copy.deepcopy(STARTER_ELEMENTS)
+            self.starter_elements = copy.deepcopy(DEFAULT_STARTER_ELEMENTS)
         if db == None:
             self.db = Database.new_db(self.starter_elements)
         else:
@@ -114,7 +115,9 @@ class GameInstance:
         self.poll_limit = poll_limit
 
     def normalize_starter(self, element: Element) -> Element:
-        return self.db.elements[element.name.lower()]
+        starter = self.db.elements[element.name.lower()]
+        assert starter in self.starter_elements
+        return starter
 
     def login_user(self, user_id) -> User:
         if user_id not in self.db.users:
@@ -161,6 +164,7 @@ class GameInstance:
             else:
                 new_polls.append(poll)
         self.db.polls = new_polls
+
 
 if __name__ == "__main__":
     game = GameInstance()
