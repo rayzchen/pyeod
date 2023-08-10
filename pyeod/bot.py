@@ -24,14 +24,14 @@ opts = {
     "auto_sync_commands": True,
     "intents": Intents(
         messages=True,
-        guilds=True,
+        guilds=False,
         reactions=True,
-        members=True,
-        presences=True,
+        members=False,
+        presences=False,
         message_content=True,
     ),
     "command_prefix": when_mentioned_or("!"),
-    "case_insenative": True,
+    "case_insensitive": True,
 }
 
 if "DEBUG_SERVER" in os.environ:
@@ -48,11 +48,11 @@ def run():
     for file in glob.glob(
         os.path.join(config.package, "cogs", "**", "*.py"), recursive=True
     ):
-        submodule_name = (
-            file.replace(".py", "").replace(os.path.sep, "/").split("/")[-1]
-        )
+        # Support packages under cogs/ for organization
+        rel = os.path.relpath(file, config.package)
+        submodule_name = rel.replace(".py", "").replace(os.path.sep, ".")
         print("Cog", submodule_name)
-        bot.load_extension("pyeod.cogs." + submodule_name)
+        bot.load_extension("pyeod." + submodule_name)
 
     try:
         loop.run_until_complete(bot.start(token))
