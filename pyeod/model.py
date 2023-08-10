@@ -67,6 +67,7 @@ class Database:
         self.users = users
         self.polls = polls
 
+    @staticmethod
     def new_db(starter_elements: List[Element]) -> "Database":
         return Database(
             elements={i.name.lower(): i for i in starter_elements},
