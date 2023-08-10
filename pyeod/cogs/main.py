@@ -16,7 +16,7 @@ class Main(commands.Cog):
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, err):
-        error = format_traceback(err, False)
+        error = format_traceback(err)
         await ctx.send("There was an error processing the command:\n" + error)
 
     @bridge.bridge_command(aliases = ["ms"])
