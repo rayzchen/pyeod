@@ -203,46 +203,8 @@ class GameInstance:
         return deleted_polls
 
 
-class InstanceManager:
-    current: Union["InstanceManager", None] = None
-
-    def __init__(self, instances: Optional[Dict[int, GameInstance]] = None) -> None:
-        InstanceManager.current = self
-        if instances is not None:
-            self.instances = instances
-        else:
-            self.instances = {}
-
-    def __contains__(self, id: int) -> bool:
-        return self.has_instance(id)
-    
-    def __getitem__(self, id:int) -> GameInstance:
-        return self.get_instance(id)
-    
-    def add_instance(self, id: int, instance: GameInstance) -> None:
-        if id in self.instances:
-            raise InternalError(
-                "Instance overwrite", "GameInstance already exists with given ID"
-            )
-        self.instances[id] = instance
-
-    def has_instance(self, id: int) -> bool:
-        return id in self.instances
-
-    def get_instance(self, id: int) -> GameInstance:
-        if id not in self.instances:
-            raise InternalError(
-                "Instance not found", "The requested GameInstance not found"
-            )
-        return self.instances[id]
-
-
 if __name__ == "__main__":
-    manager = InstanceManager()
-    if 0 not in manager:
-        instance = GameInstance()
-        manager.add_instance(0, instance)
-    game = manager[0]
+    game = GameInstance()
     user = game.login_user(0)
     combo = ("fire", "fire")
     try:

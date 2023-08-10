@@ -1,5 +1,5 @@
-from typing import Optional, Tuple, List
-from pyeod.model import Database, Element, GameInstance
+from typing import Optional, Tuple, List, Union, Dict
+from pyeod.model import Database, Element, GameInstance, InternalError
 
 
 class ChannelList:
@@ -32,3 +32,36 @@ class DiscordGameInstance(GameInstance):
             self.channels = ChannelList()
         else:
             self.channels = channels
+
+class InstanceManager:
+    current: Union["InstanceManager", None] = None
+
+    def __init__(self, instances: Optional[Dict[int, DiscordGameInstance]] = None) -> None:
+        InstanceManager.current = self
+        if instances is not None:
+            self.instances = instances
+        else:
+            self.instances = {}
+
+    def __contains__(self, id: int) -> bool:
+        return self.has_instance(id)
+    
+    def __getitem__(self, id:int) -> DiscordGameInstance:
+        return self.get_instance(id)
+    
+    def add_instance(self, id: int, instance: DiscordGameInstance) -> None:
+        if id in self.instances:
+            raise InternalError(
+                "Instance overwrite", "GameInstance already exists with given ID"
+            )
+        self.instances[id] = instance
+
+    def has_instance(self, id: int) -> bool:
+        return id in self.instances
+
+    def get_instance(self, id: int) -> DiscordGameInstance:
+        if id not in self.instances:
+            raise InternalError(
+                "Instance not found", "The requested GameInstance not found"
+            )
+        return self.instances[id]
