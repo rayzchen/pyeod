@@ -115,6 +115,7 @@ class GameInstance:
         self.vote_req = vote_req
         self.poll_limit = poll_limit
 
+    # Deprecate this function?
     def normalize_starter(self, element: Element) -> Element:
         starter = self.db.elements[element.name.lower()]
         assert starter in self.starter_elements
@@ -122,35 +123,35 @@ class GameInstance:
 
     def login_user(self, user_id: int) -> User:
         if user_id not in self.db.users:
-            self.db.users[user_id] = User(self.db.starters, 0, user_id)
+            self.db.users[user_id] = User(list(self.db.starters), 0, user_id)
         return self.db.users[user_id]
 
-    def check_element(self, element: Element, user: Optional[User] = None) -> None:
-        if element.name.lower() not in self.db.elements:
+    def check_element(self, element_name: str, user: Optional[User] = None) -> Element:
+        if element_name.lower() not in self.db.elements:
             raise GameError(
                 "Not an element", "The element requested does not exist"
             )
+        element = self.db.elements[element_name.lower()]
         if user is not None and element not in user.inv:
             raise GameError(
                 "Not in inv", "The user does not have the element requested"
             )
+        return element
 
-    def combine(self, user: User, combo: Tuple[Element]) -> Element:
-        for element in combo:
-            self.check_element(element, user)
-        result = self.db.get_combo_result(combo)
+    def combine(self, user: User, combo: Tuple[str]) -> Element:
+        element_combo = (self.check_element(name, user) for name in combo)
+        result = self.db.get_combo_result(element_combo)
         if result is None:
             raise GameError("Not a combo", "The combo requested does not exist")
         user.inv.append(result)
         return result
 
-    def suggest_element(self, user: User, combo: Tuple[Element], result: str) -> Poll:
+    def suggest_element(self, user: User, combo: Tuple[str], result: str) -> Poll:
         if user.active_polls > self.poll_limit:
             raise GameError("Too many active polls")
-        for element in combo:
-            # Technically not needed since combine already checks
-            self.check_element(element, user)
-        poll = Poll(combo, result, user, 0)
+        # Technically not needed since combine already checks
+        element_combo = (self.check_element(name, user) for name in combo)
+        poll = Poll(element_combo, result, user, 0)
         self.db.polls.append(poll)
         return poll
 
@@ -178,8 +179,7 @@ class GameInstance:
 if __name__ == "__main__":
     game = GameInstance()
     user = game.login_user(0)
-    fire = game.normalize_starter(FIRE)
-    combo = (fire, fire)
+    combo = ("fire", "fire")
     try:
         game.combine(user, combo)
     except GameError as g:
