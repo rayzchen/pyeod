@@ -162,6 +162,10 @@ class GameInstance:
         result = self.db.get_combo_result(element_combo)
         if result is None:
             raise GameError("Not a combo", "The combo requested does not exist")
+        if result in user.inv:
+            raise GameError(
+                "Already have element", f"You made {result.name}, but already have it"
+            )
         user.inv.append(result)
         return result
 
