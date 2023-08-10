@@ -3,6 +3,7 @@ import importlib
 import sys
 import time
 
+
 def reset_modules():
     pending = []
     for module in sys.modules:
@@ -10,6 +11,7 @@ def reset_modules():
             pending.append(module)
     for mod in pending:
         sys.modules.pop(mod)
+
 
 def main():
     while True:
@@ -28,6 +30,7 @@ def main():
             proc.terminate()
             if not should_continue:
                 break
+
 
 if __name__ == "__main__":
     main()

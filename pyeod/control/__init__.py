@@ -5,6 +5,7 @@ import sys
 
 app = Flask(__name__)
 
+
 @app.route("/")
 def index():
     return """
@@ -12,15 +13,18 @@ def index():
     <a href='/stop'>Stop</a> <a href='/restart'>Restart</a>
     """
 
+
 @app.route("/stop")
 def stop():
     open(config.stopfile, "w+").close()
     return "Bot stopped"
 
+
 @app.route("/restart")
 def restart():
     open(config.restartfile, "w+").close()
     return "Bot restarted"
+
 
 def run_webserver():
     proc = subprocess.Popen([sys.executable, "-m", __name__])
