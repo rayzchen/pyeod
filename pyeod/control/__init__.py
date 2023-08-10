@@ -1,6 +1,7 @@
 from flask import Flask
-import multiprocessing
 from pyeod import config
+import subprocess
+import sys
 
 app = Flask(__name__)
 
@@ -22,10 +23,5 @@ def restart():
     return "Bot restarted"
 
 def run_webserver():
-    proc = multiprocessing.Process(
-        target=app.run,
-        args=("0.0.0.0", 5001),
-        daemon=True
-    )
-    proc.start()
+    proc = subprocess.Popen([sys.executable, "-m", __name__])
     return proc
