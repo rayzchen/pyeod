@@ -19,15 +19,17 @@ class Config(commands.Cog):
         # TODO: load manager here?
 
     @commands.Cog.listener("on_message")
-    async def check_for_new_servers(self, msg:Message):
+    async def check_for_new_servers(self, msg: Message):
         if not self.manager:  # Messages can be caught before bot is ready
             return
         if msg.guild and msg.guild not in self.manager:
-            self.manager.add_instance(0, DiscordGameInstance())
-        
+            self.manager.add_instance(msg.guild.id, DiscordGameInstance())
+
     @bridge.bridge_command()
     async def user(self, ctx: bridge.BridgeContext, user: User):
         await ctx.respond(f"User: {user.id}")
+    
+    
 
 
 def setup(client):
