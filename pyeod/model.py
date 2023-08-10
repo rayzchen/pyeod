@@ -56,7 +56,7 @@ class Database:
 
     def new_db(starter_elements: List[Element]) -> "Database":
         return Database(
-            elements={i.name: i for i in starter_elements},
+            elements={i.name.lower(): i for i in starter_elements},
             starters=starter_elements,
             combos={},
             users={},
@@ -90,7 +90,7 @@ class GameInstance:
         self.poll_limit = poll_limit
 
     def normalize_starter(self, element: Element) -> Element:
-        return self.db.elements[element.name]
+        return self.db.elements[element.name.lower()]
 
     def login_user(self, user_id) -> User:
         if user_id not in self.db.users:
@@ -103,7 +103,7 @@ class GameInstance:
                 raise GameError(
                     "Not in inv", "The user does not have the element requested"
                 )
-            if i.name not in self.db.elements:
+            if i.name.lower() not in self.db.elements:
                 raise GameError(
                     "Not an element", "The element requested does not exist"
                 )
@@ -121,7 +121,7 @@ class GameInstance:
                 raise GameError(
                     "Not in inv", "The user does not have the element requested"
                 )
-            if i.name not in self.db.elements:
+            if i.name.lower() not in self.db.elements:
                 raise GameError(
                     "Not an element", "The element requested does not exist"
                 )
@@ -132,7 +132,7 @@ class GameInstance:
         for poll in self.db.polls:
             if poll.votes >= self.vote_req:
                 element = Element(poll.result, poll.author, time.time(), len(self.db.elements) + 1)
-                self.db.elements[poll.result.name] = element
+                self.db.elements[poll.result.lower()] = element
                 self.db.combos[poll.combo] = element
             else:
                 new_polls.append(poll)
