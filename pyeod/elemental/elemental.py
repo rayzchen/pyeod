@@ -1,4 +1,5 @@
 from typing import Optional, Dict, Tuple, List
+import time
 
 
 class GameError(Exception):
@@ -120,21 +121,15 @@ class GameInstance:
 
     def check_polls(self) -> None:
         new_polls = []
-        deleted_polls = []
-        for i in self.db.polls:
-            if i.votes >= self.vote_req:
-                self.db.elements[i.result.name] = i.result
-                self.db.combos[i.combo] = i.result
-                deleted_polls.append(i)
-            elif i.votes <= -self.vote_req:
-                deleted_polls.append(i)
+        for poll in self.db.polls:
+            if poll.votes >= self.vote_req:
+                element = Element(poll.result, poll.author, time.time(), len(self.db.elements) + 1)
+                self.db.elements[poll.result.name] = element
+                self.db.combos[poll.combo] = element
             else:
-                new_polls.append(i)
-        
+                new_polls.append(poll)
         self.db.polls = new_polls
-        return deleted_polls
 
-import time
 
 game = GameInstance()
 user = game.login_user(0)
@@ -144,7 +139,7 @@ try:
     game.combine(user, combo)
 except GameError as g:
     if g.type == "Not a combo":
-        game.suggest_element(user, combo, Element("Inferno", user, time.time(), 5))
+        game.suggest_element(user, combo, "Inferno")
 game.db.polls[0].votes += 4
 game.check_polls()
 game.combine(user, combo)
