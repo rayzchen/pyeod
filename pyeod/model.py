@@ -93,6 +93,9 @@ class Database:
             polls=[],
         )
 
+    def has_element(self, element: str) -> bool:
+        return element.lower() in self.elements
+
     def get_combo_result(self, combo: Tuple[Element]) -> Union[Element, None]:
         sorted_combo = tuple(sorted(combo))
         if sorted_combo in self.combos:
@@ -143,7 +146,7 @@ class GameInstance:
         return self.db.users[user_id]
 
     def check_element(self, element_name: str, user: Optional[User] = None) -> Element:
-        if element_name.lower() not in self.db.elements:
+        if not self.db.has_element(element_name):
             raise GameError(
                 "Not an element", "The element requested does not exist"
             )
@@ -167,7 +170,7 @@ class GameInstance:
             raise GameError("Too many active polls")
         # Technically not needed since combine already checks
         element_combo = (self.check_element(name, user) for name in combo)
-        poll = ElementPoll(user, element_combo, result, result.lower() in self.db.elements)
+        poll = ElementPoll(user, element_combo, result, self.db.has_element(result))
         self.db.polls.append(poll)
         user.active_polls += 1
         return poll
