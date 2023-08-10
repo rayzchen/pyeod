@@ -18,7 +18,7 @@ class Config(commands.Cog):
         self.manager = InstanceManager()
         # TODO: load manager here?
 
-    @commands.listen("on_message")
+    @commands.Cog.listener("on_message")
     async def check_for_new_servers(self, msg:Message):
         if not self.manager:  # Messages can be caught before bot is ready
             return
