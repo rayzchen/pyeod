@@ -213,15 +213,18 @@ class InstanceManager:
         else:
             self.instances = {}
 
+    def __contains__(self, id: int) -> bool:
+        return self.has_instance(id)
+    
+    def __getitem__(self, id:int) -> GameInstance:
+        return self.get_instance(id)
+    
     def add_instance(self, id: int, instance: GameInstance) -> None:
         if id in self.instances:
             raise InternalError(
                 "Instance overwrite", "GameInstance already exists with given ID"
             )
         self.instances[id] = instance
-
-    def __contains__(self, id: int) -> bool:
-        return self.has_instance(id)
 
     def has_instance(self, id: int) -> bool:
         return id in self.instances
@@ -239,7 +242,7 @@ if __name__ == "__main__":
     if 0 not in manager:
         instance = GameInstance()
         manager.add_instance(0, instance)
-    game = manager.get_instance(0)
+    game = manager[0]
     user = game.login_user(0)
     combo = ("fire", "fire")
     try:
