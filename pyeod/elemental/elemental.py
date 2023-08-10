@@ -1,4 +1,5 @@
 from typing import Optional, Dict, Tuple, List
+import copy
 import time
 
 
@@ -53,6 +54,15 @@ class Database:
         self.users = users
         self.polls = polls
 
+    def new_db(starting_elements: List[Element]) -> "Database":
+        return Database(
+            elements={i.name: i for i in starting_elements},
+            starters=starting_elements,
+            combos={},
+            users={},
+            polls=[],
+        )
+
 
 AIR = Element("Air", id=1)
 EARTH = Element("Earth", id=2)
@@ -73,7 +83,7 @@ class GameInstance:
         if self.starting_elements is None:
             self.starting_elements = copy.deepcopy(STARTER_ELEMENTS)
         if db == None:
-            self.db = self.new_db()
+            self.db = Database.new_db(self.starting_elements)
         else:
             self.db = db
         self.vote_req = vote_req
@@ -85,9 +95,7 @@ class GameInstance:
     def login_user(self, user_id) -> User:
         if user_id not in self.db.users:
             self.db.users[user_id] = User(self.db.starters, 0, user_id)
-            return self.db.users[user_id]
-        else:
-            return self.db.users[user_id]
+        return self.db.users[user_id]
 
     def combine(self, user: User, combo: Tuple[Element]) -> Element:
         for i in combo:
