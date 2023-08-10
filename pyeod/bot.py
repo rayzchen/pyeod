@@ -6,7 +6,7 @@ import asyncio
 if sys.platform.startswith("win"):
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-from discord import AutoShardedBot
+from discord.ext.bridge import AutoShardedBot
 from pyeod import config
 
 if os.path.isfile(".token"):

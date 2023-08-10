@@ -1,8 +1,7 @@
-from discord.ext import commands, tasks
+from discord.ext import commands, tasks, bridge
 from pyeod.utils import format_traceback
 from pyeod import config
 import os
-
 
 class Main(commands.Cog):
     def __init__(self, bot):
@@ -20,6 +19,10 @@ class Main(commands.Cog):
         error = format_traceback(err, False)
         await ctx.send("There was an error processing the command:\n" + error)
 
+    @bridge.bridge_command(aliases = ["ms"])
+    async def ping(self, ctx):
+        await ctx.respond(f'Pong {round(self.client.latency*1000)}ms')
+    
     @tasks.loop(seconds=2)
     async def restart_checker(self):
         if os.path.isfile(config.stopfile):
