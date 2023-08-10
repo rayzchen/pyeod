@@ -3,10 +3,18 @@ import copy
 import time
 
 
-class GameError(Exception):
+class ModelBaseError(Exception):
     def __init__(self, type: str, message: str = "No Message Provided") -> None:
         self.type = type
         self.message = message
+
+
+class InternalError(ModelBaseError):
+    pass
+
+
+class GameError(ModelBaseError):
+    pass
 
 
 class Element:
