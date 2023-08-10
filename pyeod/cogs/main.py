@@ -1,6 +1,7 @@
 from discord.ext import commands, tasks
 from pyeod.utils import format_traceback
 from pyeod import config
+import os
 
 class Main(commands.Cog):
     def __init__(self, bot):
