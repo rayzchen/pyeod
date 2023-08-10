@@ -1,4 +1,5 @@
 from discord.ext import commands, tasks, bridge
+from discord import User
 from pyeod.utils import format_traceback
 from pyeod import config
 import os
@@ -16,12 +17,20 @@ class Main(commands.Cog):
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, err):
-        error = format_traceback(err)
-        await ctx.send("There was an error processing the command:\n" + error)
+        # Handle different exceptions from parsing arguments here
+        if isinstance(err, commands.UserNotFound):
+            await ctx.send(str(err))
+        else:
+            error = format_traceback(err)
+            await ctx.send("There was an error processing the command:\n" + error)
 
     @bridge.bridge_command(aliases = ["ms"])
     async def ping(self, ctx):
         await ctx.respond(f'Pong {round(self.bot.latency*1000)}ms')
+    
+    @bridge.bridge_command()
+    async def user(self, ctx, user: User):
+        await ctx.respond(f"User: {user.id}")
     
     @tasks.loop(seconds=2)
     async def restart_checker(self):
