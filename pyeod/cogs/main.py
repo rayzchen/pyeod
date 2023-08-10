@@ -25,7 +25,9 @@ class Main(commands.Cog):
         if isinstance(err, commands.errors.UserNotFound):
             await ctx.send(str(err))
         else:
-            print("".join(traceback.format_exception(type(err), err, err.__traceback__)))
+            print(
+                "".join(traceback.format_exception(type(err), err, err.__traceback__))
+            )
             error = format_traceback(err)
             await ctx.send("There was an error processing the command:\n" + error)
 

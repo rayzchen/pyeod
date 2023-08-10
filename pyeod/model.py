@@ -51,6 +51,7 @@ class Poll:
     def resolve(self, database):
         pass
 
+
 class ElementPoll(Poll):
     def __init__(
         self, author: User, combo: Tuple[Element, ...], result: str, exists: bool
@@ -148,9 +149,7 @@ class GameInstance:
 
     def check_element(self, element_name: str, user: Optional[User] = None) -> Element:
         if not self.db.has_element(element_name):
-            raise GameError(
-                "Not an element", "The element requested does not exist"
-            )
+            raise GameError("Not an element", "The element requested does not exist")
         element = self.db.elements[element_name.lower()]
         if user is not None and element not in user.inv:
             raise GameError(
@@ -200,6 +199,7 @@ class GameInstance:
 
 class InstanceManager:
     current: Union["InstanceManager", None] = None
+
     def __init__(self, instances: Optional[Dict[int, GameInstance]] = None) -> None:
         InstanceManager.current = self
         if instances is not None:
