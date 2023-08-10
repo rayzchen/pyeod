@@ -120,7 +120,7 @@ class GameInstance:
         assert starter in self.starter_elements
         return starter
 
-    def login_user(self, user_id) -> User:
+    def login_user(self, user_id: int) -> User:
         if user_id not in self.db.users:
             self.db.users[user_id] = User(self.db.starters, 0, user_id)
         return self.db.users[user_id]
@@ -141,7 +141,7 @@ class GameInstance:
         user.inv.append(result)
         return result
 
-    def suggest_element(self, user: User, combo: Tuple[Element], result: str):
+    def suggest_element(self, user: User, combo: Tuple[Element], result: str) -> Poll:
         if user.active_polls > self.poll_limit:
             raise GameError("Too many active polls")
         for i in combo:
@@ -153,7 +153,9 @@ class GameInstance:
                 raise GameError(
                     "Not an element", "The element requested does not exist"
                 )
-        self.db.polls.append(Poll(combo, result, user, 0))
+        poll = Poll(combo, result, user, 0)
+        self.db.polls.append(poll)
+        return poll
 
     def check_polls(self) -> List[Poll]:
         new_polls = []
