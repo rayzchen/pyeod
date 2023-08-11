@@ -6,6 +6,7 @@ from pyeod.model import GameError
 from pyeod.frontend import DiscordGameInstance, InstanceManager
 from pyeod import config, frontend
 from typing import Union
+import functools
 import traceback
 import os
 
@@ -27,14 +28,16 @@ class Main(commands.Cog):
     ):
         # Handle different exceptions from parsing arguments here
         if isinstance(err, commands.errors.UserNotFound):
-            await ctx.send(str(err))
+            await ctx.channel.send(str(err))
         else:
             print(
                 "".join(traceback.format_exception(type(err), err, err.__traceback__)),
                 end=""
             )
-            error = format_traceback(err.__cause__)
-            await ctx.send("There was an error processing the command:\n" + error)
+            if err.__cause__ is not None:
+                err = err.__cause__
+            error = format_traceback(err)
+            await ctx.channel.send("There was an error processing the command:\n" + error)
 
     @bridge.bridge_command(aliases=["ms"])
     async def ping(self, ctx: bridge.BridgeContext):
@@ -53,7 +56,18 @@ class Main(commands.Cog):
             self.restart_checker.stop()
             await self.bot.close()
 
+    @staticmethod
+    def handle_errors(func):
+        @functools.wraps(func)
+        async def inner(self, msg: Message):
+            try:
+                await func(self, msg)
+            except Exception as e:
+                await self.on_command_error(msg, e)
+        return inner
+
     @commands.Cog.listener("on_message")
+    @handle_errors
     async def message_handler(self, msg: Message):
         server = InstanceManager.current.get_or_create(
             msg.guild.id, DiscordGameInstance
