@@ -194,7 +194,7 @@ class Database:
     def convert_to_dict(self, data: dict) -> None:
         # Users MUST be first
         data["users"] = self.users
-        data["elements"] = self.elements
+        data["elements"] = list(self.elements.values())
         data["starters"] = [elem.id for elem in self.starters]
         data["combos"] = {}
         for combo in self.combos:
@@ -209,11 +209,13 @@ class Database:
         for combo_ids in data["combos"]:
             key = tuple(int(id) for id in combo_ids.split(","))
             combos[key] = loader.elem_id_lookup[data["combos"][combo_ids]]
+        users = {int(id): user for id, user in data["users"].items()}
+
         return Database(
-            data["elements"],
+            {elem.name.lower(): elem for elem in data["elements"]},
             starters,
             combos,
-            data["users"],
+            users,
             data["polls"]
         )
 
