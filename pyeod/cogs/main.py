@@ -135,7 +135,7 @@ class Main(commands.Cog):
                 "Suggested "
                 + " + ".join([i.name for i in user.last_combo])
                 + " = "
-                + name
+                + poll.result
             )
 
 

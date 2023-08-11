@@ -111,13 +111,19 @@ class Poll:
         raise TypeError
 
 
+def capitalize(name: str) -> str:
+    if name.lower() != name:
+        return name
+    words = [word.capitalize() for word in name.split(" ")]
+    return " ".join(words)
+
 class ElementPoll(Poll):
     def __init__(
         self, author: User, combo: Tuple[Element, ...], result: str, exists: bool
     ) -> None:
         super(ElementPoll, self).__init__(author)
         self.combo = combo
-        self.result = result
+        self.result = capitalize(result)
         self.exists = exists
 
     def resolve(self, database: "Database") -> Element:  # Return Element back
@@ -282,7 +288,7 @@ class GameInstance:
         user.add_element(result)
         return result
 
-    def suggest_element(self, user: User, combo: Tuple[str, ...], result: str) -> Poll:
+    def suggest_element(self, user: User, combo: Tuple[str, ...], result: str) -> ElementPoll:
         if user.active_polls > self.poll_limit:
             raise GameError("Too many active polls")
         element_combo = tuple(self.check_element(name, user) for name in combo)
@@ -335,8 +341,7 @@ if __name__ == "__main__":
         game.combine(user, combo)
     except GameError as g:
         if g.type == "Not a combo":
-            game.suggest_element(user, combo, "Inferno")
+            game.suggest_element(user, combo, "inferno")
     game.db.polls[0].votes += 4
     game.check_polls()
-    game.combine(user, combo)
     print(user.inv)
