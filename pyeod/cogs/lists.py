@@ -1,10 +1,25 @@
 from discord.ext import commands, bridge, pages
 from discord import User, Embed, ButtonStyle
+from discord.ext.pages.pagination import Page, PageGroup, PaginatorButton
 from pyeod.frontend import DiscordGameInstance, InstanceManager
 import math
 
 
 class FooterPaginator(pages.Paginator):
+    def __init__(self, pages) -> None:
+        buttons = [
+            pages.PaginatorButton("prev", "◀", style=ButtonStyle.blurple),
+            pages.PaginatorButton("next", "▶", style=ButtonStyle.blurple)
+        ]
+        super(FooterPaginator, self).__init__(
+            pages,
+            show_indicator=False,
+            author_check=False,
+            use_default_buttons=False,
+            loop_pages=True,
+            custom_buttons=buttons
+        )
+
     def update_buttons(self):
         buttons = super(FooterPaginator, self).update_buttons()
         page = self.pages[self.current_page]
@@ -23,33 +38,24 @@ class Lists(commands.Cog):
             ctx.guild.id, DiscordGameInstance
         )
         if user is None:
-            logged_in = server.login_user(ctx.author.id)
+            user = ctx.author.id
         elif user.id not in server.db.users:
+            # If user was None, this shouldn't run
             await ctx.respond("User not found!")
             return
-        else:
-            logged_in = server.login_user(user.id)
 
+        logged_in = server.login_user(user.id)
         elements = [
             server.db.elem_id_lookup[elem].name for elem in logged_in.inv
         ]
-        page_list = []
+        embeds = []
         for i in range(math.ceil(len(elements) / 30)):
-            page_list.append(Embed(description="\n".join(elements[i*30:i*30+30])))
+            embeds.append(Embed(
+                title=user.display_name + "'s Inventory",
+                description="\n".join(elements[i*30:i*30+30])
+            ))
 
-        buttons = [
-            pages.PaginatorButton("prev", "◀", style=ButtonStyle.blurple),
-            pages.PaginatorButton("next", "▶", style=ButtonStyle.blurple)
-        ]
-
-        paginator = FooterPaginator(
-            page_list,
-            show_indicator=False,
-            author_check=False,
-            use_default_buttons=False,
-            loop_pages=True,
-            custom_buttons=buttons
-        )
+        paginator = FooterPaginator(embeds)
         await paginator.respond(ctx)
 
 
