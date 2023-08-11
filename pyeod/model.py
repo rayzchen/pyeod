@@ -43,6 +43,21 @@ class Element:
         data["created"] = self.created
         data["id"] = self.id
 
+    @staticmethod
+    def convert_from_dict(loader, data: dict) -> "Element":
+        if data["author"] is None:
+            author = None
+        else:
+            author = loader.users[data["author"]]
+        element = Element(
+            data["name"],
+            author,
+            data["created"],
+            data["id"]
+        )
+        loader.elem_id_lookup[element.id] = element
+        return element
+
 
 class User:
     def __init__(
@@ -67,7 +82,16 @@ class User:
         data["inv"] = self.inv
         data["active_polls"] = self.active_polls
         data["id"] = self.id
-        data["last_combo"] = self.last_combo
+
+    @staticmethod
+    def convert_from_dict(loader, data: dict) -> "User":
+        user = User(
+            data["inv"],
+            data["active_polls"],
+            data["id"],
+        )
+        loader.users[user.id] = user
+        return user
 
 
 class Poll:
@@ -80,6 +104,10 @@ class Poll:
         pass
 
     def convert_to_dict(self, data: dict) -> None:
+        raise TypeError
+
+    @staticmethod
+    def convert_from_dict(loader, data: dict) -> "Poll":
         raise TypeError
 
 
@@ -106,6 +134,16 @@ class ElementPoll(Poll):
         data["combo"] = [elem.id for elem in self.combo]
         data["result"] = self.result
         data["exists"] = self.exists
+
+    @staticmethod
+    def convert_from_dict(loader, data: dict) -> "ElementPoll":
+        return ElementPoll(
+            data["author"],
+            data["votes"],
+            [loader.elem_id_lookup[elem] for elem in data["combo"]],
+            data["result"],
+            data["exists"]
+        )
 
 
 class Database:
@@ -154,14 +192,30 @@ class Database:
         self.combos[sorted_combo] = result
 
     def convert_to_dict(self, data: dict) -> None:
+        # Users MUST be first
+        data["users"] = self.users
         data["elements"] = self.elements
         data["starters"] = [elem.id for elem in self.starters]
         data["combos"] = {}
         for combo in self.combos:
             combo_ids = ",".join(str(elem) for elem in combo)
             data["combos"][combo_ids] = self.combos[combo].id
-        data["users"] = self.users
         data["polls"] = self.polls
+
+    @staticmethod
+    def convert_from_dict(loader, data: dict) -> "Database":
+        starters = [loader.elem_id_lookup[elem] for elem in data["starters"]]
+        combos = {}
+        for combo_ids in data["combos"]:
+            key = tuple(int(id) for id in combo_ids.split(","))
+            combos[key] = loader.elem_id_lookup[data["combos"][combo_ids]]
+        return Database(
+            data["elements"],
+            starters,
+            combos,
+            data["users"],
+            data["polls"]
+        )
 
 
 AIR = Element("Air", id=1)
@@ -174,14 +228,14 @@ DEFAULT_STARTER_ELEMENTS = (AIR, EARTH, FIRE, WATER)
 class GameInstance:
     def __init__(
         self,
-        starter_elements: Optional[Tuple[Element, ...]] = None,
         db: Optional[Database] = None,
         vote_req: int = 4,
         poll_limit: int = 21,
+        starter_elements: Optional[Tuple[Element, ...]] = None,
     ) -> None:
-        if starter_elements is None:
-            starter_elements = copy.deepcopy(DEFAULT_STARTER_ELEMENTS)
-        if db == None:
+        if db is None:
+            if starter_elements is None:
+                starter_elements = copy.deepcopy(DEFAULT_STARTER_ELEMENTS)
             self.db = Database.new_db(starter_elements)
         else:
             self.db = db
@@ -261,6 +315,14 @@ class GameInstance:
         data["db"] = self.db
         data["vote_req"] = self.vote_req
         data["poll_limit"] = self.poll_limit
+
+    @staticmethod
+    def convert_from_dict(loader, data: dict) -> "GameInstance":
+        return GameInstance(
+            data["db"],
+            data["vote_req"],
+            data["poll_limit"]
+        )
 
 
 if __name__ == "__main__":

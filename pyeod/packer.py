@@ -1,9 +1,16 @@
 from pyeod.model import Element, User, Poll, ElementPoll, Database, GameInstance
 from pyeod.frontend import DiscordGameInstance
 import simplejson
+import functools
 
 types = [Element, User, Poll, ElementPoll, Database, GameInstance, DiscordGameInstance]
-type_dict = {t.__name__ for t in types}
+type_dict = {t.__name__: t for t in types}
+
+
+class InstanceLoader:
+    def __init__(self) -> None:
+        self.users = {}
+        self.elem_id_lookup = {}
 
 
 def convert_to_dict(obj: object) -> dict:
@@ -13,6 +20,14 @@ def convert_to_dict(obj: object) -> dict:
     data = {"__type__": type(obj).__name__}
     obj.convert_to_dict(data)
     return data
+
+
+def convert_from_dict(loader: InstanceLoader, data: dict) -> object:
+    if "__type__" not in data:
+        return data
+
+    type = type_dict[data["__type__"]]
+    return type.convert_from_dict(loader, data)
 
 
 if __name__ == "__main__":
@@ -26,4 +41,10 @@ if __name__ == "__main__":
             game.suggest_element(user, combo, "Inferno")
     game.db.polls[0].votes += 4
     game.check_polls()
-    print(simplejson.dumps(game, default=convert_to_dict))
+
+    dump = simplejson.dumps(game, default=convert_to_dict)
+    loader = InstanceLoader()
+    loaded_game = simplejson.loads(dump, object_hook=functools.partial(convert_from_dict, loader))
+    dump2 = simplejson.dumps(loaded_game, default=convert_to_dict)
+    print(dump)
+    print(dump2)
