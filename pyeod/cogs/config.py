@@ -3,8 +3,10 @@ from discord import User, Message, TextChannel
 from pyeod.model import InternalError
 from pyeod.frontend import DiscordGameInstance, InstanceManager
 from pyeod.utils import format_traceback
+from pyeod.packer import save_instance, load_instance
 from pyeod import config
 import traceback
+import glob
 import os
 
 
@@ -14,7 +16,19 @@ class Config(commands.Cog):
         print("Loading instance manager")
         # Manager instance is stored under InstanceManager.current
         manager = InstanceManager()
-        # TODO: load manager here?
+        print("Loading instance databases")
+        for file in glob.glob(os.path.join(config.package, "db", "*.eod")):
+            print(file)
+            instance = load_instance(file)
+            manager.add_instance(int(os.path.basename(file)[:-4]), instance)
+        print("Loaded instance databases")
+
+        self.save.start()
+
+    @tasks.loop(seconds=5)
+    async def save(self):
+        for id, instance in InstanceManager.current.instances.items():
+            save_instance(instance, str(id) + ".eod")
 
     @commands.Cog.listener("on_message")
     async def check_for_new_servers(self, msg: Message):
