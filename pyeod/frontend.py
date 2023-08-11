@@ -44,7 +44,7 @@ class DiscordGameInstance(GameInstance):
 
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "DiscordGameInstance":
-        return GameInstance(
+        return DiscordGameInstance(
             data["db"],
             data["vote_req"],
             data["poll_limit"],
