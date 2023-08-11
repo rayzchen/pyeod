@@ -22,18 +22,38 @@ class DiscordGameInstance(GameInstance):
     # TODO: override serialization function to include channels attribute
     def __init__(
         self,
-        starter_elements: Optional[Tuple[Element, ...]] = None,
         db: Optional[Database] = None,
         vote_req: int = 0,
         poll_limit: int = 21,
         channels: Optional[ChannelList] = None,
+        starter_elements: Optional[Tuple[Element, ...]] = None,
     ) -> None:
-        super().__init__(starter_elements, db, vote_req, poll_limit)
+        super().__init__(db, vote_req, poll_limit, starter_elements)
         if channels is None:
             self.channels = ChannelList()
         else:
             self.channels = channels
 
+    def convert_to_dict(self, data: dict) -> None:
+        super(DiscordGameInstance, self).convert_to_dict(data)
+        data["channels"] = {
+            "news": self.channels.news_channel,
+            "voting": self.channels.voting_channel,
+            "play": self.channels.play_channels
+        }
+
+    @staticmethod
+    def convert_from_dict(loader, data: dict) -> "DiscordGameInstance":
+        return GameInstance(
+            data["db"],
+            data["vote_req"],
+            data["poll_limit"],
+            ChannelList(
+                data["channels"]["news"],
+                data["channels"]["voting"],
+                data["channels"]["play"],
+            )
+        )
 
 InstT = TypeVar("InstT", bound=GameInstance)
 

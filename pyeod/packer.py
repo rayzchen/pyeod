@@ -1,7 +1,10 @@
 from pyeod.model import Element, User, Poll, ElementPoll, Database, GameInstance
 from pyeod.frontend import DiscordGameInstance
+from pyeod import config
 import simplejson
+import msgpack
 import functools
+import os
 
 types = [Element, User, Poll, ElementPoll, Database, GameInstance, DiscordGameInstance]
 type_dict = {t.__name__: t for t in types}
@@ -28,6 +31,11 @@ def convert_from_dict(loader: InstanceLoader, data: dict) -> object:
 
     type = type_dict[data["__type__"]]
     return type.convert_from_dict(loader, data)
+
+
+def save_instance(instance: GameInstance, filename: str) -> None:
+    with open(os.path.join(config.package, "db", filename), "wb+") as f:
+        msgpack.dump(instance, f, default=convert_to_dict)
 
 
 if __name__ == "__main__":

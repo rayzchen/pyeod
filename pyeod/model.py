@@ -127,10 +127,13 @@ class ElementPoll(Poll):
         self.exists = exists
 
     def resolve(self, database: "Database") -> Element:  # Return Element back
-        element = Element(
-            self.result, self.author, round(time.time()), len(database.elements) + 1
-        )
-        database.add_element(element)
+        if not self.exists:
+            element = Element(
+                self.result, self.author, round(time.time()), len(database.elements) + 1
+            )
+            database.add_element(element)
+        else:
+            element = database.elements[self.result.lower()]
         database.set_combo_result(self.combo, element)
         return element
 
