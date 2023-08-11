@@ -6,13 +6,13 @@ import math
 
 
 class FooterPaginator(pages.Paginator):
-    def __init__(self, pages) -> None:
+    def __init__(self, page_list) -> None:
         buttons = [
             pages.PaginatorButton("prev", "◀", style=ButtonStyle.blurple),
             pages.PaginatorButton("next", "▶", style=ButtonStyle.blurple)
         ]
         super(FooterPaginator, self).__init__(
-            pages,
+            page_list,
             show_indicator=False,
             author_check=False,
             use_default_buttons=False,
