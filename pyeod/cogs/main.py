@@ -43,6 +43,15 @@ class Main(commands.Cog):
     async def ping(self, ctx: bridge.BridgeContext):
         await ctx.respond(f"Pong {round(self.bot.latency*1000)}ms")
 
+    @bridge.bridge_command()
+    async def clear_polls(self, ctx: bridge.BridgeContext):
+        server = InstanceManager.current.get_or_create(
+            ctx.guild.id, DiscordGameInstance
+        )
+        server.db.polls.clear()
+        # TODO: delete polls and notify in news
+        await ctx.reply("Cleared polls!")
+
     @tasks.loop(seconds=2)
     async def restart_checker(self):
         if os.path.isfile(config.stopfile):
