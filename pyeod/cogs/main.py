@@ -5,6 +5,7 @@ from pyeod.utils import format_traceback
 from pyeod.model import GameError
 from pyeod.frontend import DiscordGameInstance, InstanceManager
 from pyeod import config, frontend
+from typing import Union
 import traceback
 import os
 
@@ -52,7 +53,7 @@ class Main(commands.Cog):
             await self.bot.close()
 
     @commands.Cog.listener("on_message")
-    async def combine_elements(self, msg: Message):
+    async def message_handler(self, msg: Message):
         server = InstanceManager.current.get_or_create(msg.guild.id, DiscordGameInstance)
         if msg.channel.id not in server.channels.play_channels:
             return
@@ -61,10 +62,22 @@ class Main(commands.Cog):
         if msg.content.startswith("!"):
             return
 
-        elements = []
-        if len(msg.content.split("\n")) > 1:
-            elements = msg.content.split("\n")
+        if msg.content.startswith("?"):
+            await self.show_element_info(server, msg)
+        elif msg.content.startswith("="):
+            await self.suggest_element(server, msg.content[1:], msg)
         else:
+            await self.combine_elements(server, msg)
+
+    async def show_element_info(self, server: DiscordGameInstance, msg: Message) -> None:
+        element_name = msg.content[1:].strip()
+        element = server.check_element(element_name)
+        user = server.login_user(msg.author.id)
+
+        embed = await frontend.build_info_embed(self.bot, element, user)
+        await msg.reply(embed=embed)
+
+    async def combine_elements(self, server: DiscordGameInstance, msg: Message) -> None:
         elements = frontend.parse_element_list(msg.content)
 
         user = server.login_user(msg.author.id)
@@ -76,21 +89,30 @@ class Main(commands.Cog):
                 await msg.reply(
                     "Not a combo, use !s <element_name> to suggest an element"
                 )
-            if g.type == "Already have element":
-                await msg.reply(g.message)
-            if g.type == "Not in inv":
-                await msg.reply(
-                    "You don't have one or more of those elements"
-                )  # Todo: Fix how vague this is
-            if g.type == "Not an element":
-                await msg.reply("Not a valid element")
+            else:
+                user.last_combo = ()
+                if g.type == "Already have element":
+                    await msg.reply(g.message)
+                if g.type == "Not in inv":
+                    await msg.reply(
+                        "You don't have one or more of those elements"
+                    )  # Todo: Fix how vague this is
+                if g.type == "Not an element":
+                    await msg.reply("Not a valid element")
 
     @bridge.bridge_command(aliases=["s"])
     async def suggest(self, ctx: bridge.BridgeContext, *, element_name: str):
         server = InstanceManager.current.get_or_create(ctx.guild.id, DiscordGameInstance)
         if ctx.channel.id not in server.channels.play_channels:
             return
+        await self.suggest_element(server, element_name, ctx)
 
+    async def suggest_element(
+        self,
+        server: DiscordGameInstance,
+        name: str,
+        ctx: Union[bridge.BridgeContext, Message]
+    ) -> None:
         user = server.login_user(ctx.author.id)
 
         if user.last_combo == ():

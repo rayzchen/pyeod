@@ -1,7 +1,6 @@
 from typing import Optional, Tuple, List, Union, Dict, Type, TypeVar
-from pyeod.model import Database, Element, GameInstance, InternalError
-from discord import TextChannel
-
+from pyeod.model import Database, Element, GameInstance, InternalError, User
+from discord import Client, Embed, EmbedField
 
 class ChannelList:
     def __init__(
@@ -93,3 +92,36 @@ def parse_element_list(content: str) -> List[str]:
         elements = content.split(",")
     stripped_elements = [item.strip() for item in elements]
     return stripped_elements
+
+
+async def build_info_embed(bot: Client, element: Element, user: User) -> Embed:
+    description = f"Element **#{element.id}**\n"
+    if element in user.inv:
+        description += "**You have this.**"
+    else:
+        description += "**You don't have this.**"
+    description += "\n\n**Mark**\n"
+    # TODO: add mark
+
+    creator = await bot.fetch_user(element.author.id)
+    if element.created == 0:
+        timestamp = "The Dawn Of Time"
+    else:
+        timestamp = f"<t:{element.created}>"
+
+    return Embed(
+        title=element.name + " Info",
+        description=description,
+        fields=[
+            EmbedField("Creator", creator.mention, True),
+            EmbedField("Created On", timestamp, True),
+            EmbedField("Tree Size", "N/A", True),
+            EmbedField("Made With", "N/A", True),
+            EmbedField("Used In", "N/A", True),
+            EmbedField("Found By", "N/A", True),
+            EmbedField("Commenter", "N/A", True),
+            EmbedField("Colorer", "N/A", True),
+            EmbedField("Imager", "N/A", True),
+            EmbedField("Categories", "N/A", False),
+        ]
+    )
