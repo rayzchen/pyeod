@@ -50,7 +50,7 @@ class Lists(commands.Cog):
         for i in range(math.ceil(len(elements) / 30)):
             embeds.append(
                 Embed(
-                    title=user.display_name + "'s Inventory",
+                    title=user.display_name + f"'s Inventory ({len(logged_in.inv)})",
                     description="\n".join(elements[i * 30 : i * 30 + 30]),
                 )
             )
