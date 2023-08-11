@@ -30,9 +30,10 @@ class Main(commands.Cog):
             await ctx.send(str(err))
         else:
             print(
-                "".join(traceback.format_exception(type(err), err, err.__traceback__))
+                "".join(traceback.format_exception(type(err), err, err.__traceback__)),
+                end=""
             )
-            error = format_traceback(err)
+            error = format_traceback(err.__cause__)
             await ctx.send("There was an error processing the command:\n" + error)
 
     @bridge.bridge_command(aliases=["ms"])
