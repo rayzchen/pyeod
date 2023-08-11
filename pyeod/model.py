@@ -77,11 +77,11 @@ class ElementPoll(Poll):
         self.result = result
         self.exists = exists
 
-    def resolve(self, database) -> Element:  # Return Element back
+    def resolve(self, database: "Database") -> Element:  # Return Element back
         element = Element(
             self.result, self.author, round(time.time()), len(database.elements) + 1
         )
-        database.elements[self.result.lower()] = element
+        database.add_element(element)
         database.set_combo_result(self.combo, element)
         return element
 
@@ -96,6 +96,7 @@ class Database:
         polls: List[Poll],
     ) -> None:
         self.elements = elements
+        self.elem_id_lookup = {elem.id: elem for elem in self.elements.values()}
         self.starters = starters
         self.combos = combos
         self.users = users
@@ -110,6 +111,10 @@ class Database:
             users={},
             polls=[],
         )
+
+    def add_element(self, element: Element):
+        self.elements[element.name.lower()] = element
+        self.elem_id_lookup[element.id] = element
 
     def has_element(self, element: str) -> bool:
         return element.lower() in self.elements
