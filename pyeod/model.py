@@ -41,7 +41,7 @@ class Element:
 class User:
     def __init__(
         self,
-        inv: List[Element],
+        inv: List[int],
         active_polls: int,
         id: int,
         last_combo: Tuple[Element, ...] = (),
@@ -54,8 +54,8 @@ class User:
     def add_element(
         self, element: Element
     ):  # Maybe raise an error if a duplicate element is added?
-        if element not in self.inv:
-            self.inv.append(element)
+        if element.id not in self.inv:
+            self.inv.append(element.id)
 
 
 class Poll:
@@ -91,7 +91,7 @@ class Database:
         self,
         elements: Dict[str, Element],
         starters: Tuple[Element, ...],
-        combos: Dict[Tuple[Element, ...], Element],
+        combos: Dict[Tuple[int, ...], Element],
         users: Dict[int, User],
         polls: List[Poll],
     ) -> None:
@@ -115,13 +115,13 @@ class Database:
         return element.lower() in self.elements
 
     def get_combo_result(self, combo: Tuple[Element, ...]) -> Union[Element, None]:
-        sorted_combo = tuple(sorted(combo))
+        sorted_combo = tuple(sorted(elem.id for elem in combo))
         if sorted_combo in self.combos:
             return self.combos[sorted_combo]
         return None
 
     def set_combo_result(self, combo: Tuple[Element, ...], result: Element) -> None:
-        sorted_combo = tuple(sorted(combo))
+        sorted_combo = tuple(sorted(elem.id for elem in combo))
         if sorted_combo in self.combos:
             raise InternalError("Combo exists", "That combo already exists")
         self.combos[sorted_combo] = result
@@ -159,7 +159,8 @@ class GameInstance:
 
     def login_user(self, user_id: int) -> User:
         if user_id not in self.db.users:
-            self.db.users[user_id] = User(list(self.db.starters), 0, user_id)
+            inv = [elem.id for elem in self.db.starters]
+            self.db.users[user_id] = User(inv, 0, user_id)
         return self.db.users[user_id]
 
     def check_element(self, element_name: str, user: Optional[User] = None) -> Element:
@@ -168,7 +169,7 @@ class GameInstance:
                 "Not an element", "The element requested does not exist"
             )  # Is message needed?
         element = self.db.elements[element_name.lower()]
-        if user is not None and element not in user.inv:
+        if user is not None and element.id not in user.inv:
             raise GameError(
                 "Not in inv", "The user does not have the element requested"
             )
@@ -180,7 +181,7 @@ class GameInstance:
         result = self.db.get_combo_result(element_combo)
         if result is None:
             raise GameError("Not a combo", "That combo does not exist")
-        if result in user.inv:
+        if result.id in user.inv:
             raise GameError(
                 "Already have element",
                 f"You made {result.name}, but you already have it",
