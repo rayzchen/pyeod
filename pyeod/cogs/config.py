@@ -40,8 +40,7 @@ class Config(commands.Cog):
 
         server = self.bot.manager.get_instance(ctx.guild.id)
 
-        server.channels.play_channels.append(channel)
-
+        server.channels.play_channels.append(channel.id)
         await ctx.respond(f"Successfully added {channel.name} as a play channel!")
 
     @commands.slash_command()
@@ -56,7 +55,7 @@ class Config(commands.Cog):
         server = self.bot.manager.get_instance(ctx.guild.id)
 
         try:
-            server.channels.play_channels.remove(channel)
+            server.channels.play_channels.remove(channel.id)
             await ctx.respond(f"Successfully removed {channel.name} as a play channel!")
         except ValueError:
             await ctx.respond(f"That is not a play channel")
@@ -70,7 +69,7 @@ class Config(commands.Cog):
 
         server = self.bot.manager.get_instance(ctx.guild.id)
 
-        server.channels.news_channel = channel
+        server.channels.news_channel = channel.id
 
         await ctx.respond(f"Successfully added {channel.name} as the news channel!")
 
@@ -78,13 +77,7 @@ class Config(commands.Cog):
     async def add_voting_channel(self, ctx: bridge.BridgeContext, channel: TextChannel):
         # TODO: Add permissions locks so that only certain roles can add channels
 
-        if ctx.guild and ctx.guild.id not in self.bot.manager:
-            self.bot.manager.add_instance(ctx.guild.id, DiscordGameInstance())
-
-        server = self.bot.manager.get_instance(ctx.guild.id)
-
-        server.channels.voting_channel = channel
-
+        server.channels.voting_channel = channel.id
         await ctx.respond(f"Successfully added {channel.name} as the voting channel!")
 
     @bridge.bridge_command()

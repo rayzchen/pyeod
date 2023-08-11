@@ -61,11 +61,7 @@ class Main(commands.Cog):
         server: DiscordGameInstance = self.bot.manager.get_instance(
             msg.guild.id
         )  # Intellisense not working so extra annotation
-
-        if (
-            await self.bot.fetch_channel(msg.channel.id)
-            not in server.channels.play_channels
-        ):
+        if msg.channel.id not in server.channels.play_channels:
             return
 
         if msg.author.bot:  # No bots in eod
@@ -109,10 +105,7 @@ class Main(commands.Cog):
 
         server: DiscordGameInstance = self.bot.manager.get_instance(ctx.guild.id)
 
-        if (
-            await self.bot.fetch_channel(ctx.channel.id)
-            not in server.channels.play_channels
-        ):
+        if ctx.channel.id not in server.channels.play_channels:
             return
 
         user = server.login_user(ctx.author.id)

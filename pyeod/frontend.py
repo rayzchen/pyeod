@@ -6,9 +6,9 @@ from discord import TextChannel
 class ChannelList:
     def __init__(
         self,
-        news_channel: TextChannel = None,
-        voting_channel: TextChannel = None,
-        play_channels: Optional[List[TextChannel]] = None,
+        news_channel: int = None,
+        voting_channel: int = None,
+        play_channels: Optional[List[int]] = None,
     ) -> None:
         self.news_channel = news_channel
         self.voting_channel = voting_channel
