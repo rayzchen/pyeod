@@ -22,14 +22,7 @@ if not token:
 
 opts = {
     "auto_sync_commands": True,
-    "intents": Intents(
-        messages=True,
-        guilds=False,
-        reactions=True,
-        members=False,
-        presences=False,
-        message_content=True,
-    ),
+    "intents": Intents.all(),
     "command_prefix": when_mentioned_or("!"),
     "case_insensitive": True,
 }

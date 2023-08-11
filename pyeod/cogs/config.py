@@ -1,5 +1,6 @@
 from discord.ext import commands, tasks, bridge, pages
-from discord import User, Message, TextChannel
+from discord import User, Message, TextChannel, Role, Member, Guild
+from discord.utils import get
 from pyeod.model import InternalError
 from pyeod.frontend import DiscordGameInstance, InstanceManager
 from pyeod.utils import format_traceback
@@ -20,7 +21,8 @@ class Config(commands.Cog):
         for file in glob.glob(os.path.join(config.package, "db", "*.eod")):
             print(file)
             instance = load_instance(file)
-            manager.add_instance(int(os.path.basename(file)[:-4]), instance)
+            guild_id = int(os.path.basename(file)[:-4])
+            manager.add_instance(guild_id, instance)
         print("Loaded instance databases")
 
         self.save.start()
@@ -39,11 +41,18 @@ class Config(commands.Cog):
     # Slash commands only cus converting to channel is busted
     @commands.slash_command()
     async def add_play_channel(self, ctx: bridge.BridgeContext, channel: TextChannel):
-        # TODO: Add permissions locks so that only certain roles can add channels
-
         server = InstanceManager.current.get_or_create(
             ctx.guild.id, DiscordGameInstance
         )
+        
+        guild = await self.bot.fetch_guild(ctx.guild.id)
+        
+        if (
+            get(guild.roles, id = server.mod_role) not in ctx.author.roles
+            and ctx.author.id != guild.owner_id
+        ):
+            return
+
         server.channels.play_channels.append(channel.id)
         await ctx.respond(f"Successfully added {channel.name} as a play channel!")
 
@@ -51,11 +60,17 @@ class Config(commands.Cog):
     async def remove_play_channel(
         self, ctx: bridge.BridgeContext, channel: TextChannel
     ):
-        # TODO: Add permissions locks so that only certain roles can add channels
-
         server = InstanceManager.current.get_or_create(
             ctx.guild.id, DiscordGameInstance
         )
+        
+        guild = await self.bot.fetch_guild(ctx.guild.id)
+        
+        if (
+            get(guild.roles, id = server.mod_role) not in ctx.author.roles
+            and ctx.author.id != guild.owner_id
+        ):
+            return
 
         try:
             server.channels.play_channels.remove(channel.id)
@@ -65,23 +80,56 @@ class Config(commands.Cog):
 
     @commands.slash_command()
     async def set_news_channel(self, ctx: bridge.BridgeContext, channel: TextChannel):
-        # TODO: Add permissions locks so that only certain roles can add channels
-
         server = InstanceManager.current.get_or_create(
             ctx.guild.id, DiscordGameInstance
         )
+        
+        
+        guild = await self.bot.fetch_guild(ctx.guild.id)
+        
+        if (
+            get(guild.roles, id = server.mod_role) not in ctx.author.roles
+            and ctx.author.id != guild.owner_id
+        ):
+            return
+
         server.channels.news_channel = channel.id
         await ctx.respond(f"Successfully set {channel.name} as the news channel!")
 
     @commands.slash_command()
     async def set_voting_channel(self, ctx: bridge.BridgeContext, channel: TextChannel):
-        # TODO: Add permissions locks so that only certain roles can add channels
-
         server = InstanceManager.current.get_or_create(
             ctx.guild.id, DiscordGameInstance
         )
+        
+        guild = await self.bot.fetch_guild(ctx.guild.id)
+        
+        if (
+            get(guild.roles, id = server.mod_role) not in ctx.author.roles
+            and ctx.author.id != guild.owner_id
+        ):
+            return
+        
         server.channels.voting_channel = channel.id
         await ctx.respond(f"Successfully set {channel.name} as the voting channel!")
+
+    @commands.slash_command()
+    async def set_mod_role(self, ctx: bridge.BridgeContext, role: Role):
+        server = InstanceManager.current.get_or_create(
+            ctx.guild.id, DiscordGameInstance
+        )
+        
+        guild = await self.bot.fetch_guild(ctx.guild.id)
+        
+        if (
+            get(guild.roles, id = server.mod_role) not in ctx.author.roles
+            and ctx.author.id != guild.owner_id
+        ):
+            return
+
+        server.mod_role = int(role.id)
+        
+        await ctx.respond(f"Successfully set {role.name} as the moderator role!")
 
 
 def setup(client):
