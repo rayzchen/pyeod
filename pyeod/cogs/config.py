@@ -1,5 +1,4 @@
 from discord.ext import commands, tasks, bridge, pages
-from discord.utils import get
 from discord import User, Message, TextChannel
 from pyeod.model import InternalError
 from pyeod.frontend import DiscordGameInstance, InstanceManager
@@ -24,8 +23,12 @@ class Config(commands.Cog):
     async def check_for_new_servers(self, msg: Message):
         if not self.bot.manager:  # Messages can be caught before bot is ready
             return
-        if msg.guild and msg.guild not in self.manager:
-            self.bot.manager.add_instance(msg.guild.id, DiscordGameInstance())
+        if msg.guild and msg.guild not in self.bot.manager:
+            try:
+                self.bot.manager.add_instance(msg.guild.id, DiscordGameInstance())
+            except InternalError as i:
+                if i.type == "Instance overwrite":  # Keeps happening don't know why
+                    pass
 
     # Slash commands only cus converting to channel is busted
     @commands.slash_command()
@@ -42,7 +45,9 @@ class Config(commands.Cog):
         await ctx.respond(f"Successfully added {channel.name} as a play channel!")
 
     @commands.slash_command()
-    async def remove_play_channel(self, ctx: bridge.BridgeContext, channel: TextChannel):
+    async def remove_play_channel(
+        self, ctx: bridge.BridgeContext, channel: TextChannel
+    ):
         # TODO: Add permissions locks so that only certain roles can add channels
 
         if ctx.guild and ctx.guild.id not in self.bot.manager:

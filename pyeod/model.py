@@ -39,10 +39,23 @@ class Element:
 
 
 class User:
-    def __init__(self, inv: List[Element], active_polls: int, id: int) -> None:
+    def __init__(
+        self,
+        inv: List[Element],
+        active_polls: int,
+        id: int,
+        last_combo: Tuple[Element, ...] = (),
+    ) -> None:
         self.inv = inv
         self.active_polls = active_polls
         self.id = id
+        self.last_combo = last_combo
+
+    def add_element(
+        self, element: Element
+    ):  # Maybe raise an error if a duplicate element is added?
+        if element not in self.inv:
+            self.inv.append(element)
 
 
 class Poll:
@@ -64,12 +77,13 @@ class ElementPoll(Poll):
         self.result = result
         self.exists = exists
 
-    def resolve(self, database):
+    def resolve(self, database) -> Element:  # Return Element back
         element = Element(
             self.result, self.author, round(time.time()), len(database.elements) + 1
         )
         database.elements[self.result.lower()] = element
         database.set_combo_result(self.combo, element)
+        return element
 
 
 class Database:
@@ -164,6 +178,7 @@ class GameInstance:
 
     def combine(self, user: User, combo: Tuple[str, ...]) -> Element:
         element_combo = tuple(self.check_element(name, user) for name in combo)
+        user.last_combo = sorted(element_combo)
         result = self.db.get_combo_result(element_combo)
         if result is None:
             raise GameError("Not a combo", "That combo does not exist")
@@ -172,7 +187,7 @@ class GameInstance:
                 "Already have element",
                 f"You made {result.name}, but you already have it",
             )
-        user.inv.append(result)
+        user.add_element(result)
         return result
 
     def suggest_element(self, user: User, combo: Tuple[str, ...], result: str) -> Poll:
@@ -190,8 +205,12 @@ class GameInstance:
         for poll in self.db.polls:
             if poll.votes >= self.vote_req:
                 # Poll was accepted
-                poll.resolve(self.db)
+                poll_return = poll.resolve(self.db)
                 deleted_polls.append(poll)
+                if isinstance(
+                    poll, ElementPoll
+                ):  # If it's an element poll, give the author the elemtent
+                    poll.author.add_element(poll_return)
                 poll.author.active_polls -= 1
             elif poll.votes <= -self.vote_req:
                 # Poll was denied
