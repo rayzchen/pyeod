@@ -1,5 +1,5 @@
 from discord.ext import commands, tasks, bridge, pages
-from discord import User, Message, TextChannel, Role, Member, Guild
+from discord import User, Message, TextChannel, Role, Member, Guild, SlashCommandGroup
 from discord.utils import get
 from pyeod.model import InternalError
 from pyeod.frontend import DiscordGameInstance, InstanceManager
@@ -27,7 +27,7 @@ class Config(commands.Cog):
 
         self.save.start()
     
-    config = commands.SlashCommandGroup("configuration", "Bot settings for your server")
+    config = SlashCommandGroup("configuration", "Bot settings for your server")
     
     @tasks.loop(seconds=5)
     async def save(self):
