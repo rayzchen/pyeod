@@ -132,7 +132,7 @@ class ElementPoll(Poll):
         else:
             element = database.elements[self.result.lower()]
         database.set_combo_result(self.combo, element)
-        self.author.add_element(poll_return)
+        self.author.add_element(element)
         if self.author.last_combo == self.combo:
             self.author.last_combo = ()
             self.author.last_element = element
@@ -311,7 +311,7 @@ class GameInstance:
         for poll in self.db.polls:
             if poll.votes >= self.vote_req:
                 # Poll was accepted
-                poll_return = poll.resolve(self.db)
+                poll.resolve(self.db)
                 deleted_polls.append(poll)
                 poll.author.active_polls -= 1
             elif poll.votes <= -self.vote_req:
