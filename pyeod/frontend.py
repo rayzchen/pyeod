@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, List, Union, Dict
+from typing import Optional, Tuple, List, Union, Dict, Type, TypeVar
 from pyeod.model import Database, Element, GameInstance, InternalError
 from discord import TextChannel
 
@@ -35,6 +35,8 @@ class DiscordGameInstance(GameInstance):
             self.channels = channels
 
 
+InstT = TypeVar("InstT", bound=GameInstance)
+
 class InstanceManager:
     current: Union["InstanceManager", None] = None
 
@@ -69,3 +71,12 @@ class InstanceManager:
                 "Instance not found", "The requested GameInstance not found"
             )
         return self.instances[id]
+
+    def get_or_create(self, id: int, type: Type[InstT]) -> InstT:
+        if not self.has_instance(id):
+            instance = type()
+            self.add_instance(id, instance)
+        else:
+            instance = self.get_instance(id)
+        return instance
+

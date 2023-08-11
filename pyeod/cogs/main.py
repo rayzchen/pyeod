@@ -3,7 +3,7 @@ from discord.utils import get
 from discord import User, Message
 from pyeod.utils import format_traceback
 from pyeod.model import GameError
-from pyeod.frontend import DiscordGameInstance
+from pyeod.frontend import DiscordGameInstance, InstanceManager
 from pyeod import config
 import traceback
 import os
@@ -53,17 +53,9 @@ class Main(commands.Cog):
 
     @commands.Cog.listener("on_message")
     async def combine_elements(self, msg: Message):
-        try:  # Make sure manager is actually initialized
-            self.bot.manager
-        except AttributeError:
-            return
-
-        server: DiscordGameInstance = self.bot.manager.get_instance(
-            msg.guild.id
-        )  # Intellisense not working so extra annotation
+        server = InstanceManager.current.get_or_create(msg.guild.id, DiscordGameInstance)
         if msg.channel.id not in server.channels.play_channels:
             return
-
         if msg.author.bot:  # No bots in eod
             return
 
@@ -98,13 +90,7 @@ class Main(commands.Cog):
 
     @bridge.bridge_command(aliases=["s"])
     async def suggest(self, ctx: bridge.BridgeContext, *, element_name: str):
-        try:  # Make sure manager is actually initialized
-            self.bot.manager
-        except AttributeError:
-            return
-
-        server: DiscordGameInstance = self.bot.manager.get_instance(ctx.guild.id)
-
+        server = InstanceManager.current.get_or_create(ctx.guild.id, DiscordGameInstance)
         if ctx.channel.id not in server.channels.play_channels:
             return
 
