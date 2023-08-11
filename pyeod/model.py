@@ -146,13 +146,14 @@ class ElementPoll(Poll):
 
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "ElementPoll":
-        return ElementPoll(
-            data["author"],
-            data["votes"],
+        poll = ElementPoll(
+            loader.users[data["author"]],
             [loader.elem_id_lookup[elem] for elem in data["combo"]],
             data["result"],
             data["exists"]
         )
+        poll.votes = data["votes"]
+        return poll
 
 
 class Database:
