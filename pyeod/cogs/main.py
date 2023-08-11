@@ -84,6 +84,11 @@ class Main(commands.Cog):
 
     async def combine_elements(self, server: DiscordGameInstance, msg: Message) -> None:
         elements = frontend.parse_element_list(msg.content)
+        if len(elements) < 2:
+            return
+        if len(elements) > 21:
+            await msg.reply("You cannot combine more than 21 elements!")
+            return
 
         user = server.login_user(msg.author.id)
         try:
