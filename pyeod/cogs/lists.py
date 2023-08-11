@@ -38,7 +38,7 @@ class Lists(commands.Cog):
             ctx.guild.id, DiscordGameInstance
         )
         if user is None:
-            user = ctx.author.id
+            user = ctx.author
         elif user.id not in server.db.users:
             # If user was None, this shouldn't run
             await ctx.respond("User not found!")

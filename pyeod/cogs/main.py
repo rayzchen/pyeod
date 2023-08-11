@@ -145,7 +145,8 @@ class Main(commands.Cog):
             await ctx.reply("Combine something first")
             return
         else:
-            poll = server.suggest_element(user, [i.name for i in user.last_combo], name)
+            combo = user.last_combo
+            poll = server.suggest_element(user, combo, name)
             if server.vote_req == 0:
                 server.check_polls()
             else:
@@ -153,7 +154,7 @@ class Main(commands.Cog):
                 pass
             await ctx.reply(
                 "Suggested "
-                + " + ".join([i.name for i in user.last_combo])
+                + " + ".join([i.name for i in combo])
                 + " = "
                 + poll.result
             )

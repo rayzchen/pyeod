@@ -135,6 +135,8 @@ class ElementPoll(Poll):
         else:
             element = database.elements[self.result.lower()]
         database.set_combo_result(self.combo, element)
+        if self.author.last_combo == self.combo:
+            self.author.last_combo = ()
         return element
 
     def convert_to_dict(self, data: dict) -> None:
@@ -280,7 +282,7 @@ class GameInstance:
 
     def combine(self, user: User, combo: Tuple[str, ...]) -> Element:
         element_combo = tuple(self.check_element(name, user) for name in combo)
-        user.last_combo = sorted(element_combo)
+        user.last_combo = tuple(sorted(element_combo))
         result = self.db.get_combo_result(element_combo)
         if result is None:
             raise GameError("Not a combo", "That combo does not exist")
@@ -292,11 +294,10 @@ class GameInstance:
         user.add_element(result)
         return result
 
-    def suggest_element(self, user: User, combo: Tuple[str, ...], result: str) -> ElementPoll:
+    def suggest_element(self, user: User, combo: Tuple[Element, ...], result: str) -> ElementPoll:
         if user.active_polls > self.poll_limit:
             raise GameError("Too many active polls")
-        element_combo = tuple(self.check_element(name, user) for name in combo)
-        poll = ElementPoll(user, element_combo, result, self.db.has_element(result))
+        poll = ElementPoll(user, combo, result, self.db.has_element(result))
         self.db.polls.append(poll)
         user.active_polls += 1
         return poll
