@@ -143,11 +143,9 @@ class GameInstance:
         poll_limit: int = 21,
     ) -> None:
         if starter_elements is None:
-            self.starter_elements = copy.deepcopy(DEFAULT_STARTER_ELEMENTS)
-        else:
-            self.starter_elements = starter_elements
+            starter_elements = copy.deepcopy(DEFAULT_STARTER_ELEMENTS)
         if db == None:
-            self.db = Database.new_db(self.starter_elements)
+            self.db = Database.new_db(starter_elements)
         else:
             self.db = db
         self.vote_req = vote_req
@@ -156,7 +154,7 @@ class GameInstance:
     # Deprecate this function?
     def normalize_starter(self, element: Element) -> Element:
         starter = self.db.elements[element.name.lower()]
-        assert starter in self.starter_elements
+        assert starter in self.db.starter_elements
         return starter
 
     def login_user(self, user_id: int) -> User:
