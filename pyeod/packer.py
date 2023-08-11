@@ -59,7 +59,9 @@ if __name__ == "__main__":
 
     dump = simplejson.dumps(game, default=convert_to_dict)
     loader = InstanceLoader()
-    loaded_game = simplejson.loads(dump, object_hook=functools.partial(convert_from_dict, loader))
+    loaded_game = simplejson.loads(
+        dump, object_hook=functools.partial(convert_from_dict, loader)
+    )
     dump2 = simplejson.dumps(loaded_game, default=convert_to_dict)
     print(dump)
     print(dump2)

@@ -32,12 +32,14 @@ class Main(commands.Cog):
         else:
             print(
                 "".join(traceback.format_exception(type(err), err, err.__traceback__)),
-                end=""
+                end="",
             )
             if err.__cause__ is not None:
                 err = err.__cause__
             error = format_traceback(err)
-            await ctx.channel.send("There was an error processing the command:\n" + error)
+            await ctx.channel.send(
+                "There was an error processing the command:\n" + error
+            )
 
     @bridge.bridge_command(aliases=["ms"])
     async def ping(self, ctx: bridge.BridgeContext):
@@ -73,6 +75,7 @@ class Main(commands.Cog):
                 await func(self, msg)
             except Exception as e:
                 await self.on_command_error(msg, e)
+
         return inner
 
     @commands.Cog.listener("on_message")
@@ -162,10 +165,7 @@ class Main(commands.Cog):
                 # TODO: post poll message
                 pass
             await ctx.reply(
-                "Suggested "
-                + " + ".join([i.name for i in combo])
-                + " = "
-                + poll.result
+                "Suggested " + " + ".join([i.name for i in combo]) + " = " + poll.result
             )
 
 

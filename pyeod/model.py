@@ -49,12 +49,7 @@ class Element:
             author = None
         else:
             author = loader.users[data["author"]]
-        element = Element(
-            data["name"],
-            author,
-            data["created"],
-            data["id"]
-        )
+        element = Element(data["name"], author, data["created"], data["id"])
         loader.elem_id_lookup[element.id] = element
         return element
 
@@ -117,6 +112,7 @@ def capitalize(name: str) -> str:
     words = [word.capitalize() for word in name.split(" ")]
     return " ".join(words)
 
+
 class ElementPoll(Poll):
     def __init__(
         self, author: User, combo: Tuple[Element, ...], result: str, exists: bool
@@ -152,7 +148,7 @@ class ElementPoll(Poll):
             loader.users[data["author"]],
             [loader.elem_id_lookup[elem] for elem in data["combo"]],
             data["result"],
-            data["exists"]
+            data["exists"],
         )
         poll.votes = data["votes"]
         return poll
@@ -228,7 +224,7 @@ class Database:
             starters,
             combos,
             users,
-            data["polls"]
+            data["polls"],
         )
 
 
@@ -294,7 +290,9 @@ class GameInstance:
         user.add_element(result)
         return result
 
-    def suggest_element(self, user: User, combo: Tuple[Element, ...], result: str) -> ElementPoll:
+    def suggest_element(
+        self, user: User, combo: Tuple[Element, ...], result: str
+    ) -> ElementPoll:
         if user.active_polls > self.poll_limit:
             raise GameError("Too many active polls")
         poll = ElementPoll(user, combo, result, self.db.has_element(result))
@@ -331,11 +329,7 @@ class GameInstance:
 
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "GameInstance":
-        return GameInstance(
-            data["db"],
-            data["vote_req"],
-            data["poll_limit"]
-        )
+        return GameInstance(data["db"], data["vote_req"], data["poll_limit"])
 
 
 if __name__ == "__main__":

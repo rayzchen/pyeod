@@ -39,7 +39,7 @@ class DiscordGameInstance(GameInstance):
         data["channels"] = {
             "news": self.channels.news_channel,
             "voting": self.channels.voting_channel,
-            "play": self.channels.play_channels
+            "play": self.channels.play_channels,
         }
 
     @staticmethod
@@ -52,8 +52,9 @@ class DiscordGameInstance(GameInstance):
                 data["channels"]["news"],
                 data["channels"]["voting"],
                 data["channels"]["play"],
-            )
+            ),
         )
+
 
 InstT = TypeVar("InstT", bound=GameInstance)
 
