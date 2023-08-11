@@ -27,7 +27,9 @@ class Config(commands.Cog):
     async def add_play_channel(self, ctx: bridge.BridgeContext, channel: TextChannel):
         # TODO: Add permissions locks so that only certain roles can add channels
 
-        server = InstanceManager.current.get_or_create(ctx.guild.id, DiscordGameInstance)
+        server = InstanceManager.current.get_or_create(
+            ctx.guild.id, DiscordGameInstance
+        )
         server.channels.play_channels.append(channel.id)
         await ctx.respond(f"Successfully added {channel.name} as a play channel!")
 
@@ -37,7 +39,9 @@ class Config(commands.Cog):
     ):
         # TODO: Add permissions locks so that only certain roles can add channels
 
-        server = InstanceManager.current.get_or_create(ctx.guild.id, DiscordGameInstance)
+        server = InstanceManager.current.get_or_create(
+            ctx.guild.id, DiscordGameInstance
+        )
 
         try:
             server.channels.play_channels.remove(channel.id)
@@ -49,7 +53,9 @@ class Config(commands.Cog):
     async def set_news_channel(self, ctx: bridge.BridgeContext, channel: TextChannel):
         # TODO: Add permissions locks so that only certain roles can add channels
 
-        server = InstanceManager.current.get_or_create(ctx.guild.id, DiscordGameInstance)
+        server = InstanceManager.current.get_or_create(
+            ctx.guild.id, DiscordGameInstance
+        )
         server.channels.news_channel = channel.id
         await ctx.respond(f"Successfully set {channel.name} as the news channel!")
 
@@ -57,7 +63,9 @@ class Config(commands.Cog):
     async def set_voting_channel(self, ctx: bridge.BridgeContext, channel: TextChannel):
         # TODO: Add permissions locks so that only certain roles can add channels
 
-        server = InstanceManager.current.get_or_create(ctx.guild.id, DiscordGameInstance)
+        server = InstanceManager.current.get_or_create(
+            ctx.guild.id, DiscordGameInstance
+        )
         server.channels.voting_channel = channel.id
         await ctx.respond(f"Successfully set {channel.name} as the voting channel!")
 

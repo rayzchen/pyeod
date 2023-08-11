@@ -2,6 +2,7 @@ from typing import Optional, Tuple, List, Union, Dict, Type, TypeVar
 from pyeod.model import Database, Element, GameInstance, InternalError, User
 from discord import Client, Embed, EmbedField
 
+
 class ChannelList:
     def __init__(
         self,
@@ -35,6 +36,7 @@ class DiscordGameInstance(GameInstance):
 
 
 InstT = TypeVar("InstT", bound=GameInstance)
+
 
 class InstanceManager:
     current: Union["InstanceManager", None] = None
@@ -123,5 +125,5 @@ async def build_info_embed(bot: Client, element: Element, user: User) -> Embed:
             EmbedField("Colorer", "N/A", True),
             EmbedField("Imager", "N/A", True),
             EmbedField("Categories", "N/A", False),
-        ]
+        ],
     )

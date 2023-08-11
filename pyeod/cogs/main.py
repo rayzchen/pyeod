@@ -54,7 +54,9 @@ class Main(commands.Cog):
 
     @commands.Cog.listener("on_message")
     async def message_handler(self, msg: Message):
-        server = InstanceManager.current.get_or_create(msg.guild.id, DiscordGameInstance)
+        server = InstanceManager.current.get_or_create(
+            msg.guild.id, DiscordGameInstance
+        )
         if msg.channel.id not in server.channels.play_channels:
             return
         if msg.author.bot:  # No bots in eod
@@ -69,7 +71,9 @@ class Main(commands.Cog):
         else:
             await self.combine_elements(server, msg)
 
-    async def show_element_info(self, server: DiscordGameInstance, msg: Message) -> None:
+    async def show_element_info(
+        self, server: DiscordGameInstance, msg: Message
+    ) -> None:
         element_name = msg.content[1:].strip()
         element = server.check_element(element_name)
         user = server.login_user(msg.author.id)
@@ -102,7 +106,9 @@ class Main(commands.Cog):
 
     @bridge.bridge_command(aliases=["s"])
     async def suggest(self, ctx: bridge.BridgeContext, *, element_name: str):
-        server = InstanceManager.current.get_or_create(ctx.guild.id, DiscordGameInstance)
+        server = InstanceManager.current.get_or_create(
+            ctx.guild.id, DiscordGameInstance
+        )
         if ctx.channel.id not in server.channels.play_channels:
             return
         await self.suggest_element(server, element_name, ctx)
@@ -111,7 +117,7 @@ class Main(commands.Cog):
         self,
         server: DiscordGameInstance,
         name: str,
-        ctx: Union[bridge.BridgeContext, Message]
+        ctx: Union[bridge.BridgeContext, Message],
     ) -> None:
         user = server.login_user(ctx.author.id)
 
@@ -119,9 +125,7 @@ class Main(commands.Cog):
             await ctx.reply("Combine something first")
             return
         else:
-            poll = server.suggest_element(
-                user, [i.name for i in user.last_combo], name
-            )
+            poll = server.suggest_element(user, [i.name for i in user.last_combo], name)
             if server.vote_req == 0:
                 server.check_polls()
             else:

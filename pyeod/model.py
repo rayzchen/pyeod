@@ -37,6 +37,12 @@ class Element:
             return self.name < other.name
         return NotImplemented
 
+    def convert_to_dict(self, data: dict) -> None:
+        data["name"] = self.name
+        data["author"] = self.author.id if self.author is not None else None
+        data["created"] = self.created
+        data["id"] = self.id
+
 
 class User:
     def __init__(
@@ -57,15 +63,24 @@ class User:
         if element.id not in self.inv:
             self.inv.append(element.id)
 
+    def convert_to_dict(self, data: dict) -> None:
+        data["inv"] = self.inv
+        data["active_polls"] = self.active_polls
+        data["id"] = self.id
+        data["last_combo"] = self.last_combo
+
 
 class Poll:
     def __init__(self, author: User) -> None:
         self.author = author
         self.votes = 0
-        self.accepted = False
+        self.accepted = False  # is this needed?
 
     def resolve(self, database):
         pass
+
+    def convert_to_dict(self, data: dict) -> None:
+        raise TypeError
 
 
 class ElementPoll(Poll):
@@ -84,6 +99,13 @@ class ElementPoll(Poll):
         database.add_element(element)
         database.set_combo_result(self.combo, element)
         return element
+
+    def convert_to_dict(self, data: dict) -> None:
+        data["author"] = self.author.id
+        data["votes"] = self.votes
+        data["combo"] = [elem.id for elem in self.combo]
+        data["result"] = self.result
+        data["exists"] = self.exists
 
 
 class Database:
@@ -130,6 +152,16 @@ class Database:
         if sorted_combo in self.combos:
             raise InternalError("Combo exists", "That combo already exists")
         self.combos[sorted_combo] = result
+
+    def convert_to_dict(self, data: dict) -> None:
+        data["elements"] = self.elements
+        data["starters"] = [elem.id for elem in self.starters]
+        data["combos"] = {}
+        for combo in self.combos:
+            combo_ids = ",".join(str(elem) for elem in combo)
+            data["combos"][combo_ids] = self.combos[combo].id
+        data["users"] = self.users
+        data["polls"] = self.polls
 
 
 AIR = Element("Air", id=1)
@@ -224,6 +256,11 @@ class GameInstance:
                 new_polls.append(poll)
         self.db.polls = new_polls
         return deleted_polls
+
+    def convert_to_dict(self, data: dict) -> None:
+        data["db"] = self.db
+        data["vote_req"] = self.vote_req
+        data["poll_limit"] = self.poll_limit
 
 
 if __name__ == "__main__":
