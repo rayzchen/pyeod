@@ -38,6 +38,13 @@ def save_instance(instance: GameInstance, filename: str) -> None:
         msgpack.dump(instance, f, default=convert_to_dict)
 
 
+def load_instance(file: str) -> GameInstance:
+    with open(file, "rb") as f:
+        loader = InstanceLoader()
+        hook = functools.partial(convert_from_dict, loader)
+        return msgpack.load(f, strict_map_key=False, object_hook=hook)
+
+
 if __name__ == "__main__":
     game = GameInstance()
     user = game.login_user(0)
