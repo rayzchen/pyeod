@@ -24,7 +24,7 @@ class DiscordGameInstance(GameInstance):
         self,
         starter_elements: Optional[Tuple[Element, ...]] = None,
         db: Optional[Database] = None,
-        vote_req: int = 4,
+        vote_req: int = 0,
         poll_limit: int = 21,
         channels: Optional[ChannelList] = None,
     ) -> None:

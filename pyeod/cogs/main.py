@@ -97,14 +97,19 @@ class Main(commands.Cog):
             await ctx.reply("Combine something first")
             return
         else:
-            #! ANARCHY VOTING
-            p = server.suggest_element(
-                user, [i.name for i in user.last_combo], element_name
+            poll = server.suggest_element(
+                user, [i.name for i in user.last_combo], name
             )
-            p.votes += 5
-            server.check_polls()
+            if server.vote_req == 0:
+                server.check_polls()
+            else:
+                # TODO: post poll message
+                pass
             await ctx.reply(
-                " + ".join([i.name for i in user.last_combo]) + " = " + element_name
+                "Suggested "
+                + " + ".join([i.name for i in user.last_combo])
+                + " = "
+                + name
             )
 
 
