@@ -1,31 +1,8 @@
 from discord.ext import commands, bridge, pages
 from discord import User, Embed, ButtonStyle
 from discord.ext.pages.pagination import Page, PageGroup, PaginatorButton
-from pyeod.frontend import DiscordGameInstance, InstanceManager
+from pyeod.frontend import DiscordGameInstance, InstanceManager, FooterPaginator, generate_embed_list
 import math
-
-
-class FooterPaginator(pages.Paginator):
-    def __init__(self, page_list) -> None:
-        buttons = [
-            pages.PaginatorButton("prev", "◀", style=ButtonStyle.blurple),
-            pages.PaginatorButton("next", "▶", style=ButtonStyle.blurple),
-        ]
-        super(FooterPaginator, self).__init__(
-            page_list,
-            show_indicator=False,
-            author_check=False,
-            use_default_buttons=False,
-            loop_pages=True,
-            custom_buttons=buttons,
-        )
-
-    def update_buttons(self):
-        buttons = super(FooterPaginator, self).update_buttons()
-        page = self.pages[self.current_page]
-        if isinstance(page, Embed):
-            page.set_footer(text=f"Page {self.current_page + 1}/{self.page_count + 1}")
-        return buttons
 
 
 class Lists(commands.Cog):
@@ -46,15 +23,9 @@ class Lists(commands.Cog):
 
         logged_in = server.login_user(user.id)
         elements = [server.db.elem_id_lookup[elem].name for elem in logged_in.inv]
-        embeds = []
-        for i in range(math.ceil(len(elements) / 30)):
-            embeds.append(
-                Embed(
-                    title=user.display_name + f"'s Inventory ({len(logged_in.inv)})",
-                    description="\n".join(elements[i * 30 : i * 30 + 30]),
-                )
-            )
+        title = user.display_name + f"'s Inventory ({len(logged_in.inv)})"
 
+        embeds = generate_embed_list(elements, title, 30)
         paginator = FooterPaginator(embeds)
         await paginator.respond(ctx)
 

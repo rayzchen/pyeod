@@ -1,6 +1,8 @@
 from typing import Optional, Tuple, List, Union, Dict, Type, TypeVar
 from pyeod.model import Database, Element, GameInstance, InternalError, User
-from discord import Client, Embed, EmbedField
+from discord import Client, Embed, EmbedField, ButtonStyle
+from discord.ext import pages
+import math
 
 
 class ChannelList:
@@ -152,3 +154,38 @@ async def build_info_embed(bot: Client, element: Element, user: User) -> Embed:
             EmbedField("Categories", "N/A", False),
         ],
     )
+
+
+class FooterPaginator(pages.Paginator):
+    def __init__(self, page_list) -> None:
+        buttons = [
+            pages.PaginatorButton("prev", "◀", style=ButtonStyle.blurple),
+            pages.PaginatorButton("next", "▶", style=ButtonStyle.blurple),
+        ]
+        super(FooterPaginator, self).__init__(
+            page_list,
+            show_indicator=False,
+            author_check=False,
+            use_default_buttons=False,
+            loop_pages=True,
+            custom_buttons=buttons,
+        )
+
+    def update_buttons(self):
+        buttons = super(FooterPaginator, self).update_buttons()
+        page = self.pages[self.current_page]
+        if isinstance(page, Embed):
+            page.set_footer(text=f"Page {self.current_page + 1}/{self.page_count + 1}")
+        return buttons
+
+
+def generate_embed_list(lines: List[str], title: str, limit: int) -> List[Embed]:
+    embeds = []
+    for i in range(math.ceil(len(lines) / limit)):
+        embeds.append(
+            Embed(
+                title=title,
+                description="\n".join(lines[i * limit : i * limit + limit]),
+            )
+        )
+    return embeds
