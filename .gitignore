@@ -1,5 +1,6 @@
 # PyEoD
 .token
+pyeod/db/
 pyeod/control/stop
 pyeod/control/restart
 
