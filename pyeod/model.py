@@ -61,15 +61,16 @@ class User:
         active_polls: int,
         id: int,
         last_combo: Tuple[Element, ...] = (),
+        last_element: Optional[Element] = None
     ) -> None:
         self.inv = inv
         self.active_polls = active_polls
         self.id = id
         self.last_combo = last_combo
+        self.last_element = last_element
 
-    def add_element(
-        self, element: Element
-    ):  # Maybe raise an error if a duplicate element is added?
+    def add_element(self, element: Element):
+        # Error handled outside
         if element.id not in self.inv:
             self.inv.append(element.id)
 
@@ -131,8 +132,10 @@ class ElementPoll(Poll):
         else:
             element = database.elements[self.result.lower()]
         database.set_combo_result(self.combo, element)
+        self.author.add_element(poll_return)
         if self.author.last_combo == self.combo:
             self.author.last_combo = ()
+            self.author.last_element = element
         return element
 
     def convert_to_dict(self, data: dict) -> None:
@@ -282,12 +285,14 @@ class GameInstance:
         result = self.db.get_combo_result(element_combo)
         if result is None:
             raise GameError("Not a combo", "That combo does not exist")
+        user.last_element = result
         if result.id in user.inv:
             raise GameError(
                 "Already have element",
                 f"You made {result.name}, but you already have it",
             )
         user.add_element(result)
+        user.last_element = result
         return result
 
     def suggest_element(
@@ -308,10 +313,6 @@ class GameInstance:
                 # Poll was accepted
                 poll_return = poll.resolve(self.db)
                 deleted_polls.append(poll)
-                if isinstance(
-                    poll, ElementPoll
-                ):  # If it's an element poll, give the author the elemtent
-                    poll.author.add_element(poll_return)
                 poll.author.active_polls -= 1
             elif poll.votes <= -self.vote_req:
                 # Poll was denied

@@ -109,32 +109,52 @@ class Main(commands.Cog):
         await msg.reply(embed=embed)
 
     async def combine_elements(self, server: DiscordGameInstance, msg: Message) -> None:
-        elements = frontend.parse_element_list(msg.content)
+        user = server.login_user(msg.author.id)
+
+        elements = []
+        if msg.content.startswith("*"):
+            multiplier = msg.content.split(" ", 1)[0][1:]
+            if multiplier.isdecimal():
+                if " " in msg.content:
+                    elements = [msg.content.split(" ", 1)[1]] * int(multiplier)
+                elif user.last_element is not None:
+                    elements = [user.last_element.name] * int(multiplier)
+                else:
+                    await msg.reply("Combine something first")
+                    return
+
+        if not elements:
+            elements = frontend.parse_element_list(msg.content)
         if len(elements) < 2:
             return
         if len(elements) > 21:
             await msg.reply("You cannot combine more than 21 elements!")
             return
 
-        user = server.login_user(msg.author.id)
         try:
             element = server.combine(user, [i.strip() for i in elements])
             await msg.reply(f"You made {element.name}")
         except GameError as g:
             if g.type == "Not a combo":
+                # Keep last combo
+                user.last_element = None
                 await msg.reply(
                     "Not a combo, use !s <element_name> to suggest an element"
                 )
-            else:
+            if g.type == "Already have element":
+                # Keep last element
                 user.last_combo = ()
-                if g.type == "Already have element":
-                    await msg.reply(g.message)
-                if g.type == "Not in inv":
-                    await msg.reply(
-                        "You don't have one or more of those elements"
-                    )  # Todo: Fix how vague this is
-                if g.type == "Not an element":
-                    await msg.reply("Not a valid element")
+                await msg.reply(g.message)
+            elif g.type == "Not in inv":
+                user.last_element = None
+                user.last_combo = ()
+                await msg.reply(
+                    "You don't have one or more of those elements"
+                )  # Todo: Fix how vague this is
+            if g.type == "Not an element":
+                user.last_element = None
+                user.last_combo = ()
+                await msg.reply("Not a valid element")
 
     @bridge.bridge_command(aliases=["s"])
     async def suggest(self, ctx: bridge.BridgeContext, *, element_name: str):

@@ -113,7 +113,7 @@ def parse_element_list(content: str) -> List[str]:
         elements = content.split("+")
     else:
         elements = content.split(",")
-    stripped_elements = [item.strip() for item in elements]
+    stripped_elements = [item.strip() for item in elements if item]
     return stripped_elements
 
 
