@@ -26,7 +26,9 @@ class Config(commands.Cog):
         print("Loaded instance databases")
 
         self.save.start()
-
+    
+    config = commands.SlashCommandGroup("configuration", "Bot settings for your server")
+    
     @tasks.loop(seconds=5)
     async def save(self):
         for id, instance in InstanceManager.current.instances.items():
@@ -39,7 +41,7 @@ class Config(commands.Cog):
         InstanceManager.current.get_or_create(msg.guild.id, DiscordGameInstance)
 
     # Slash commands only cus converting to channel is busted
-    @commands.slash_command()
+    @config.command()
     async def add_play_channel(self, ctx: bridge.BridgeContext, channel: TextChannel):
         server = InstanceManager.current.get_or_create(
             ctx.guild.id, DiscordGameInstance
@@ -56,7 +58,7 @@ class Config(commands.Cog):
         server.channels.play_channels.append(channel.id)
         await ctx.respond(f"Successfully added {channel.name} as a play channel!")
 
-    @commands.slash_command()
+    @config.command()
     async def remove_play_channel(
         self, ctx: bridge.BridgeContext, channel: TextChannel
     ):
@@ -78,7 +80,7 @@ class Config(commands.Cog):
         except ValueError:
             await ctx.respond(f"That is not a play channel")
 
-    @commands.slash_command()
+    @config.command()
     async def set_news_channel(self, ctx: bridge.BridgeContext, channel: TextChannel):
         server = InstanceManager.current.get_or_create(
             ctx.guild.id, DiscordGameInstance
@@ -96,7 +98,7 @@ class Config(commands.Cog):
         server.channels.news_channel = channel.id
         await ctx.respond(f"Successfully set {channel.name} as the news channel!")
 
-    @commands.slash_command()
+    @config.command()
     async def set_voting_channel(self, ctx: bridge.BridgeContext, channel: TextChannel):
         server = InstanceManager.current.get_or_create(
             ctx.guild.id, DiscordGameInstance
@@ -113,7 +115,7 @@ class Config(commands.Cog):
         server.channels.voting_channel = channel.id
         await ctx.respond(f"Successfully set {channel.name} as the voting channel!")
 
-    @commands.slash_command()
+    @config.command()
     async def set_mod_role(self, ctx: bridge.BridgeContext, role: Role):
         server = InstanceManager.current.get_or_create(
             ctx.guild.id, DiscordGameInstance
