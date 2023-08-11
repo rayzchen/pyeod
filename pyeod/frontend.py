@@ -80,3 +80,16 @@ class InstanceManager:
             instance = self.get_instance(id)
         return instance
 
+
+def parse_element_list(content: str) -> List[str]:
+    #! TEMP COMBO PARSING SOLUTION
+    # Will change to be more robust later, works for now
+    elements = []
+    if "\n" in content:
+        elements = content.split("\n")
+    elif "+" in content:
+        elements = content.split("+")
+    else:
+        elements = content.split(",")
+    stripped_elements = [item.strip() for item in elements]
+    return stripped_elements

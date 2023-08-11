@@ -4,7 +4,7 @@ from discord import User, Message
 from pyeod.utils import format_traceback
 from pyeod.model import GameError
 from pyeod.frontend import DiscordGameInstance, InstanceManager
-from pyeod import config
+from pyeod import config, frontend
 import traceback
 import os
 
@@ -58,7 +58,6 @@ class Main(commands.Cog):
             return
         if msg.author.bot:  # No bots in eod
             return
-
         if msg.content.startswith("!"):
             return
 
@@ -66,9 +65,7 @@ class Main(commands.Cog):
         if len(msg.content.split("\n")) > 1:
             elements = msg.content.split("\n")
         else:
-            #! TEMP COMBO PARSING SOLUTION
-            # Will change to be more robust later, works for now
-            elements = msg.content.split(",")
+        elements = frontend.parse_element_list(msg.content)
 
         user = server.login_user(msg.author.id)
         try:
