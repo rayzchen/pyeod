@@ -125,7 +125,11 @@ async def build_info_embed(bot: Client, element: Element, user: User) -> Embed:
     description += "\n\n**Mark**\n"
     # TODO: add mark
 
-    creator = await bot.fetch_user(element.author.id)
+    if element.author is not None:
+        creator = f"<@{element.author.id}>"
+    else:
+        creator = "The Big Bang"
+
     if element.created == 0:
         timestamp = "The Dawn Of Time"
     else:
@@ -135,8 +139,8 @@ async def build_info_embed(bot: Client, element: Element, user: User) -> Embed:
         title=element.name + " Info",
         description=description,
         fields=[
-            EmbedField("Creator", creator.mention, True),
-            EmbedField("Created On", timestamp, True),
+            EmbedField("Creator", creator, True),
+            EmbedField("Created At", timestamp, True),
             EmbedField("Tree Size", "N/A", True),
             EmbedField("Made With", "N/A", True),
             EmbedField("Used In", "N/A", True),
