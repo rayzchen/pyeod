@@ -1,5 +1,6 @@
 from discord.ext import commands, tasks, bridge
-from discord import Message, default_permissions
+from discord import Message, default_permissions, DiscordException
+from discord.commands import SlashContext
 from pyeod.utils import format_traceback
 from pyeod.model import GameError
 from pyeod.frontend import DiscordGameInstance, InstanceManager
@@ -13,6 +14,7 @@ import os
 class Main(commands.Cog):
     def __init__(self, bot):
         self.bot: bridge.AutoShardedBot = bot
+        self.bot.on_command_error
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -39,6 +41,11 @@ class Main(commands.Cog):
             await ctx.channel.send(
                 "There was an error processing the command:\n" + error
             )
+
+    async def on_application_command_error(
+        self, ctx: SlashContext, err: DiscordException
+    ) -> None:
+        await self.on_command_error(ctx, err)
 
     @bridge.bridge_command(aliases=["ms"])
     async def ping(self, ctx: bridge.BridgeContext):
@@ -74,7 +81,7 @@ class Main(commands.Cog):
             try:
                 await func(self, msg)
             except Exception as e:
-                await self.on_command_error(msg, e)
+                await self.bot.dispatch("command_error", msg, e)
 
         return inner
 
