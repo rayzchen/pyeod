@@ -20,9 +20,14 @@ else:
 if not token:
     print("Token not found")
 
+intents = Intents.all()
+# Unneeded privileged intents
+intents.presences = False
+intents.members = False
+
 opts = {
     "auto_sync_commands": True,
-    "intents": Intents.all(),
+    "intents": intents,
     "command_prefix": when_mentioned_or("!"),
     "case_insensitive": True,
 }
