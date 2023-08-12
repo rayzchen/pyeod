@@ -37,15 +37,9 @@ class Hint(commands.Cog):
         )
         element = server.check_element(element)
 
-        # Need better way to get combos
-        combo_ids = []
-        for combo in server.db.combos:
-            if server.db.combos[combo] == element:
-                combo_ids.append(combo)
-
         user = server.login_user(ctx.author.id)
         lines = []
-        for combo in combo_ids:
+        for combo in server.db.combo_lookup[element.id]:
             tick = all(elem in user.inv for elem in combo)
             names = [server.db.elem_id_lookup[elem].name for elem in combo]
             names.sort()
