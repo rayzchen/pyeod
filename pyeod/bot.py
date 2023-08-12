@@ -9,6 +9,8 @@ if sys.platform.startswith("win"):
 from discord.ext.bridge import AutoShardedBot
 from discord.ext.commands import when_mentioned_or
 from discord import Intents
+from pyeod.frontend import InstanceManager
+from pyeod.packer import save_instance
 from pyeod import config
 
 if os.path.isfile(".token"):
@@ -37,7 +39,6 @@ if "DEBUG_SERVER" in os.environ:
 
 
 def run():
-    # Create new loop (since bot closes loop when quit)
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     opts["loop"] = loop
@@ -55,8 +56,14 @@ def run():
     try:
         loop.run_until_complete(bot.start(token))
     except KeyboardInterrupt:
+        loop.run_until_complete(bot.close())
         print("Stopped")
         return False
+    finally:
+        loop.close()
+        # Make sure final save
+        for id, instance in InstanceManager.current.instances.items():
+            save_instance(instance, str(id) + ".eod")
     if os.path.isfile(config.stopfile):
         os.remove(config.stopfile)
         return False
