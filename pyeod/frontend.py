@@ -121,7 +121,7 @@ def parse_element_list(content: str) -> List[str]:
 
 async def build_info_embed(bot: Client, element: Element, user: User) -> Embed:
     description = f"Element **#{element.id}**\n"
-    if element in user.inv:
+    if element.id in user.inv:
         description += "**You have this.**"
     else:
         description += "**You don't have this.**"
