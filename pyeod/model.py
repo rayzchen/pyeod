@@ -206,6 +206,8 @@ class Database:
 
         if min_path is not None:
             return min_path, min_complexity
+        else:
+            return None, None
 
     def calculate_infos(self) -> None:
         # Ordered set but using dict
