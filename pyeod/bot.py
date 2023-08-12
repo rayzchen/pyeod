@@ -8,6 +8,7 @@ if sys.platform.startswith("win"):
 
 from discord.ext.bridge import AutoShardedBot
 from discord.ext.commands import when_mentioned_or
+from discord.client import _cleanup_loop as cleanup_loop
 from discord import Intents
 from pyeod.frontend import InstanceManager
 from pyeod.packer import save_instance
@@ -56,11 +57,10 @@ def run():
     try:
         loop.run_until_complete(bot.start(token))
     except KeyboardInterrupt:
-        loop.run_until_complete(bot.close())
-        print("Stopped")
+        cleanup_loop(loop)
         return False
     finally:
-        loop.close()
+        print("Stopped")
         # Make sure final save
         for id, instance in InstanceManager.current.instances.items():
             save_instance(instance, str(id) + ".eod")
