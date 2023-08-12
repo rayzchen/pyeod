@@ -177,38 +177,49 @@ class Database:
         for combo, result in combos.items():
             self.combo_lookup[result.id].append(combo)
 
-        # Ordered set but with dict
-        self.paths = {elem.id: dict.fromkeys([elem.id]) for elem in starters}
-        self.complexities = {elem.id: 0 for elem in starters}
+        self.calculate_infos()
+
+    def get_element_info(self, elem_id: int) -> Tuple[Dict[int, None], int]:
+        combos = self.combo_lookup[elem_id]
+        min_complexity = 0
+        min_path_size = 0
+        min_path = None
+        for combo in combos:
+            if not all(x in self.paths for x in combo):
+                continue
+
+            # Analogous to union of all sets
+            path = {}
+            for x in combo:
+                path.update(self.paths[x])
+            # Add item to set
+            path[elem_id] = None
+
+            if len(path) < min_path_size or min_path_size == 0:
+                min_path_size = len(path)
+                print(min_path)
+                min_path = path
+
+            complexities = [self.complexities[x] for x in combo]
+            if max(complexities) + 1 < min_complexity or min_complexity == 0:
+                min_complexity = max(complexities) + 1
+
+        if min_path is not None:
+            return min_path, min_complexity
+
+    def calculate_infos(self) -> None:
+        # Ordered set but using dict
+        self.paths = {elem.id: {elem.id: None} for elem in self.starters}
+        self.complexities = {elem.id: 0 for elem in self.starters}
         unseen = list(self.elem_id_lookup)
         for elem in self.starters:
             unseen.remove(elem.id)
         while len(unseen) != 0:
             for elem in unseen:
-                combos = self.combo_lookup[elem]
-                min_complexity = 0
-                min_path_size = 0
-                min_path = None
-                for combo in combos:
-                    if not all(x in self.paths for x in combo):
-                        continue
-
-                    path = {}
-                    for x in combo:
-                        path.update(self.paths[x])
-                    path.setdefault(elem)
-                    if len(path) < min_path_size or min_path_size == 0:
-                        min_path_size = len(path)
-                        print(min_path)
-                        min_path = path
-
-                    complexities = [self.complexities[x] for x in combo]
-                    if max(complexities) + 1 < min_complexity or min_complexity == 0:
-                        min_complexity = max(complexities) + 1
-
-                if min_path is not None:
-                    self.paths[elem] = min_path
-                    self.complexities[elem] = min_complexity
+                path, complexity = self.get_element_info(elem)
+                if path is not None:
+                    self.paths[elem] = path
+                    self.complexities[elem] = complexity
                     unseen.remove(elem)
 
     @staticmethod
