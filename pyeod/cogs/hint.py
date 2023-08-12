@@ -63,6 +63,40 @@ class Hint(commands.Cog):
         paginator = FooterPaginator(embeds, footer)
         await paginator.respond(ctx)
 
+    @bridge.bridge_command(aliases=["p", "invhint", "ih"])
+    async def products(self, ctx: bridge.BridgeContext, *, element: str):
+        server = InstanceManager.current.get_or_create(
+            ctx.guild.id, DiscordGameInstance
+        )
+        element = server.check_element(element)
+
+        user = server.login_user(ctx.author.id)
+        lines = []
+        for combo in server.db.used_in_lookup[element.id]:
+            result = server.db.combos[combo]
+            tick = result.id in user.inv
+            lines.append(self.get_emoji(tick) + " " + result.name)
+
+        unobtained_lines = []
+        for line in lines:
+            if line.startswith(self.get_emoji(False)):
+                unobtained_lines.append(line)
+        # Move to end
+        for line in unobtained_lines:
+            lines.remove(line)
+            lines.append(line)
+
+        limit = get_page_limit(server, ctx.channel.id)
+        embeds = generate_embed_list(
+            lines, f"Products of {element.name} ({len(lines)})", limit
+        )
+        if element.id in user.inv:
+            footer = "You have this"
+        else:
+            footer = "You don't have this"
+        paginator = FooterPaginator(embeds, footer)
+        await paginator.respond(ctx)
+
 
 def setup(client):
     client.add_cog(Hint(client))
