@@ -173,6 +173,44 @@ class Database:
         self.users = users
         self.polls = polls
 
+        self.combo_lookup = {elem: [] for elem in self.elem_id_lookup}
+        for combo, result in combos.items():
+            self.combo_lookup[result.id].append(combo)
+
+        # Ordered set but with dict
+        self.paths = {elem.id: dict.fromkeys([elem.id]) for elem in starters}
+        self.complexities = {elem.id: 0 for elem in starters}
+        unseen = list(self.elem_id_lookup)
+        for elem in self.starters:
+            unseen.remove(elem.id)
+        while len(unseen) != 0:
+            for elem in unseen:
+                combos = self.combo_lookup[elem]
+                min_complexity = 0
+                min_path_size = 0
+                min_path = None
+                for combo in combos:
+                    if not all(x in self.paths for x in combo):
+                        continue
+
+                    path = {}
+                    for x in combo:
+                        path.update(self.paths[x])
+                    path.setdefault(elem)
+                    if len(path) < min_path_size or min_path_size == 0:
+                        min_path_size = len(path)
+                        print(min_path)
+                        min_path = path
+
+                    complexities = [self.complexities[x] for x in combo]
+                    if max(complexities) + 1 < min_complexity or min_complexity == 0:
+                        min_complexity = max(complexities) + 1
+
+                if min_path is not None:
+                    self.paths[elem] = min_path
+                    self.complexities[elem] = min_complexity
+                    unseen.remove(elem)
+
     @staticmethod
     def new_db(starter_elements: Tuple[Element, ...]) -> "Database":
         return Database(

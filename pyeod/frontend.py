@@ -119,7 +119,7 @@ def parse_element_list(content: str) -> List[str]:
     return stripped_elements
 
 
-async def build_info_embed(bot: Client, element: Element, user: User) -> Embed:
+async def build_info_embed(instance: GameInstance, element: Element, user: User) -> Embed:
     description = f"Element **#{element.id}**\n"
     if element.id in user.inv:
         description += "**You have this.**"
@@ -144,8 +144,9 @@ async def build_info_embed(bot: Client, element: Element, user: User) -> Embed:
         fields=[
             EmbedField("Creator", creator, True),
             EmbedField("Created At", timestamp, True),
-            EmbedField("Tree Size", "N/A", True),
-            EmbedField("Made With", "N/A", True),
+            EmbedField("Tree Size", len(instance.db.paths[element.id]), True),
+            EmbedField("Complexity", instance.db.complexities[element.id], True),
+            EmbedField("Made With", len(instance.db.combo_lookup[element.id]), True),
             EmbedField("Used In", "N/A", True),
             EmbedField("Found By", "N/A", True),
             EmbedField("Commenter", "N/A", True),

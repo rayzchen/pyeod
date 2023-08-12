@@ -55,7 +55,7 @@ class Base(commands.Cog):
         element = server.check_element(element_name)
         user = server.login_user(msg.author.id)
 
-        embed = await frontend.build_info_embed(self.bot, element, user)
+        embed = await frontend.build_info_embed(server, element, user)
         await msg.reply(embed=embed)
 
     async def combine_elements(self, server: DiscordGameInstance, msg: Message) -> None:
@@ -163,7 +163,7 @@ class Base(commands.Cog):
                 lines.append(f"{i}\. <@{user_id}> *You* - {len(user.inv):,}")
             else:
                 lines.append(f"{i}\. <@{user_id}> - {len(user.inv):,}")
-        
+
         limit = get_page_limit(server, ctx.channel.id)
         pages = generate_embed_list(lines, "Top Most Found", limit)
         if logged_in is not None and user_id == logged_in.id:
