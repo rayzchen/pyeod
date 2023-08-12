@@ -1,7 +1,12 @@
 from discord.ext import commands, bridge, pages
 from discord import User, Embed, ButtonStyle
 from discord.ext.pages.pagination import Page, PageGroup, PaginatorButton
-from pyeod.frontend import DiscordGameInstance, InstanceManager, FooterPaginator, generate_embed_list
+from pyeod.frontend import (
+    DiscordGameInstance,
+    InstanceManager,
+    FooterPaginator,
+    generate_embed_list,
+)
 import math
 
 
@@ -50,9 +55,7 @@ class Hint(commands.Cog):
             lines.append(" + ".join(names) + " " + self.get_emoji(tick))
 
         embeds = generate_embed_list(
-            lines,
-            f"Hints for {element.name} ({len(lines)})",
-            30
+            lines, f"Hints for {element.name} ({len(lines)})", 30
         )
         paginator = FooterPaginator(embeds)
         await paginator.respond(ctx)

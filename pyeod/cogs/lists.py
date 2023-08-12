@@ -1,7 +1,12 @@
 from discord.ext import commands, bridge, pages
 from discord import User, Embed, ButtonStyle
 from discord.ext.pages.pagination import Page, PageGroup, PaginatorButton
-from pyeod.frontend import DiscordGameInstance, InstanceManager, FooterPaginator, generate_embed_list
+from pyeod.frontend import (
+    DiscordGameInstance,
+    InstanceManager,
+    FooterPaginator,
+    generate_embed_list,
+)
 import math
 
 

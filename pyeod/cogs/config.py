@@ -1,5 +1,5 @@
 from discord.ext import commands, tasks, bridge
-from discord import Message,TextChannel,default_permissions
+from discord import Message, TextChannel, default_permissions
 from pyeod.frontend import DiscordGameInstance, InstanceManager
 from pyeod.packer import save_instance, load_instance
 from pyeod import config
