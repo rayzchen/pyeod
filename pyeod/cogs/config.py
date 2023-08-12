@@ -20,8 +20,10 @@ class Config(commands.Cog):
             guild_id = int(os.path.basename(file)[:-4])
             manager.add_instance(guild_id, instance)
         print("Loaded instance databases")
+        self.save.start()
+        print("Started save loop")
 
-    @tasks.loop(seconds=5)
+    @tasks.loop(seconds=5, reconnect=True)
     async def save(self):
         for id, instance in InstanceManager.current.instances.items():
             save_instance(instance, str(id) + ".eod")
