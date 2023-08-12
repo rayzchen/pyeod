@@ -51,8 +51,15 @@ class Base(commands.Cog):
     async def show_element_info(
         self, server: DiscordGameInstance, msg: Message
     ) -> None:
-        element_name = msg.content[1:].strip()
-        element = server.check_element(element_name)
+        if msg.content.startswith("?#"):
+            element_id = msg.content[2:].strip()
+            if not element_id.isdecimal():
+                await msg.reply("Invalid element ID")
+                return
+            element = server.db.elem_id_lookup[int(element_id)]
+        else:
+            element_name = msg.content[1:].strip()
+            element = server.check_element(element_name)
         user = server.login_user(msg.author.id)
 
         embed = await frontend.build_info_embed(server, element, user)
