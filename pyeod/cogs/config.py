@@ -1,11 +1,8 @@
-from discord.ext import commands, tasks, bridge, pages
+from discord.ext import commands, tasks, bridge
 from discord import Message,TextChannel,default_permissions
-from pyeod.model import InternalError
 from pyeod.frontend import DiscordGameInstance, InstanceManager
-from pyeod.utils import format_traceback
 from pyeod.packer import save_instance, load_instance
 from pyeod import config
-import traceback
 import glob
 import os
 
