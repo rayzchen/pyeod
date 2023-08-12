@@ -80,6 +80,23 @@ class Config(commands.Cog):
         server.channels.voting_channel = channel.id
         await ctx.respond(f"Successfully set {channel.name} as the voting channel!")
 
+    @bridge.bridge_command()
+    @default_permissions(manage_channels=True)
+    async def edit_element_name(self, ctx: bridge.BridgeContext, elem_id: int, *, name: str):
+        server = InstanceManager.current.get_or_create(
+            ctx.guild.id, DiscordGameInstance
+        )
+        if elem_id not in server.db.elem_id_lookup:
+            await ctx.respond(f"No element with id #{elem_id}!")
+            return
+
+        element = server.db.elem_id_lookup[elem_id]
+        old_name = element.name
+        element.name = name
+        server.db.elements.pop(old_name.lower())
+        server.db.elements[name.lower()] = element
+        await ctx.respond(f"Renamed element #{elem_id} ({old_name}) to {name} successfully!")
+
 
 def setup(client):
     client.add_cog(Config(client))
