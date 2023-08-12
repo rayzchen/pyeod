@@ -179,9 +179,25 @@ class Database:
         for combo, result in combos.items():
             self.combo_lookup[result.id].append(combo)
             for elem in combo:
-                self.used_in_lookup[elem].append(combo)
+                if combo not in self.used_in_lookup[elem]:
+                    self.used_in_lookup[elem].append(combo)
 
         self.calculate_infos()
+
+    def calculate_infos(self) -> None:
+        # Ordered set but using dict
+        self.paths = {elem.id: {elem.id: None} for elem in self.starters}
+        self.complexities = {elem.id: 0 for elem in self.starters}
+        unseen = list(self.elem_id_lookup)
+        for elem in self.starters:
+            unseen.remove(elem.id)
+        while len(unseen) != 0:
+            for elem in unseen:
+                path, complexity = self.get_element_info(elem)
+                if path is not None:
+                    self.paths[elem] = path
+                    self.complexities[elem] = complexity
+                    unseen.remove(elem)
 
     def get_element_info(self, elem_id: int) -> Tuple[Dict[int, None], int]:
         combos = self.combo_lookup[elem_id]
@@ -221,21 +237,6 @@ class Database:
         self.paths[element.id] = path
         self.complexities[element.id] = complexity
 
-    def calculate_infos(self) -> None:
-        # Ordered set but using dict
-        self.paths = {elem.id: {elem.id: None} for elem in self.starters}
-        self.complexities = {elem.id: 0 for elem in self.starters}
-        unseen = list(self.elem_id_lookup)
-        for elem in self.starters:
-            unseen.remove(elem.id)
-        while len(unseen) != 0:
-            for elem in unseen:
-                path, complexity = self.get_element_info(elem)
-                if path is not None:
-                    self.paths[elem] = path
-                    self.complexities[elem] = complexity
-                    unseen.remove(elem)
-
     @staticmethod
     def new_db(starter_elements: Tuple[Element, ...]) -> "Database":
         return Database(
@@ -270,7 +271,8 @@ class Database:
             self.combo_lookup[result.id].append(sorted_combo)
         self.used_in_lookup[result.id] = []
         for elem in sorted_combo:
-            self.used_in_lookup[elem].append(sorted_combo)
+            if sorted_combo not in self.used_in_lookup[elem]:
+                self.used_in_lookup[elem].append(sorted_combo)
 
     def convert_to_dict(self, data: dict) -> None:
         # Users MUST be first
