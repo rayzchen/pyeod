@@ -1,8 +1,7 @@
 from typing import Optional, Tuple, List, Union, Dict, Type, TypeVar
 from pyeod.model import Database, Element, GameInstance, InternalError, User
-from discord import Client, Embed, EmbedField, ButtonStyle, Role
+from discord import Client, Embed, EmbedField, ButtonStyle
 from discord.ext import pages
-from discord.utils import get
 import math
 
 
