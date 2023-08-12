@@ -14,7 +14,7 @@ class Hint(commands.Cog):
 
     def get_emoji(self, obtainable):
         if obtainable:
-            return "✅"
+            return "<:eodCheck:1139996144093646989>"
         else:
             return "❌"
 
@@ -50,13 +50,17 @@ class Hint(commands.Cog):
             names = [server.db.elem_id_lookup[elem].name for elem in combo]
             names.sort()
             names[-1] = self.obfuscate(names[-1])
-            lines.append(" + ".join(names) + " " + self.get_emoji(tick))
+            lines.append(self.get_emoji(tick) + " " + " + ".join(names))
 
         limit = get_page_limit(server, ctx.channel.id)
         embeds = generate_embed_list(
             lines, f"Hints for {element.name} ({len(lines)})", limit
         )
-        paginator = FooterPaginator(embeds)
+        if element.id in user.inv:
+            footer = "You have this"
+        else:
+            footer = "You don't have this"
+        paginator = FooterPaginator(embeds, footer)
         await paginator.respond(ctx)
 
 

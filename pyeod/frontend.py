@@ -157,7 +157,7 @@ async def build_info_embed(bot: Client, element: Element, user: User) -> Embed:
 
 
 class FooterPaginator(pages.Paginator):
-    def __init__(self, page_list) -> None:
+    def __init__(self, page_list, footer_text: str = "") -> None:
         buttons = [
             pages.PaginatorButton("prev", "◀", style=ButtonStyle.blurple),
             pages.PaginatorButton("next", "▶", style=ButtonStyle.blurple),
@@ -170,12 +170,16 @@ class FooterPaginator(pages.Paginator):
             loop_pages=True,
             custom_buttons=buttons,
         )
+        self.footer_text = footer_text
 
     def update_buttons(self):
         buttons = super(FooterPaginator, self).update_buttons()
         page = self.pages[self.current_page]
         if isinstance(page, Embed):
-            page.set_footer(text=f"Page {self.current_page + 1}/{self.page_count + 1}")
+            footer = f"Page {self.current_page + 1}/{self.page_count + 1}"
+            if self.footer_text:
+                footer += " • " + self.footer_text
+            page.set_footer(text=footer)
         return buttons
 
 
