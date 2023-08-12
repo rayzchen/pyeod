@@ -6,6 +6,7 @@ from pyeod.frontend import (
     InstanceManager,
     FooterPaginator,
     generate_embed_list,
+    get_page_limit
 )
 import math
 
@@ -54,8 +55,9 @@ class Hint(commands.Cog):
             names[-1] = self.obfuscate(names[-1])
             lines.append(" + ".join(names) + " " + self.get_emoji(tick))
 
+        limit = get_page_limit(server, ctx.channel.id)
         embeds = generate_embed_list(
-            lines, f"Hints for {element.name} ({len(lines)})", 30
+            lines, f"Hints for {element.name} ({len(lines)})", limit
         )
         paginator = FooterPaginator(embeds)
         await paginator.respond(ctx)

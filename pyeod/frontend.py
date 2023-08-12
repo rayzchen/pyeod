@@ -190,3 +190,9 @@ def generate_embed_list(lines: List[str], title: str, limit: int) -> List[Embed]
             )
         )
     return embeds
+
+
+def get_page_limit(instance: DiscordGameInstance, channel_id: int) -> int:
+    if channel_id in instance.channels.play_channels:
+        return 30
+    return 10

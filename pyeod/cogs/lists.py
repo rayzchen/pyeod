@@ -6,6 +6,7 @@ from pyeod.frontend import (
     InstanceManager,
     FooterPaginator,
     generate_embed_list,
+    get_page_limit
 )
 import math
 
@@ -30,7 +31,8 @@ class Lists(commands.Cog):
         elements = [server.db.elem_id_lookup[elem].name for elem in logged_in.inv]
         title = user.display_name + f"'s Inventory ({len(logged_in.inv)})"
 
-        embeds = generate_embed_list(elements, title, 30)
+        limit = get_page_limit(server, ctx.channel.id)
+        embeds = generate_embed_list(elements, title, limit)
         paginator = FooterPaginator(embeds)
         await paginator.respond(ctx)
 
