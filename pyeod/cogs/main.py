@@ -1,6 +1,6 @@
 from discord.ext import commands, tasks, bridge, pages
 from discord.utils import get
-from discord import User, Message
+from discord import User, Message, default_permissions
 from pyeod.utils import format_traceback
 from pyeod.model import GameError
 from pyeod.frontend import DiscordGameInstance, InstanceManager

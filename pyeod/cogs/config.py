@@ -1,6 +1,5 @@
 from discord.ext import commands, tasks, bridge, pages
-from discord import User, Message, TextChannel, Role, Member, Guild, SlashCommandGroup
-from discord.utils import get
+from discord import Message,TextChannel,default_permissions
 from pyeod.model import InternalError
 from pyeod.frontend import DiscordGameInstance, InstanceManager
 from pyeod.utils import format_traceback
@@ -25,10 +24,6 @@ class Config(commands.Cog):
             manager.add_instance(guild_id, instance)
         print("Loaded instance databases")
 
-        self.save.start()
-    
-    config = SlashCommandGroup("configuration", "Bot settings for your server")
-    
     @tasks.loop(seconds=5)
     async def save(self):
         for id, instance in InstanceManager.current.instances.items():
@@ -41,38 +36,24 @@ class Config(commands.Cog):
         InstanceManager.current.get_or_create(msg.guild.id, DiscordGameInstance)
 
     # Slash commands only cus converting to channel is busted
-    @config.command()
+    @commands.slash_command()
+    @default_permissions(manage_channels=True)
     async def add_play_channel(self, ctx: bridge.BridgeContext, channel: TextChannel):
         server = InstanceManager.current.get_or_create(
             ctx.guild.id, DiscordGameInstance
         )
-        
-        guild = await self.bot.fetch_guild(ctx.guild.id)
-        
-        if (
-            get(guild.roles, id = server.mod_role) not in ctx.author.roles
-            and ctx.author.id != guild.owner_id
-        ):
-            return
 
         server.channels.play_channels.append(channel.id)
         await ctx.respond(f"Successfully added {channel.name} as a play channel!")
 
-    @config.command()
+    @commands.slash_command()
+    @default_permissions(manage_channels=True)
     async def remove_play_channel(
         self, ctx: bridge.BridgeContext, channel: TextChannel
     ):
         server = InstanceManager.current.get_or_create(
             ctx.guild.id, DiscordGameInstance
         )
-        
-        guild = await self.bot.fetch_guild(ctx.guild.id)
-        
-        if (
-            get(guild.roles, id = server.mod_role) not in ctx.author.roles
-            and ctx.author.id != guild.owner_id
-        ):
-            return
 
         try:
             server.channels.play_channels.remove(channel.id)
@@ -80,58 +61,25 @@ class Config(commands.Cog):
         except ValueError:
             await ctx.respond(f"That is not a play channel")
 
-    @config.command()
+    @commands.slash_command()
+    @default_permissions(manage_channels=True)
     async def set_news_channel(self, ctx: bridge.BridgeContext, channel: TextChannel):
         server = InstanceManager.current.get_or_create(
             ctx.guild.id, DiscordGameInstance
         )
-        
-        
-        guild = await self.bot.fetch_guild(ctx.guild.id)
-        
-        if (
-            get(guild.roles, id = server.mod_role) not in ctx.author.roles
-            and ctx.author.id != guild.owner_id
-        ):
-            return
 
         server.channels.news_channel = channel.id
         await ctx.respond(f"Successfully set {channel.name} as the news channel!")
 
-    @config.command()
+    @commands.slash_command()
+    @default_permissions(manage_channels=True)
     async def set_voting_channel(self, ctx: bridge.BridgeContext, channel: TextChannel):
         server = InstanceManager.current.get_or_create(
             ctx.guild.id, DiscordGameInstance
         )
-        
-        guild = await self.bot.fetch_guild(ctx.guild.id)
-        
-        if (
-            get(guild.roles, id = server.mod_role) not in ctx.author.roles
-            and ctx.author.id != guild.owner_id
-        ):
-            return
-        
+
         server.channels.voting_channel = channel.id
         await ctx.respond(f"Successfully set {channel.name} as the voting channel!")
-
-    @config.command()
-    async def set_mod_role(self, ctx: bridge.BridgeContext, role: Role):
-        server = InstanceManager.current.get_or_create(
-            ctx.guild.id, DiscordGameInstance
-        )
-        
-        guild = await self.bot.fetch_guild(ctx.guild.id)
-        
-        if (
-            get(guild.roles, id = server.mod_role) not in ctx.author.roles
-            and ctx.author.id != guild.owner_id
-        ):
-            return
-
-        server.mod_role = int(role.id)
-        
-        await ctx.respond(f"Successfully set {role.name} as the moderator role!")
 
 
 def setup(client):

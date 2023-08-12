@@ -29,7 +29,6 @@ class DiscordGameInstance(GameInstance):
         vote_req: int = 0,
         poll_limit: int = 21,
         channels: Optional[ChannelList] = None,
-        mod_role: Optional[Role] = None,
         starter_elements: Optional[Tuple[Element, ...]] = None,
     ) -> None:
         super().__init__(db, vote_req, poll_limit, starter_elements)
@@ -37,7 +36,6 @@ class DiscordGameInstance(GameInstance):
             self.channels = ChannelList()
         else:
             self.channels = channels
-        self.mod_role = mod_role
 
     def convert_to_dict(self, data: dict) -> None:
         super(DiscordGameInstance, self).convert_to_dict(data)
@@ -46,7 +44,6 @@ class DiscordGameInstance(GameInstance):
             "voting": self.channels.voting_channel,
             "play": self.channels.play_channels,
         }
-        data["mod_role"] = self.mod_role
 
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "DiscordGameInstance":
@@ -59,7 +56,6 @@ class DiscordGameInstance(GameInstance):
                 data["channels"]["voting"],
                 data["channels"]["play"],
             ),
-            data["mod_role"]
         )
 
 
