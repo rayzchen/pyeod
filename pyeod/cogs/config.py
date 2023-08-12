@@ -27,7 +27,7 @@ class Config(commands.Cog):
     async def save(self):
         for id, instance in InstanceManager.current.instances.items():
             save_instance(instance, str(id) + ".eod")
-
+    
     @commands.Cog.listener("on_message")
     async def check_for_new_servers(self, msg: Message):
         if InstanceManager.current:  # Messages can be caught before bot is ready
@@ -82,7 +82,9 @@ class Config(commands.Cog):
 
     @bridge.bridge_command()
     @default_permissions(manage_channels=True)
-    async def edit_element_name(self, ctx: bridge.BridgeContext, elem_id: int, *, name: str):
+    async def edit_element_name(
+        self, ctx: bridge.BridgeContext, elem_id: int, *, name: str
+    ):
         server = InstanceManager.current.get_or_create(
             ctx.guild.id, DiscordGameInstance
         )
@@ -95,7 +97,19 @@ class Config(commands.Cog):
         element.name = name
         server.db.elements.pop(old_name.lower())
         server.db.elements[name.lower()] = element
-        await ctx.respond(f"Renamed element #{elem_id} ({old_name}) to {name} successfully!")
+        await ctx.respond(
+            f"Renamed element #{elem_id} ({old_name}) to {name} successfully!"
+        )
+
+    @bridge.bridge_command()
+    @default_permissions(manage_channels=True)
+    async def set_vote_req(self, ctx: bridge.BridgeContext, vote_req: int):
+        server = InstanceManager.current.get_or_create(
+            ctx.guild.id, DiscordGameInstance
+        )
+
+        server.vote_req = vote_req
+        await ctx.respond(f"Successfully set the vote requirement to {vote_req}")
 
 
 def setup(client):

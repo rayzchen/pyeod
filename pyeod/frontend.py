@@ -1,9 +1,9 @@
 from typing import Optional, Tuple, List, Union, Dict, Type, TypeVar
-from pyeod.model import Database, Element, GameInstance, InternalError, User
+from pyeod.model import Database, Element, GameInstance, InternalError, User, ElementPoll, Poll
 from discord import Client, Embed, EmbedField, ButtonStyle
 from discord.ext import pages
 import math
-
+import asyncio
 
 class ChannelList:
     def __init__(
@@ -19,7 +19,6 @@ class ChannelList:
         else:
             self.play_channels = play_channels
 
-
 class DiscordGameInstance(GameInstance):
     # TODO: override serialization function to include channels attribute
     def __init__(
@@ -28,6 +27,7 @@ class DiscordGameInstance(GameInstance):
         vote_req: int = 0,
         poll_limit: int = 21,
         channels: Optional[ChannelList] = None,
+        #active_polls: Optional[Dict[int, Poll]] = [],
         starter_elements: Optional[Tuple[Element, ...]] = None,
     ) -> None:
         super().__init__(db, vote_req, poll_limit, starter_elements)
@@ -35,6 +35,7 @@ class DiscordGameInstance(GameInstance):
             self.channels = ChannelList()
         else:
             self.channels = channels
+        #self.active_polls = active_polls
 
     def convert_to_dict(self, data: dict) -> None:
         super(DiscordGameInstance, self).convert_to_dict(data)
@@ -43,7 +44,8 @@ class DiscordGameInstance(GameInstance):
             "voting": self.channels.voting_channel,
             "play": self.channels.play_channels,
         }
-
+        #data["active_polls"] = {self.active_polls}
+    
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "DiscordGameInstance":
         return DiscordGameInstance(
@@ -55,8 +57,23 @@ class DiscordGameInstance(GameInstance):
                 data["channels"]["voting"],
                 data["channels"]["play"],
             ),
+            #data["active_polls"]
         )
 
+    def convert_poll_to_embed(self, poll:Poll):
+        embed = Embed()
+        if isinstance(poll, ElementPoll):
+            embed.title = "Element" if poll.exists else "Combination"
+            embed.description = " + ".join([i.name for i in poll.combo]) + " = " + poll.result
+        embed.set_footer(text = "You can change your vote, if you suggested this poll, downvote it to delete it")
+        return embed
+    
+    def convert_poll_to_news_message(self, poll:Poll):
+        msg = ""
+        if isinstance(poll, ElementPoll):
+            #TODO: Make this better
+            msg += f"New element {poll.result}"
+        return msg
 
 InstT = TypeVar("InstT", bound=GameInstance)
 

@@ -138,9 +138,13 @@ class Base(commands.Cog):
             poll = server.suggest_element(user, combo, name)
             if server.vote_req == 0:
                 server.check_polls()
+                news_channel = await self.bot.fetch_channel(server.channels.news_channel)
+                await news_channel.send(server.convert_poll_to_news_message(poll))
             else:
-                # TODO: post poll message
-                pass
+                voting_channel = await self.bot.fetch_channel(server.channels.voting_channel)
+                msg = await voting_channel.send(embed = server.convert_poll_to_embed(poll))
+                await msg.add_reaction('\u2B06\uFE0F')  # ⬆️ Emoji
+                await msg.add_reaction('\u2B07\uFE0F') # ⬇️ Emoji
             await ctx.reply(
                 "Suggested " + " + ".join([i.name for i in combo]) + " = " + poll.result
             )
