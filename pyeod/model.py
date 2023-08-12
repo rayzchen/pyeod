@@ -61,7 +61,7 @@ class User:
         active_polls: int,
         id: int,
         last_combo: Tuple[Element, ...] = (),
-        last_element: Optional[Element] = None
+        last_element: Optional[Element] = None,
     ) -> None:
         self.inv = inv
         self.active_polls = active_polls

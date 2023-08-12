@@ -5,11 +5,7 @@ import sysconfig
 
 
 def format_traceback(err):
-    _traceback = "".join(traceback.format_exception(
-        type(err),
-        err,
-        err.__traceback__
-    ))
+    _traceback = "".join(traceback.format_exception(type(err), err, err.__traceback__))
     error = f"```py\n{_traceback}\n```"
     workdir = os.path.abspath("/<workdir>")
     packagedir = os.path.abspath("/<packages>")

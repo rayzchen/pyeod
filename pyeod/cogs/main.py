@@ -28,13 +28,8 @@ class Main(commands.Cog):
         if isinstance(err, commands.errors.UserNotFound):
             await ctx.channel.send(str(err))
         else:
-            sys.stderr.write(
-                "".join(traceback.format_exception(
-                    type(err),
-                    err,
-                    err.__traceback__
-                )),
-            )
+            lines = traceback.format_exception(type(err), err, err.__traceback__)
+            sys.stderr.write("".join(lines))
             if err.__cause__ is not None:
                 err = err.__cause__
             error = format_traceback(err)
@@ -52,7 +47,7 @@ class Main(commands.Cog):
         await ctx.respond(f"Pong {round(self.bot.latency*1000)}ms")
 
     @bridge.bridge_command()
-    @default_permissions(manage_messages = True)
+    @default_permissions(manage_messages=True)
     async def clear_polls(self, ctx: bridge.BridgeContext):
         server = InstanceManager.current.get_or_create(
             ctx.guild.id, DiscordGameInstance
