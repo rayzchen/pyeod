@@ -1,5 +1,5 @@
 from discord.ext import commands, tasks, bridge
-from discord import Message
+from discord import Message, default_permissions
 from pyeod.utils import format_traceback
 from pyeod.model import GameError
 from pyeod.frontend import DiscordGameInstance, InstanceManager
@@ -45,6 +45,7 @@ class Main(commands.Cog):
         await ctx.respond(f"Pong {round(self.bot.latency*1000)}ms")
 
     @bridge.bridge_command()
+    @default_permissions(manage_messages = True)
     async def clear_polls(self, ctx: bridge.BridgeContext):
         server = InstanceManager.current.get_or_create(
             ctx.guild.id, DiscordGameInstance
