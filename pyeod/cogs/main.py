@@ -1,6 +1,6 @@
 from discord.ext import commands, tasks, bridge
 from discord import default_permissions, DiscordException
-from discord.commands import SlashContext
+from discord.commands import ApplicationContext
 from pyeod.utils import format_traceback
 from pyeod.frontend import DiscordGameInstance, InstanceManager
 from pyeod import config
@@ -38,7 +38,7 @@ class Main(commands.Cog):
             )
 
     async def on_application_command_error(
-        self, ctx: SlashContext, err: DiscordException
+        self, ctx: ApplicationContext, err: DiscordException
     ) -> None:
         await self.on_command_error(ctx, err)
 
