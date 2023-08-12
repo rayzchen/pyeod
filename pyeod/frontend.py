@@ -147,7 +147,7 @@ async def build_info_embed(instance: GameInstance, element: Element, user: User)
             EmbedField("Tree Size", len(instance.db.paths[element.id]), True),
             EmbedField("Complexity", instance.db.complexities[element.id], True),
             EmbedField("Made With", len(instance.db.combo_lookup[element.id]), True),
-            EmbedField("Used In", "N/A", True),
+            EmbedField("Used In", len(instance.db.used_in_lookup[element.id]), True),
             EmbedField("Found By", "N/A", True),
             EmbedField("Commenter", "N/A", True),
             EmbedField("Colorer", "N/A", True),

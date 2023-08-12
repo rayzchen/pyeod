@@ -175,8 +175,11 @@ class Database:
         self.polls = polls
 
         self.combo_lookup = {elem: [] for elem in self.elem_id_lookup}
+        self.used_in_lookup = {elem: [] for elem in self.elem_id_lookup}
         for combo, result in combos.items():
             self.combo_lookup[result.id].append(combo)
+            for elem in combo:
+                self.used_in_lookup[elem].append(combo)
 
         self.calculate_infos()
 
@@ -198,7 +201,6 @@ class Database:
 
             if len(path) < min_path_size or min_path_size == 0:
                 min_path_size = len(path)
-                print(min_path)
                 min_path = path
 
             complexities = [self.complexities[x] for x in combo]
@@ -262,6 +264,13 @@ class Database:
         if sorted_combo in self.combos:
             raise InternalError("Combo exists", "That combo already exists")
         self.combos[sorted_combo] = result
+        if result.id not in self.combo_lookup:
+            self.combo_lookup[result.id] = [sorted_combo]
+        else:
+            self.combo_lookup[result.id].append(sorted_combo)
+        self.used_in_lookup[result.id] = []
+        for elem in sorted_combo:
+            self.used_in_lookup[elem].append(sorted_combo)
 
     def convert_to_dict(self, data: dict) -> None:
         # Users MUST be first
