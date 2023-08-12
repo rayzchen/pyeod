@@ -132,6 +132,7 @@ class ElementPoll(Poll):
         else:
             element = database.elements[self.result.lower()]
         database.set_combo_result(self.combo, element)
+        database.update_element_info(element)
         self.author.add_element(element)
         if self.author.last_combo == self.combo:
             self.author.last_combo = ()
@@ -208,6 +209,15 @@ class Database:
             return min_path, min_complexity
         else:
             return None, None
+
+    def update_element_info(self, element: Element) -> None:
+        path, complexity = self.get_element_info(element.id)
+        if path is None:
+            raise InternalError(
+                "Elem path failed", "Could not generate path for element"
+            )
+        self.paths[element.id] = path
+        self.complexities[element.id] = complexity
 
     def calculate_infos(self) -> None:
         # Ordered set but using dict
