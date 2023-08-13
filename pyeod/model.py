@@ -199,7 +199,8 @@ class ElementPoll(Poll):
             return "Element"
 
     def get_description(self) -> str:
-        return " + ".join([i.name for i in self.combo]) + " = " + self.result
+        text = " + ".join([i.name for i in self.combo]) + " = " + self.result
+        text += f"\n\nSuggested by <@{self.author.id}>"
 
     def convert_to_dict(self, data: dict) -> None:
         data["author"] = self.author.id

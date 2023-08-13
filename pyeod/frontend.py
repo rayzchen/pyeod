@@ -75,9 +75,9 @@ class DiscordGameInstance(GameInstance):
             title=poll.get_title(),
             description=poll.get_description()
         )
-        embed.set_footer(
-            text="You can change your vote, if you suggested this poll, downvote it to delete it"
-        )
+        # You can change your vote, if you suggested this poll, downvote it to delete it
+        # Shorter footer is neater?
+        embed.set_footer(text="You can change your vote")
         return embed
 
 
