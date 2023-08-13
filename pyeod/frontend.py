@@ -38,6 +38,7 @@ class DiscordGameInstance(GameInstance):
         poll_limit: int = 21,
         channels: Optional[ChannelList] = None,
         # active_polls: Optional[Dict[int, Poll]] = [],
+        poll_msg_lookup: Optional[Dict[int, Poll]] = None,
         starter_elements: Optional[Tuple[Element, ...]] = None,
     ) -> None:
         super().__init__(db, vote_req, poll_limit, starter_elements)
@@ -45,7 +46,10 @@ class DiscordGameInstance(GameInstance):
             self.channels = ChannelList()
         else:
             self.channels = channels
-        # self.active_polls = active_polls
+        if poll_msg_lookup is None:
+            self.poll_msg_lookup = {}
+        else:
+            self.poll_msg_lookup = poll_msg_lookup
 
     def convert_to_dict(self, data: dict) -> None:
         super(DiscordGameInstance, self).convert_to_dict(data)
@@ -54,10 +58,18 @@ class DiscordGameInstance(GameInstance):
             "voting": self.channels.voting_channel,
             "play": self.channels.play_channels,
         }
-        # data["active_polls"] = {self.active_polls}
+        data["poll_msg_lookup"] = {}
+        for id, poll in self.poll_msg_lookup.items():
+            # In case poll is deleted while saving, shouldn't cause too much issue
+            # TODO: asyncio lock for accessing db?
+            if poll in self.db.polls:
+                data["poll_msg_lookup"][id] = self.db.polls.index(poll)
 
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "DiscordGameInstance":
+        lookup = {}
+        for id, poll_idx in data.get("poll_msg_lookup", {}):
+            lookup[id] = data["db"].polls[poll_idx]
         return DiscordGameInstance(
             data["db"],
             data["vote_req"],
@@ -67,7 +79,7 @@ class DiscordGameInstance(GameInstance):
                 data["channels"]["voting"],
                 data["channels"]["play"],
             ),
-            # data["active_polls"]
+            lookup
         )
 
     def convert_poll_to_embed(self, poll: Poll):

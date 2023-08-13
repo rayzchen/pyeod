@@ -151,10 +151,11 @@ class Base(commands.Cog):
             if server.vote_req == 0:
                 server.check_polls()
                 news_channel = await self.bot.fetch_channel(server.channels.news_channel)
-                await news_channel.send(server.convert_poll_to_news_message(poll))
+                await news_channel.send(poll.get_news_message(server))
             else:
                 voting_channel = await self.bot.fetch_channel(server.channels.voting_channel)
                 msg = await voting_channel.send(embed = server.convert_poll_to_embed(poll))
+                server.poll_msg_lookup[msg.id] = poll
             await ctx.reply(
                 "Suggested " + " + ".join([i.name for i in combo]) + " = " + poll.result
             )
