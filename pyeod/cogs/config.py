@@ -110,6 +110,16 @@ class Config(commands.Cog):
 
         server.vote_req = vote_req
         await ctx.respond(f"Successfully set the vote requirement to {vote_req}")
+    
+    @bridge.bridge_command()
+    @default_permissions(manage_channels=True)
+    async def set_max_polls(self, ctx: bridge.BridgeContext, max_polls: int):
+        server = InstanceManager.current.get_or_create(
+            ctx.guild.id, DiscordGameInstance
+        )
+
+        server.poll_limit = max_polls
+        await ctx.respond(f"Successfully set the max polls a user can have to {max_polls}")
 
 
 def setup(client):
