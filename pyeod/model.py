@@ -201,6 +201,7 @@ class ElementPoll(Poll):
     def get_description(self) -> str:
         text = " + ".join([i.name for i in self.combo]) + " = " + self.result
         text += f"\n\nSuggested by <@{self.author.id}>"
+        return text
 
     def convert_to_dict(self, data: dict) -> None:
         data["author"] = self.author.id
@@ -488,6 +489,26 @@ class GameInstance:
                 new_polls.append(poll)
         self.db.polls = new_polls
         return deleted_polls
+
+    def check_single_poll(self, poll: Poll) -> bool:
+        if poll.votes >= self.vote_req:
+            # Poll was accepted
+            poll.accepted = True
+            try:
+                poll.resolve(self.db)
+            except InternalError as e:
+                # Sometimes occurs when poll is accepted twice
+                pass
+            poll.author.active_polls -= 1
+            self.db.polls.remove(poll)
+            return True
+        elif poll.votes <= -self.vote_req:
+            # Poll was denied
+            poll.author.active_polls -= 1
+            self.db.polls.remove(poll)
+            return True
+        else:
+            return False
 
     def convert_to_dict(self, data: dict) -> None:
         data["db"] = self.db
