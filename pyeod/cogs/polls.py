@@ -26,11 +26,14 @@ class Polls(commands.Cog):
             for message, poll in zip(messages, server.db.polls):
                 poll.votes = 0
                 try:
+                    downvotes = get(message.reactions, emoji = '\u2B07\uFE0F')
                     upvote_count = get(message.reactions, emoji = '\u2B06\uFE0F').count
-                    downvote_count = get(message.reactions, emoji = '\u2B07\uFE0F').count
+                    downvote_count = downvotes.count
                 except:
                     continue#Just break out of the loop if the above code breaks
-                if upvote_count != None and downvote_count != None:
+                if get(await downvotes.users().flatten(), id = poll.author.id):
+                    poll.votes -= server.vote_req * 2 #Double it and give it to the next person
+                else:
                     poll.votes += upvote_count - 1# Do not include the bot's own reaction
                     poll.votes -= downvote_count - 1
                 poll_dict[poll] = message

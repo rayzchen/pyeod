@@ -143,11 +143,12 @@ class Base(commands.Cog):
             else:
                 voting_channel = await self.bot.fetch_channel(server.channels.voting_channel)
                 msg = await voting_channel.send(embed = server.convert_poll_to_embed(poll))
-                await msg.add_reaction('\u2B06\uFE0F')  # ⬆️ Emoji
-                await msg.add_reaction('\u2B07\uFE0F') # ⬇️ Emoji
             await ctx.reply(
                 "Suggested " + " + ".join([i.name for i in combo]) + " = " + poll.result
             )
+            if server.vote_req != 0:#Adding reactions after just feels snappier
+                await msg.add_reaction('\u2B06\uFE0F')  # ⬆️ Emoji
+                await msg.add_reaction('\u2B07\uFE0F') # ⬇️ Emoji
 
     @bridge.bridge_command(aliases=["leaderboard"])
     async def lb(self, ctx: bridge.BridgeContext, *, user: User = None):
