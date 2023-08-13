@@ -79,16 +79,14 @@ class DiscordGameInstance(GameInstance):
                 data["channels"]["voting"],
                 data["channels"]["play"],
             ),
-            lookup
+            lookup,
         )
 
     def convert_poll_to_embed(self, poll: Poll):
-        embed = Embed(
-            title=poll.get_title(),
-            description=poll.get_description()
-        )
-        # You can change your vote, if you suggested this poll, downvote it to delete it
-        # Shorter footer is neater?
+        embed = Embed(title=poll.get_title(), description=poll.get_description())
+        # Ray: You can change your vote, if you suggested this poll, downvote it to delete it
+        # Ray: Shorter footer is neater?
+        # Cheesy: How do new users know how to delete polls tho?
         embed.set_footer(text="You can change your vote")
         return embed
 
@@ -175,21 +173,33 @@ async def build_info_embed(
     else:
         timestamp = f"<t:{element.created}>"
 
+    if element.mark:
+        marker = f"<@{element.marker.id}>"
+    
     return Embed(
         title=element.name + " Info",
         description=description,
         fields=[
-            EmbedField("Creator", creator, True),
-            EmbedField("Created At", timestamp, True),
-            EmbedField("Tree Size", len(instance.db.paths[element.id]), True),
-            EmbedField("Complexity", instance.db.complexities[element.id], True),
-            EmbedField("Made With", len(instance.db.combo_lookup[element.id]), True),
-            EmbedField("Used In", len(instance.db.used_in_lookup[element.id]), True),
-            EmbedField("Found By", "N/A", True),
-            EmbedField("Commenter", "N/A", True),
-            EmbedField("Colorer", "N/A", True),
-            EmbedField("Imager", "N/A", True),
-            EmbedField("Categories", "N/A", False),
+            i
+            for i in [
+                EmbedField("Creator", creator, True),
+                EmbedField("Created At", timestamp, True),
+                EmbedField("Tree Size", len(instance.db.paths[element.id]), True),
+                EmbedField("Complexity", instance.db.complexities[element.id], True),
+                EmbedField(
+                    "Made With", len(instance.db.combo_lookup[element.id]), True
+                ),
+                EmbedField(
+                    "Used In", len(instance.db.used_in_lookup[element.id]), True
+                ),
+                EmbedField("Found By", "N/A", True),
+                EmbedField("Comment", element.mark, True) if element.mark else None,
+                EmbedField("Commenter",marker, True) if element.mark else None,
+                EmbedField("Colorer", "N/A", True),
+                EmbedField("Imager", "N/A", True),
+                EmbedField("Categories", "N/A", False),
+            ]
+            if i != None
         ],
     )
 

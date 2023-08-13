@@ -6,7 +6,7 @@ from pyeod.frontend import (
     InstanceManager,
     FooterPaginator,
     generate_embed_list,
-    get_page_limit
+    get_page_limit,
 )
 from pyeod import frontend
 from typing import Union
@@ -157,18 +157,24 @@ class Base(commands.Cog):
             poll = server.suggest_element(user, combo, name)
             if server.vote_req == 0:
                 server.check_polls()
-                news_channel = await self.bot.fetch_channel(server.channels.news_channel)
+                news_channel = await self.bot.fetch_channel(
+                    server.channels.news_channel
+                )
                 await news_channel.send(poll.get_news_message(server))
             else:
-                voting_channel = await self.bot.fetch_channel(server.channels.voting_channel)
-                msg = await voting_channel.send(embed = server.convert_poll_to_embed(poll))
+                voting_channel = await self.bot.fetch_channel(
+                    server.channels.voting_channel
+                )
+                msg = await voting_channel.send(
+                    embed=server.convert_poll_to_embed(poll)
+                )
                 server.poll_msg_lookup[msg.id] = poll
             await ctx.reply(
                 "Suggested " + " + ".join([i.name for i in combo]) + " = " + poll.result
             )
-            if server.vote_req != 0:#Adding reactions after just feels snappier
-                await msg.add_reaction('\u2B06\uFE0F')  # ⬆️ Emoji
-                await msg.add_reaction('\u2B07\uFE0F') # ⬇️ Emoji
+            if server.vote_req != 0:  # Adding reactions after just feels snappier
+                await msg.add_reaction("\u2B06\uFE0F")  # ⬆️ Emoji
+                await msg.add_reaction("\u2B07\uFE0F")  # ⬇️ Emoji
 
     @bridge.bridge_command(aliases=["leaderboard"])
     async def lb(self, ctx: bridge.BridgeContext, *, user: User = None):
@@ -187,7 +193,9 @@ class Base(commands.Cog):
         user_index = -1
         user_inv = 0
         i = 0
-        for user_id, user in sorted(server.db.users.items(), key=lambda pair: len(pair[1].inv), reverse=True):
+        for user_id, user in sorted(
+            server.db.users.items(), key=lambda pair: len(pair[1].inv), reverse=True
+        ):
             i += 1
             if logged_in is not None and user_id == logged_in.id:
                 user_index = i
@@ -201,10 +209,55 @@ class Base(commands.Cog):
         if logged_in is not None and user_id == logged_in.id:
             for page in pages:
                 if f"<@{user_id}>" not in page.description:
-                    page.description += f"\n\n{user_index}\. <@{user_id} *You* - {user_inv:,}"
+                    page.description += (
+                        f"\n\n{user_index}\. <@{user_id} *You* - {user_inv:,}"
+                    )
 
         paginator = FooterPaginator(pages)
         await paginator.respond(ctx)
+
+    # Don't use bridge command cus params
+    @bridge.bridge_command(aliases=["c", "mark", "note"])
+    async def comment(
+        self, ctx: bridge.BridgeContext, *, marked_element: str, mark: str = None
+    ):  # Sneaky use of args here
+        server = InstanceManager.current.get_or_create(
+            ctx.guild.id, DiscordGameInstance
+        )
+        user = server.login_user(ctx.author.id)
+        if ctx.is_app:
+            if not mark:
+                await ctx.respond("Please suggest a mark")
+                return
+            marked_element = marked_element.lower()
+        else:
+            marked_element, mark = marked_element.split(" | ")
+            marked_element = marked_element.strip().lower()
+            mark = mark.strip()
+        if not server.db.has_element(marked_element):
+            await ctx.respond("Not a valid element")
+            return
+        if len(mark) > 3000:
+            await ctx.respond("Marks cannot be over 3000 characters in length")
+            return
+        element = server.db.elements[marked_element]
+        poll = server.suggest_mark(user, element, mark)
+
+        if server.vote_req == 0:
+            server.check_polls()
+            news_channel = await self.bot.fetch_channel(server.channels.news_channel)
+            await news_channel.send(poll.get_news_message(server))
+        else:
+            voting_channel = await self.bot.fetch_channel(
+                server.channels.voting_channel
+            )
+            msg = await voting_channel.send(embed=server.convert_poll_to_embed(poll))
+            server.poll_msg_lookup[msg.id] = poll
+        await ctx.reply(f"Suggested a new mark for {element.name}!")
+        if server.vote_req != 0:  # Adding reactions after just feels snappier
+            await msg.add_reaction("\u2B06\uFE0F")  # ⬆️ Emoji
+            await msg.add_reaction("\u2B07\uFE0F")
+
 
 def setup(client):
     client.add_cog(Base(client))

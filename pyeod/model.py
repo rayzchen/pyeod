@@ -1,4 +1,5 @@
 from typing import Optional, Dict, Tuple, List, Union
+import inspect
 import copy
 import time
 
@@ -22,12 +23,20 @@ class GameError(ModelBaseError):
 
 class Element:
     def __init__(
-        self, name: str, author: Optional["User"] = None, created: int = 0, id: int = 1
+        self,
+        name: str,
+        author: Optional["User"] = None,
+        created: int = 0,
+        id: int = 1,
+        mark: str = None,
+        marker: Optional["User"] = None,
     ) -> None:  # author:User
         self.name = name
         self.author = author
         self.created = created
         self.id = id
+        self.mark = mark
+        self.marker = marker
 
     def __repr__(self) -> str:
         return f"<Name: {self.name}, Id: {self.id}>"
@@ -39,17 +48,20 @@ class Element:
 
     def convert_to_dict(self, data: dict) -> None:
         data["name"] = self.name
-        data["author"] = self.author.id if self.author is not None else None
+        data["author"] = self.author.id if self.author else None
         data["created"] = self.created
         data["id"] = self.id
+        data["mark"] = self.mark
+        data["marker"] = self.marker.id if self.marker else None
 
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "Element":
-        if data["author"] is None:
-            author = None
-        else:
-            author = loader.users[data["author"]]
-        element = Element(data["name"], author, data["created"], data["id"])
+        #TODO: Convert all convert_from_dict to using .get as it's more robust and allows for defaults
+        author = loader.users[data["author"]] if data["author"] else None
+        marker = loader.users[data.get("marker")] if data.get("marker") else None
+        element = Element(
+            data["name"], author, data["created"], data["id"], data.get("mark")
+        )
         loader.elem_id_lookup[element.id] = element
         return element
 
@@ -219,13 +231,90 @@ class ElementPoll(Poll):
                 combo.append(loader.elem_id_lookup[elem])
             else:
                 # Perhaps saved broken poll
-                print("Warning: dropping combo", data["combo"], "for element", data["result"], "in poll")
+                print(
+                    "Warning: dropping combo",
+                    data["combo"],
+                    "for element",
+                    data["result"],
+                    "in poll",
+                )
                 return None
         poll = ElementPoll(
             loader.users[data["author"]],
             [loader.elem_id_lookup[elem] for elem in data["combo"]],
             data["result"],
             data["exists"],
+        )
+        poll.votes = data["votes"]
+        poll.creation_time = data["creation_time"]
+        return poll
+
+
+class MarkPoll(Poll):
+    def __init__(self, author: User, marked_element: Element, mark: str) -> None:
+        super(MarkPoll, self).__init__(author)
+        self.marked_element = marked_element
+        self.mark = mark
+        self.creation_time = round(time.time())
+
+    def resolve(self, database: "Database") -> Element:  # Return Mark back
+        self.marked_element.mark = self.mark
+        self.marked_element.marker = self.author
+        return self.mark
+
+    def get_time(self):
+        duration = round(time.time()) - self.creation_time
+        duration, seconds = divmod(duration, 60)
+        duration, minutes = divmod(duration, 60)
+        duration, hours = divmod(duration, 24)
+        weeks, days = divmod(duration, 7)
+
+        string = f"{seconds}s"
+        if minutes:
+            string = f"{minutes}m{string}"
+        if hours:
+            string = f"{hours}h{string}"
+        if days:
+            string = f"{days}d{string}"
+        if weeks:
+            string = f"{weeks}w{string}"
+        return string
+
+    def get_news_message(self, instance: "GameInstance") -> str:
+        msg = ""
+        if self.accepted:
+            msg += ":scroll: "# Scroll emoji, not unicode cus for some reason it doesn't work
+            msg += "Comment"
+            msg += f" - **{self.marked_element.name}** (Lasted **{self.get_time()}** • "
+            msg += f"By <@{self.author.id}>)"
+        else:
+            msg += "❌ Poll Rejected - "
+            msg += f"Comment"
+            msg += f" - **{self.marked_element.name}** (Lasted **{self.get_time()}** • "
+            msg += f"By <@{self.author.id}>) "
+        return msg
+
+    def get_title(self) -> str:
+        return "Comment"
+
+    def get_description(self) -> str:
+        text = f"Old Comment: \n{self.marked_element.mark}\nNew Comment:\n{self.mark}"
+        text += f"\n\nSuggested by <@{self.author.id}>"
+        return text
+
+    def convert_to_dict(self, data: dict) -> None:
+        data["author"] = self.author.id
+        data["votes"] = self.votes
+        data["marked_element"] = self.marked_element.id
+        data["mark"] = self.mark
+        data["creation_time"] = self.creation_time
+
+    @staticmethod
+    def convert_from_dict(loader, data: dict) -> "ElementPoll":
+        poll = ElementPoll(
+            data["author"],
+            loader.elem_id_lookup[data["marked_element"]],
+            data["mark"],
         )
         poll.votes = data["votes"]
         poll.creation_time = data["creation_time"]
@@ -359,7 +448,7 @@ class Database:
         for elem in sorted_combo:
             if sorted_combo not in self.used_in_lookup[elem]:
                 self.used_in_lookup[elem].append(sorted_combo)
-
+    
     def convert_to_dict(self, data: dict) -> None:
         # Users MUST be first
         data["users"] = self.users
@@ -380,7 +469,12 @@ class Database:
             if data["combos"][combo_ids] in loader.elem_id_lookup:
                 combos[key] = loader.elem_id_lookup[data["combos"][combo_ids]]
             else:
-                print("Warning: dropping combo", key, "for element", data["combos"][combo_ids])
+                print(
+                    "Warning: dropping combo",
+                    key,
+                    "for element",
+                    data["combos"][combo_ids],
+                )
         users = {int(id): user for id, user in data["users"].items()}
 
         polls = [poll for poll in data["polls"] if poll is not None]
@@ -434,14 +528,14 @@ class GameInstance:
             raise GameError(
                 "Not an element",
                 "The element requested does not exist",
-                {"name": element_name}
+                {"name": element_name},
             )
         element = self.db.elements[element_name.lower()]
         if user is not None and element.id not in user.inv:
             raise GameError(
                 "Not in inv",
                 "The user does not have the element requested",
-                {"element": element, "user": user}
+                {"element": element, "user": user},
             )
         return element
 
@@ -471,6 +565,16 @@ class GameInstance:
         user.active_polls += 1
         return poll
 
+    def suggest_mark(
+        self, user:User, marked_element:Element, mark:str
+    ):
+        if user.active_polls > self.poll_limit:
+            raise GameError("Too many active polls")
+        poll = MarkPoll(user, marked_element, mark)
+        self.db.polls.append(poll)
+        user.active_polls += 1
+        return poll
+    
     def check_polls(self) -> List[Poll]:
         new_polls = []
         deleted_polls = []
