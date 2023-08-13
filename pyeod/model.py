@@ -94,9 +94,18 @@ class Poll:
     def __init__(self, author: User) -> None:
         self.author = author
         self.votes = 0
-        self.accepted = False  # is this needed?
+        self.accepted = False
 
     def resolve(self, database):
+        pass
+
+    def get_news_message(self, instance: "GameInstance") -> str:
+        pass
+
+    def get_title(self) -> str:
+        pass
+
+    def get_description(self) -> str:
         pass
 
     def convert_to_dict(self, data: dict) -> None:
@@ -122,13 +131,13 @@ class ElementPoll(Poll):
         self.combo = combo
         self.result = capitalize(result)
         self.exists = exists
+        self.creation_time = round(time.time())
 
     def resolve(self, database: "Database") -> Element:  # Return Element back
         if not self.exists:
             element = Element(
                 self.result, self.author, round(time.time()), len(database.elements) + 1
             )
-            database.add_element(element)
         else:
             element = database.elements[self.result.lower()]
         database.set_combo_result(self.combo, element)
@@ -139,15 +148,77 @@ class ElementPoll(Poll):
             self.author.last_element = element
         return element
 
+    def get_time(self):
+        duration = round(time.time()) - self.creation_time
+        duration, seconds = divmod(duration, 60)
+        duration, minutes = divmod(duration, 60)
+        duration, hours = divmod(duration, 24)
+        weeks, days = divmod(duration, 7)
+
+        string = f"{seconds}s"
+        if minutes:
+            string = f"{minutes}m{string}"
+        if hours:
+            string = f"{hours}h{string}"
+        if days:
+            string = f"{days}d{string}"
+        if weeks:
+            string = f"{weeks}w{string}"
+        return string
+
+    def get_news_message(self, instance: "GameInstance") -> str:
+        msg = ""
+        if self.accepted:
+            msg += "🆕 "
+            if self.exists:
+                msg += f"Combination"
+            else:
+                msg += f"Element"
+            msg += f" - **{self.result}** (Lasted **{self.get_time()}** • "
+            msg += f"By <@{self.author.id}>) - "
+            if self.exists:
+                msg += f"Combination "
+                msg += f"**\#{len(instance.db.combos) + 1}**"
+            else:
+                msg += f"Element "
+                msg += f"**\#{instance.db.elements[self.result.lower()].id}**"
+        else:
+            msg += "❌ Poll Rejected - "
+            if self.exists:
+                msg += f"Combination"
+            else:
+                msg += f"Element"
+            msg += f" - **{self.result}** (Lasted **{self.get_time()}** • "
+            msg += f"By <@{self.author.id}>) "
+        return msg
+
+    def get_title(self) -> str:
+        if self.exists:
+            return "Combination"
+        else:
+            return "Element"
+
+    def get_description(self) -> str:
+        return " + ".join([i.name for i in self.combo]) + " = " + self.result
+
     def convert_to_dict(self, data: dict) -> None:
         data["author"] = self.author.id
         data["votes"] = self.votes
         data["combo"] = [elem.id for elem in self.combo]
         data["result"] = self.result
         data["exists"] = self.exists
+        data["creation_time"] = self.creation_time
 
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "ElementPoll":
+        combo = []
+        for elem in data["combo"]:
+            if elem in loader.elem_id_lookup:
+                combo.append(loader.elem_id_lookup[elem])
+            else:
+                # Perhaps saved broken poll
+                print("Warning: dropping combo", data["combo"], "for element", data["result"], "in poll")
+                return None
         poll = ElementPoll(
             loader.users[data["author"]],
             [loader.elem_id_lookup[elem] for elem in data["combo"]],
@@ -155,6 +226,7 @@ class ElementPoll(Poll):
             data["exists"],
         )
         poll.votes = data["votes"]
+        poll.creation_time = data["creation_time"]
         return poll
 
 
@@ -198,6 +270,16 @@ class Database:
                     self.paths[elem] = path
                     self.complexities[elem] = complexity
                     unseen.remove(elem)
+                    break
+            else:
+                print("Warning: Dropping elements:", unseen)
+                for elem_id in unseen:
+                    element = self.elem_id_lookup[elem_id]
+                    self.elements.pop(element.name.lower())
+                    self.combo_lookup.pop(elem_id)
+                    self.used_in_lookup.pop(elem_id)
+                    self.elem_id_lookup.pop(elem_id)
+                unseen.clear()
 
     def get_element_info(self, elem_id: int) -> Tuple[Dict[int, None], int]:
         combos = self.combo_lookup[elem_id]
@@ -265,6 +347,8 @@ class Database:
         if sorted_combo in self.combos:
             raise InternalError("Combo exists", "That combo already exists")
         self.combos[sorted_combo] = result
+        if result.name.lower() not in self.elements:
+            self.add_element(result)
         if result.id not in self.combo_lookup:
             self.combo_lookup[result.id] = [sorted_combo]
         else:
@@ -291,15 +375,19 @@ class Database:
         combos = {}
         for combo_ids in data["combos"]:
             key = tuple(int(id) for id in combo_ids.split(","))
-            combos[key] = loader.elem_id_lookup[data["combos"][combo_ids]]
+            if data["combos"][combo_ids] in loader.elem_id_lookup:
+                combos[key] = loader.elem_id_lookup[data["combos"][combo_ids]]
+            else:
+                print("Warning: dropping combo", key, "for element", data["combos"][combo_ids])
         users = {int(id): user for id, user in data["users"].items()}
 
+        polls = [poll for poll in data["polls"] if poll is not None]
         return Database(
             {elem.name.lower(): elem for elem in data["elements"]},
             starters,
             combos,
             users,
-            data["polls"],
+            polls,
         )
 
 
@@ -383,7 +471,12 @@ class GameInstance:
         for poll in self.db.polls:
             if poll.votes >= self.vote_req:
                 # Poll was accepted
-                poll.resolve(self.db)
+                poll.accepted = True
+                try:
+                    poll.resolve(self.db)
+                except InternalError as e:
+                    # Sometimes occurs when poll is accepted twice
+                    pass
                 deleted_polls.append(poll)
                 poll.author.active_polls -= 1
             elif poll.votes <= -self.vote_req:

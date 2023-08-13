@@ -46,7 +46,7 @@ class Polls(commands.Cog):
             if server.channels.news_channel:
                 news_channel = await self.bot.fetch_channel(server.channels.news_channel)
                 for poll in accepted_polls:
-                    await news_channel.send(server.convert_poll_to_news_message(poll))
+                    await news_channel.send(poll.get_news_message(server))
 
 def setup(client):
     client.add_cog(Polls(client))

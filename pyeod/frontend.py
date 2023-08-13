@@ -71,38 +71,14 @@ class DiscordGameInstance(GameInstance):
         )
 
     def convert_poll_to_embed(self, poll: Poll):
-        embed = Embed()
-        if isinstance(poll, ElementPoll):
-            embed.title = "Combination" if poll.exists else "Element"
-            embed.description = (
-                " + ".join([i.name for i in poll.combo]) + " = " + poll.result
-            )
+        embed = Embed(
+            title=poll.get_title(),
+            description=poll.get_description()
+        )
         embed.set_footer(
             text="You can change your vote, if you suggested this poll, downvote it to delete it"
         )
         return embed
-
-    def convert_poll_to_news_message(self, poll: Poll):
-        msg = ""
-        if isinstance(poll, ElementPoll) and poll.accepted:
-            msg += "🆕"
-            if poll.exists:
-                msg += f"Combination "
-            else:
-                msg += f"Element "
-            msg += f" - {poll.result} (By <@{poll.author.id}>) - "
-            if poll.exists:
-                msg += f"\#{len(self.db.elements) + 1}"
-            else:
-                msg += f"\#{len(self.db.combos) + 1}"
-        elif isinstance(poll, ElementPoll):
-            msg += "❌"
-            if poll.exists:
-                msg += f"Combination "
-            else:
-                msg += f"Element "
-            msg += f" - {poll.result} (By <@{poll.author.id}>) rejected "
-        return msg
 
 
 InstT = TypeVar("InstT", bound=GameInstance)
