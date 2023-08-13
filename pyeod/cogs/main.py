@@ -3,6 +3,7 @@ from discord import default_permissions, DiscordException
 from discord.commands import ApplicationContext
 from pyeod.utils import format_traceback
 from pyeod.frontend import DiscordGameInstance, InstanceManager
+from pyeod.model import GameError
 from pyeod import config
 import traceback
 import sys
@@ -26,16 +27,21 @@ class Main(commands.Cog):
     ):
         # Handle different exceptions from parsing arguments here
         if isinstance(err, commands.errors.UserNotFound):
-            await ctx.channel.send(str(err))
-        else:
-            lines = traceback.format_exception(type(err), err, err.__traceback__)
-            sys.stderr.write("".join(lines))
-            if err.__cause__ is not None:
-                err = err.__cause__
-            error = format_traceback(err)
-            await ctx.channel.send(
-                "There was an error processing the command:\n" + error
-            )
+            await ctx.reply(str(err))
+            return
+        elif isinstance(err, GameError):
+            if err.type == "Not an element":
+                await ctx.reply(f"Element **{err.meta['name']}** doesn't exist!")
+                return
+
+        lines = traceback.format_exception(type(err), err, err.__traceback__)
+        sys.stderr.write("".join(lines))
+        if err.__cause__ is not None:
+            err = err.__cause__
+        error = format_traceback(err)
+        await ctx.reply(
+            "There was an error processing the command:\n" + error
+        )
 
     async def on_application_command_error(
         self, ctx: ApplicationContext, err: DiscordException

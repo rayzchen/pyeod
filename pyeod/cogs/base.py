@@ -31,11 +31,10 @@ class Base(commands.Cog):
     @commands.Cog.listener("on_message")
     @handle_errors
     async def message_handler(self, msg: Message):
-        server = InstanceManager.current.get_or_create(
-            msg.guild.id, DiscordGameInstance
-        )
-        if msg.channel.id not in server.channels.play_channels:
+        if msg.guild.id not in InstanceManager.current.instances:
             return
+        server = InstanceManager.current.instances[msg.guild.id]
+
         if msg.author.bot:  # No bots in eod
             return
         if msg.content.startswith("!"):
@@ -54,7 +53,10 @@ class Base(commands.Cog):
         if msg.content.startswith("?#"):
             element_id = msg.content[2:].strip()
             if not element_id.isdecimal():
-                await msg.reply("Invalid element ID")
+                await msg.reply(f"Element ID **{element_id}** doesn't exist!")
+                return
+            if int(element_id) not in server.db.elem_id_lookup:
+                await msg.reply(f"Element ID **{element_id}** doesn't exist!")
                 return
             element = server.db.elem_id_lookup[int(element_id)]
         else:
@@ -66,6 +68,8 @@ class Base(commands.Cog):
         await msg.reply(embed=embed)
 
     async def combine_elements(self, server: DiscordGameInstance, msg: Message) -> None:
+        if msg.channel.id not in server.channels.play_channels:
+            return
         user = server.login_user(msg.author.id)
 
         elements = []
@@ -141,6 +145,9 @@ class Base(commands.Cog):
             await ctx.respond("Server not configured, please set voting channel")
         if server.channels.news_channel is None:
             await ctx.respond("Server not configured, please set news channel")
+        if ctx.channel.id not in server.channels.play_channels:
+            await ctx.respond("You can only suggest in play channels!")
+            return
 
         if user.last_combo == ():
             await ctx.reply("Combine something first")

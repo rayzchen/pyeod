@@ -432,12 +432,16 @@ class GameInstance:
     def check_element(self, element_name: str, user: Optional[User] = None) -> Element:
         if not self.db.has_element(element_name):
             raise GameError(
-                "Not an element", "The element requested does not exist"
-            )  # Is message needed?
+                "Not an element",
+                "The element requested does not exist",
+                {"name": element_name}
+            )
         element = self.db.elements[element_name.lower()]
         if user is not None and element.id not in user.inv:
             raise GameError(
-                "Not in inv", "The user does not have the element requested"
+                "Not in inv",
+                "The user does not have the element requested",
+                {"element": element, "user": user}
             )
         return element
 
