@@ -119,6 +119,7 @@ class Base(commands.Cog):
             ctx.guild.id, DiscordGameInstance
         )
         if ctx.channel.id not in server.channels.play_channels:
+            await ctx.respond("You can only suggest in play channels!")
             return
         await self.suggest_element(server, element_name, ctx)
 
@@ -129,6 +130,10 @@ class Base(commands.Cog):
         ctx: Union[bridge.BridgeContext, Message],
     ) -> None:
         user = server.login_user(ctx.author.id)
+        if server.channels.voting_channel is None:
+            await ctx.respond("Server not configured, please set voting channel")
+        if server.channels.news_channel is None:
+            await ctx.respond("Server not configured, please set news channel")
 
         if user.last_combo == ():
             await ctx.reply("Combine something first")
