@@ -82,6 +82,13 @@ class Base(commands.Cog):
 
         if not elements:
             elements = frontend.parse_element_list(msg.content)
+
+        if msg.content.startswith("+"):
+            if user.last_element is None:
+                await msg.reply("Combine something first")
+                return
+            elements.insert(0, user.last_element.name)
+
         if len(elements) < 2:
             return
         if len(elements) > 21:
