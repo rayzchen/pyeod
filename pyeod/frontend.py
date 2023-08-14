@@ -5,13 +5,11 @@ from pyeod.model import (
     GameInstance,
     InternalError,
     User,
-    ElementPoll,
     Poll,
 )
-from discord import Client, Embed, EmbedField, ButtonStyle
-from discord.ext import pages
+from discord import Embed, EmbedField, ButtonStyle
+from discord.ext import pages, bridge
 import math
-import asyncio
 
 
 class ChannelList:
@@ -253,3 +251,27 @@ def get_page_limit(instance: DiscordGameInstance, channel_id: int) -> int:
     if channel_id in instance.channels.play_channels:
         return 30
     return 10
+
+
+class ElementalBot(bridge.AutoShardedBot):
+    async def add_poll(
+        self,
+        server: DiscordGameInstance,
+        poll: Poll,
+        ctx: bridge.BridgeContext,
+        suggestion_message: str,
+    ):
+        if server.vote_req == 0:
+            server.check_polls()
+            news_channel = await self.fetch_channel(server.channels.news_channel)
+            await news_channel.send(poll.get_news_message(server))
+        else:
+            voting_channel = await self.fetch_channel(
+                server.channels.voting_channel
+            )
+            msg = await voting_channel.send(embed=server.convert_poll_to_embed(poll))
+            server.poll_msg_lookup[msg.id] = poll
+        await ctx.reply(suggestion_message)
+        if server.vote_req != 0:  # Adding reactions after just feels snappier
+            await msg.add_reaction("\U0001F53C")  # ⬆️ Emoji
+            await msg.add_reaction("\U0001F53D")

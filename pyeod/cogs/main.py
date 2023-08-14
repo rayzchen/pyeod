@@ -2,7 +2,7 @@ from discord.ext import commands, tasks, bridge
 from discord import default_permissions, DiscordException
 from discord.commands import ApplicationContext
 from pyeod.utils import format_traceback
-from pyeod.frontend import DiscordGameInstance, InstanceManager
+from pyeod.frontend import DiscordGameInstance, InstanceManager, ElementalBot
 from pyeod.model import GameError
 from pyeod import config
 import traceback
@@ -11,7 +11,7 @@ import os
 
 
 class Main(commands.Cog):
-    def __init__(self, bot: bridge.AutoShardedBot):
+    def __init__(self, bot: ElementalBot):
         self.bot = bot
 
     @commands.Cog.listener()

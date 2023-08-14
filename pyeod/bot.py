@@ -6,11 +6,10 @@ import asyncio
 if sys.platform.startswith("win"):
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-from discord.ext.bridge import AutoShardedBot
 from discord.ext.commands import when_mentioned_or
 from discord.client import _cleanup_loop as cleanup_loop
 from discord import Intents
-from pyeod.frontend import InstanceManager
+from pyeod.frontend import InstanceManager, ElementalBot
 from pyeod.packer import save_instance
 from pyeod import config
 
@@ -44,7 +43,7 @@ def run():
     asyncio.set_event_loop(loop)
     opts["loop"] = loop
 
-    bot = AutoShardedBot(**opts)
+    bot = ElementalBot(**opts)
     for file in glob.glob(
         os.path.join(config.package, "cogs", "**", "*.py"), recursive=True
     ):

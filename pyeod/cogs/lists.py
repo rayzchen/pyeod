@@ -3,6 +3,7 @@ from discord import User
 from pyeod.frontend import (
     DiscordGameInstance,
     InstanceManager,
+    ElementalBot,
     FooterPaginator,
     generate_embed_list,
     get_page_limit,
@@ -10,7 +11,7 @@ from pyeod.frontend import (
 
 
 class Lists(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: ElementalBot):
         self.bot = bot
 
     @bridge.bridge_command()

@@ -2,6 +2,7 @@ from discord.ext import commands, bridge
 from pyeod.frontend import (
     DiscordGameInstance,
     InstanceManager,
+    ElementalBot,
     FooterPaginator,
     generate_embed_list,
     get_page_limit,
@@ -9,7 +10,7 @@ from pyeod.frontend import (
 
 
 class Hint(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: ElementalBot):
         self.bot = bot
 
     def get_emoji(self, obtainable):

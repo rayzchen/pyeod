@@ -1,12 +1,12 @@
-from discord.ext import commands, tasks, bridge
+from discord.ext import commands, tasks
 from discord.utils import get
 from discord import Message, TextChannel
-from pyeod.frontend import InstanceManager, DiscordGameInstance
+from pyeod.frontend import InstanceManager, DiscordGameInstance, ElementalBot
 from typing import Optional
 
 
 class Polls(commands.Cog):
-    def __init__(self, bot: bridge.AutoShardedBot):
+    def __init__(self, bot: ElementalBot):
         self.bot = bot
         # self.check_polls.start()
 

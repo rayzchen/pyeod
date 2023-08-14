@@ -1,6 +1,6 @@
 from discord.ext import commands, tasks, bridge
 from discord import Message, TextChannel, default_permissions
-from pyeod.frontend import DiscordGameInstance, InstanceManager
+from pyeod.frontend import DiscordGameInstance, InstanceManager, ElementalBot
 from pyeod.packer import save_instance, load_instance
 from pyeod import config
 import glob
@@ -8,7 +8,7 @@ import os
 
 
 class Config(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: ElementalBot):
         self.bot = bot
         print("Loading instance manager")
         # Manager instance is stored under InstanceManager.current

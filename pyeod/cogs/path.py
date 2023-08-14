@@ -1,13 +1,11 @@
-from discord.ext import commands, tasks, bridge
-from discord.utils import get
-from discord import Message, TextChannel, File
-from pyeod.frontend import InstanceManager, DiscordGameInstance
-from typing import Optional
+from discord.ext import commands, bridge
+from discord import File
+from pyeod.frontend import InstanceManager, DiscordGameInstance, ElementalBot
 import io
 
 
 class Path(commands.Cog):
-    def __init__(self, bot: bridge.AutoShardedBot):
+    def __init__(self, bot: ElementalBot):
         self.bot = bot
 
     @bridge.bridge_command()
