@@ -55,16 +55,28 @@ class Element:
         data["id"] = self.id
         data["mark"] = self.mark
         data["marker"] = self.marker.id if self.marker else None
-        data["extra_authors"] = [i.id for i in self.extra_authors] if self.extra_authors else None
+        data["extra_authors"] = (
+            [i.id for i in self.extra_authors] if self.extra_authors else None
+        )
 
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "Element":
-        #TODO: Convert all convert_from_dict to using .get as it's more robust and allows for defaults
+        # TODO: Convert all convert_from_dict to using .get as it's more robust and allows for defaults
         author = loader.users[data["author"]] if data["author"] else None
         marker = loader.users[data.get("marker")] if data.get("marker") else None
-        extra_authors = [loader.users[i] for i in data.get("extra_authors")] if data.get("extra_authors") else []
+        extra_authors = (
+            [loader.users[i] for i in data.get("extra_authors")]
+            if data.get("extra_authors")
+            else []
+        )
         element = Element(
-            data["name"], author, data["created"], data["id"], data.get("mark"), marker, extra_authors
+            data["name"],
+            author,
+            data["created"],
+            data["id"],
+            data.get("mark"),
+            marker,
+            extra_authors,
         )
         loader.elem_id_lookup[element.id] = element
         return element
@@ -133,7 +145,7 @@ class Poll:
         if weeks:
             string = f"{weeks}w{string}"
         return string
-    
+
     def get_news_message(self, instance: "GameInstance") -> str:
         pass
 
@@ -166,7 +178,7 @@ class ElementPoll(Poll):
         self.combo = combo
         self.result = capitalize(result)
         self.exists = exists
-        
+
     def resolve(self, database: "Database") -> Element:  # Return Element back
         if not self.exists:
             element = Element(
@@ -268,7 +280,7 @@ class MarkPoll(Poll):
     def get_news_message(self, instance: "GameInstance") -> str:
         msg = ""
         if self.accepted:
-            msg += ":scroll: "# Scroll emoji, not unicode cus for some reason it doesn't work
+            msg += ":scroll: "  # Scroll emoji, not unicode cus for some reason it doesn't work
             msg += "Comment"
             msg += f" - **{self.marked_element.name}** (Lasted **{self.get_time()}** • "
             msg += f"By <@{self.author.id}>)"
@@ -283,7 +295,8 @@ class MarkPoll(Poll):
         return "Comment"
 
     def get_description(self) -> str:
-        text = f"Old Comment: \n{self.marked_element.mark}\nNew Comment:\n{self.mark}"
+        text = f"**{self.element.name}**\n"
+        text += f"Old Comment: \n{self.marked_element.mark}\nNew Comment:\n{self.mark}"
         text += f"\n\nSuggested by <@{self.author.id}>"
         return text
 
@@ -305,8 +318,11 @@ class MarkPoll(Poll):
         poll.creation_time = data["creation_time"]
         return poll
 
+
 class AddCollabPoll(Poll):
-    def __init__(self, author: User, element: Element, extra_authors: List[User]) -> None:
+    def __init__(
+        self, author: User, element: Element, extra_authors: List[User]
+    ) -> None:
         super(AddCollabPoll, self).__init__(author)
         self.element = element
         self.extra_authors = extra_authors
@@ -333,7 +349,8 @@ class AddCollabPoll(Poll):
         return "Add Collaborators"
 
     def get_description(self) -> str:
-        text = f"New collaborators: {', '.join([f'<@{i.id}>' for i in self.extra_authors])}"
+        text = f"**{self.element.name}**\n"
+        text += f"New collaborators: {', '.join([f'<@{i.id}>' for i in self.extra_authors])}"
         text += f"\n\nSuggested by <@{self.author.id}>"
         return text
 
@@ -355,14 +372,19 @@ class AddCollabPoll(Poll):
         poll.creation_time = data["creation_time"]
         return poll
 
+
 class RemoveCollabPoll(Poll):
-    def __init__(self, author: User, element: Element, extra_authors: List[User]) -> None:
+    def __init__(
+        self, author: User, element: Element, extra_authors: List[User]
+    ) -> None:
         super(RemoveCollabPoll, self).__init__(author)
         self.element = element
         self.extra_authors = extra_authors
-    
+
     def resolve(self, database: "Database") -> Element:  # Return Mark back
-        [self.element.extra_authors.remove(i) for i in self.extra_authors]#This is fucked
+        [
+            self.element.extra_authors.remove(i) for i in self.extra_authors
+        ]  # This is fucked
         return self.extra_authors
 
     def get_news_message(self, instance: "GameInstance") -> str:
@@ -383,7 +405,8 @@ class RemoveCollabPoll(Poll):
         return "Remove Collaborators"
 
     def get_description(self) -> str:
-        text = f"Remove Collaborators: {', '.join([f'<@{i.id}>' for i in self.extra_authors])}"
+        text = f"**{self.element.name}**\n"
+        text += f"Remove Collaborators: {', '.join([f'<@{i.id}>' for i in self.extra_authors])}"
         text += f"\n\nSuggested by <@{self.author.id}>"
         return text
 
@@ -404,6 +427,8 @@ class RemoveCollabPoll(Poll):
         poll.votes = data["votes"]
         poll.creation_time = data["creation_time"]
         return poll
+
+
 class Database:
     def __init__(
         self,
@@ -531,7 +556,7 @@ class Database:
         for elem in sorted_combo:
             if sorted_combo not in self.used_in_lookup[elem]:
                 self.used_in_lookup[elem].append(sorted_combo)
-    
+
     def convert_to_dict(self, data: dict) -> None:
         # Users MUST be first
         data["users"] = self.users
@@ -648,9 +673,7 @@ class GameInstance:
         user.active_polls += 1
         return poll
 
-    def suggest_mark(
-        self, user:User, marked_element:Element, mark:str
-    ):
+    def suggest_mark(self, user: User, marked_element: Element, mark: str):
         if user.active_polls > self.poll_limit:
             raise GameError("Too many active polls")
         poll = MarkPoll(user, marked_element, mark)
@@ -659,7 +682,7 @@ class GameInstance:
         return poll
 
     def suggest_add_collaborators(
-        self, user:User, element:Element, collaborators:List[User]
+        self, user: User, element: Element, collaborators: List[User]
     ):
         if user.active_polls > self.poll_limit:
             raise GameError("Too many active polls")
@@ -667,9 +690,9 @@ class GameInstance:
         self.db.polls.append(poll)
         user.active_polls += 1
         return poll
-    
+
     def suggest_remove_collaborators(
-        self, user:User, element:Element, collaborators:List[User]
+        self, user: User, element: Element, collaborators: List[User]
     ):
         if user.active_polls > self.poll_limit:
             raise GameError("Too many active polls")
@@ -677,7 +700,7 @@ class GameInstance:
         self.db.polls.append(poll)
         user.active_polls += 1
         return poll
-    
+
     def check_polls(self) -> List[Poll]:
         new_polls = []
         deleted_polls = []
