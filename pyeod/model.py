@@ -30,7 +30,7 @@ class Element:
         id: int = 1,
         mark: str = None,
         marker: Optional["User"] = None,
-        extra_authors: Optional[List["User"]] = [],
+        extra_authors: Optional[List["User"]] = None,
     ) -> None:  # author:User
         self.name = name
         self.author = author
@@ -38,7 +38,10 @@ class Element:
         self.id = id
         self.mark = mark
         self.marker = marker
-        self.extra_authors = extra_authors
+        if extra_authors is not None:
+            self.extra_authors = extra_authors
+        else:
+            self.extra_authors = []
 
     def __repr__(self) -> str:
         return f"<Name: {self.name}, Id: {self.id}>"
@@ -50,31 +53,25 @@ class Element:
 
     def convert_to_dict(self, data: dict) -> None:
         data["name"] = self.name
-        data["author"] = self.author.id if self.author else None
+        data["author"] = self.author.id if self.author is not None else None
         data["created"] = self.created
         data["id"] = self.id
         data["mark"] = self.mark
-        data["marker"] = self.marker.id if self.marker else None
-        data["extra_authors"] = (
-            [i.id for i in self.extra_authors] if self.extra_authors else None
-        )
+        data["marker"] = self.marker.id if self.marker is not None else None
+        data["extra_authors"] = [i.id for i in self.extra_authors]
 
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "Element":
         # TODO: Convert all convert_from_dict to using .get as it's more robust and allows for defaults
-        author = loader.users[data["author"]] if data["author"] else None
-        marker = loader.users[data.get("marker")] if data.get("marker") else None
-        extra_authors = (
-            [loader.users[i] for i in data.get("extra_authors")]
-            if data.get("extra_authors")
-            else []
-        )
+        author = loader.users[data["author"]]
+        marker = loader.users[data.get("marker")]
+        extra_authors = [loader.users[i] for i in data.get("extra_authors", [])]
         element = Element(
             data["name"],
             author,
             data["created"],
             data["id"],
-            data.get("mark"),
+            data.get("mark", ""),
             marker,
             extra_authors,
         )
@@ -297,7 +294,7 @@ class MarkPoll(Poll):
 
     def get_description(self) -> str:
         text = f"**{self.element.name}**\n"
-        text += f"Old Comment: \n{self.marked_element.mark}\nNew Comment:\n{self.mark}"
+        text += f"Old Comment: \n{self.marked_element.mark}\n\nNew Comment:\n{self.mark}"
         text += f"\n\nSuggested by <@{self.author.id}>"
         return text
 
@@ -564,7 +561,7 @@ class Database:
                 self.used_in_lookup[elem].append(sorted_combo)
 
     def convert_to_dict(self, data: dict) -> None:
-        # Users MUST be first
+        # Users MUST be first to be saved or loaded
         data["users"] = self.users
         data["elements"] = list(self.elements.values())
         data["starters"] = [elem.id for elem in self.starters]

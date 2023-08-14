@@ -12,7 +12,7 @@ type_dict = {t.__name__: t for t in types}
 
 class InstanceLoader:
     def __init__(self) -> None:
-        self.users = {}
+        self.users = {None: None}
         self.elem_id_lookup = {}
 
 
