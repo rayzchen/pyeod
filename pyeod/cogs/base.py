@@ -182,8 +182,8 @@ class Base(commands.Cog):
                 "Suggested " + " + ".join([i.name for i in combo]) + " = " + poll.result
             )
             if server.vote_req != 0:  # Adding reactions after just feels snappier
-                await msg.add_reaction("\u2B06\uFE0F")  # ⬆️ Emoji
-                await msg.add_reaction("\u2B07\uFE0F")  # ⬇️ Emoji
+                await msg.add_reaction('\U0001F53C')  # ⬆️ Emoji
+                await msg.add_reaction('\U0001F53D')  # ⬇️ Emoji
 
     @bridge.bridge_command(aliases=["leaderboard"])
     async def lb(self, ctx: bridge.BridgeContext, *, user: User = None):
@@ -264,8 +264,8 @@ class Base(commands.Cog):
             server.poll_msg_lookup[msg.id] = poll
         await ctx.reply(f"Suggested a new mark for {element.name}!")
         if server.vote_req != 0:  # Adding reactions after just feels snappier
-            await msg.add_reaction("\u2B06\uFE0F")  # ⬆️ Emoji
-            await msg.add_reaction("\u2B07\uFE0F")
+            await msg.add_reaction('\U0001F53C')  # ⬆️ Emoji
+            await msg.add_reaction('\U0001F53D')
 
 
 def setup(client):

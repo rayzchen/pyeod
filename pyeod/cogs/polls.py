@@ -33,8 +33,8 @@ class Polls(commands.Cog):
         poll = server.poll_msg_lookup[message.id]
         poll.votes = 0
         try:
-            downvotes = get(message.reactions, emoji = '\u2B07\uFE0F')
-            upvote_count = get(message.reactions, emoji = '\u2B06\uFE0F').count
+            downvotes = get(message.reactions, emoji = '\U0001F53D')
+            upvote_count = get(message.reactions, emoji = '\U0001F53C').count
             downvote_count = downvotes.count
         except:
             # TODO: handle exceptions properly
