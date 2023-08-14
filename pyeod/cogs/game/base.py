@@ -167,10 +167,11 @@ class Base(commands.Cog):
                 server,
                 poll,
                 ctx,
-                "Suggested "
-                + " + ".join([i.name for i in combo])
-                + " = "
-                + poll.result,
+                "Suggested **"
+                + "** + **".join([i.name for i in combo])
+                + "** = **"
+                + poll.result
+                + "**",
             )
 
 
