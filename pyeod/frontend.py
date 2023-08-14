@@ -176,6 +176,9 @@ async def build_info_embed(
     if element.mark:
         marker = f"<@{element.marker.id}>"
     
+    if element.extra_authors:
+        collaborators = ", ".join([f"<@{i.id}>" for i in element.extra_authors])
+    
     return Embed(
         title=element.name + " Info",
         description=description,
@@ -183,6 +186,7 @@ async def build_info_embed(
             i
             for i in [
                 EmbedField("Creator", creator, True),
+                EmbedField("Collaborators", collaborators, True) if element.extra_authors else None,
                 EmbedField("Created At", timestamp, True),
                 EmbedField("Tree Size", len(instance.db.paths[element.id]), True),
                 EmbedField("Complexity", instance.db.complexities[element.id], True),

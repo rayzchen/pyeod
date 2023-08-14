@@ -30,6 +30,7 @@ class Element:
         id: int = 1,
         mark: str = None,
         marker: Optional["User"] = None,
+        extra_authors: Optional[List["User"]] = [],
     ) -> None:  # author:User
         self.name = name
         self.author = author
@@ -37,6 +38,7 @@ class Element:
         self.id = id
         self.mark = mark
         self.marker = marker
+        self.extra_authors = extra_authors
 
     def __repr__(self) -> str:
         return f"<Name: {self.name}, Id: {self.id}>"
@@ -53,14 +55,16 @@ class Element:
         data["id"] = self.id
         data["mark"] = self.mark
         data["marker"] = self.marker.id if self.marker else None
+        data["extra_authors"] = [i.id for i in self.extra_authors] if self.extra_authors else None
 
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "Element":
         #TODO: Convert all convert_from_dict to using .get as it's more robust and allows for defaults
         author = loader.users[data["author"]] if data["author"] else None
         marker = loader.users[data.get("marker")] if data.get("marker") else None
+        extra_authors = [loader.users[i] for i in data.get("extra_authors")] if data.get("extra_authors") else []
         element = Element(
-            data["name"], author, data["created"], data["id"], data.get("mark")
+            data["name"], author, data["created"], data["id"], data.get("mark"), marker, extra_authors
         )
         loader.elem_id_lookup[element.id] = element
         return element
@@ -107,10 +111,29 @@ class Poll:
         self.author = author
         self.votes = 0
         self.accepted = False
+        self.creation_time = round(time.time())
 
     def resolve(self, database):
         pass
 
+    def get_time(self):
+        duration = round(time.time()) - self.creation_time
+        duration, seconds = divmod(duration, 60)
+        duration, minutes = divmod(duration, 60)
+        duration, hours = divmod(duration, 24)
+        weeks, days = divmod(duration, 7)
+
+        string = f"{seconds}s"
+        if minutes:
+            string = f"{minutes}m{string}"
+        if hours:
+            string = f"{hours}h{string}"
+        if days:
+            string = f"{days}d{string}"
+        if weeks:
+            string = f"{weeks}w{string}"
+        return string
+    
     def get_news_message(self, instance: "GameInstance") -> str:
         pass
 
@@ -143,8 +166,7 @@ class ElementPoll(Poll):
         self.combo = combo
         self.result = capitalize(result)
         self.exists = exists
-        self.creation_time = round(time.time())
-
+        
     def resolve(self, database: "Database") -> Element:  # Return Element back
         if not self.exists:
             element = Element(
@@ -159,24 +181,6 @@ class ElementPoll(Poll):
             self.author.last_combo = ()
             self.author.last_element = element
         return element
-
-    def get_time(self):
-        duration = round(time.time()) - self.creation_time
-        duration, seconds = divmod(duration, 60)
-        duration, minutes = divmod(duration, 60)
-        duration, hours = divmod(duration, 24)
-        weeks, days = divmod(duration, 7)
-
-        string = f"{seconds}s"
-        if minutes:
-            string = f"{minutes}m{string}"
-        if hours:
-            string = f"{hours}h{string}"
-        if days:
-            string = f"{days}d{string}"
-        if weeks:
-            string = f"{weeks}w{string}"
-        return string
 
     def get_news_message(self, instance: "GameInstance") -> str:
         msg = ""
@@ -255,30 +259,11 @@ class MarkPoll(Poll):
         super(MarkPoll, self).__init__(author)
         self.marked_element = marked_element
         self.mark = mark
-        self.creation_time = round(time.time())
 
     def resolve(self, database: "Database") -> Element:  # Return Mark back
         self.marked_element.mark = self.mark
         self.marked_element.marker = self.author
         return self.mark
-
-    def get_time(self):
-        duration = round(time.time()) - self.creation_time
-        duration, seconds = divmod(duration, 60)
-        duration, minutes = divmod(duration, 60)
-        duration, hours = divmod(duration, 24)
-        weeks, days = divmod(duration, 7)
-
-        string = f"{seconds}s"
-        if minutes:
-            string = f"{minutes}m{string}"
-        if hours:
-            string = f"{hours}h{string}"
-        if days:
-            string = f"{days}d{string}"
-        if weeks:
-            string = f"{weeks}w{string}"
-        return string
 
     def get_news_message(self, instance: "GameInstance") -> str:
         msg = ""
@@ -320,7 +305,105 @@ class MarkPoll(Poll):
         poll.creation_time = data["creation_time"]
         return poll
 
+class AddCollabPoll(Poll):
+    def __init__(self, author: User, element: Element, extra_authors: List[User]) -> None:
+        super(AddCollabPoll, self).__init__(author)
+        self.element = element
+        self.extra_authors = extra_authors
 
+    def resolve(self, database: "Database") -> Element:  # Return Mark back
+        self.element.extra_authors += self.extra_authors
+        return self.extra_authors
+
+    def get_news_message(self, instance: "GameInstance") -> str:
+        msg = ""
+        if self.accepted:
+            msg += "👥 "
+            msg += "Collab"
+            msg += f" - **{self.element.name}** (Lasted **{self.get_time()}** • "
+            msg += f"By <@{self.author.id}>)"
+        else:
+            msg += "❌ Poll Rejected - "
+            msg += f"Collab"
+            msg += f" - **{self.element.name}** (Lasted **{self.get_time()}** • "
+            msg += f"By <@{self.author.id}>) "
+        return msg
+
+    def get_title(self) -> str:
+        return "Add Collaborators"
+
+    def get_description(self) -> str:
+        text = f"New collaborators: {', '.join([f'<@{i.id}>' for i in self.extra_authors])}"
+        text += f"\n\nSuggested by <@{self.author.id}>"
+        return text
+
+    def convert_to_dict(self, data: dict) -> None:
+        data["author"] = self.author.id
+        data["votes"] = self.votes
+        data["element"] = self.element.id
+        data["extra_authors"] = [i.id for i in self.extra_authors]
+        data["creation_time"] = self.creation_time
+
+    @staticmethod
+    def convert_from_dict(loader, data: dict) -> "ElementPoll":
+        poll = ElementPoll(
+            data["author"],
+            loader.elem_id_lookup[data["element"]],
+            [loader.users[i] for i in data["extra_authors"]],
+        )
+        poll.votes = data["votes"]
+        poll.creation_time = data["creation_time"]
+        return poll
+
+class RemoveCollabPoll(Poll):
+    def __init__(self, author: User, element: Element, extra_authors: List[User]) -> None:
+        super(RemoveCollabPoll, self).__init__(author)
+        self.element = element
+        self.extra_authors = extra_authors
+    
+    def resolve(self, database: "Database") -> Element:  # Return Mark back
+        [self.element.extra_authors.remove(i) for i in self.extra_authors]#This is fucked
+        return self.extra_authors
+
+    def get_news_message(self, instance: "GameInstance") -> str:
+        msg = ""
+        if self.accepted:
+            msg += "🚷 "
+            msg += "Remove Collaborators"
+            msg += f" - **{self.element.name}** (Lasted **{self.get_time()}** • "
+            msg += f"By <@{self.author.id}>)"
+        else:
+            msg += "❌ Poll Rejected - "
+            msg += f"Remove Collaborators"
+            msg += f" - **{self.element.name}** (Lasted **{self.get_time()}** • "
+            msg += f"By <@{self.author.id}>) "
+        return msg
+
+    def get_title(self) -> str:
+        return "Remove Collaborators"
+
+    def get_description(self) -> str:
+        text = f"Remove Collaborators: {', '.join([f'<@{i.id}>' for i in self.extra_authors])}"
+        text += f"\n\nSuggested by <@{self.author.id}>"
+        return text
+
+    def convert_to_dict(self, data: dict) -> None:
+        data["author"] = self.author.id
+        data["votes"] = self.votes
+        data["element"] = self.element.id
+        data["extra_authors"] = [i.id for i in self.extra_authors]
+        data["creation_time"] = self.creation_time
+
+    @staticmethod
+    def convert_from_dict(loader, data: dict) -> "ElementPoll":
+        poll = ElementPoll(
+            data["author"],
+            loader.elem_id_lookup[data["element"]],
+            [loader.users[i] for i in data["extra_authors"]],
+        )
+        poll.votes = data["votes"]
+        poll.creation_time = data["creation_time"]
+        return poll
 class Database:
     def __init__(
         self,
@@ -571,6 +654,26 @@ class GameInstance:
         if user.active_polls > self.poll_limit:
             raise GameError("Too many active polls")
         poll = MarkPoll(user, marked_element, mark)
+        self.db.polls.append(poll)
+        user.active_polls += 1
+        return poll
+
+    def suggest_add_collaborators(
+        self, user:User, element:Element, collaborators:List[User]
+    ):
+        if user.active_polls > self.poll_limit:
+            raise GameError("Too many active polls")
+        poll = AddCollabPoll(user, element, collaborators)
+        self.db.polls.append(poll)
+        user.active_polls += 1
+        return poll
+    
+    def suggest_remove_collaborators(
+        self, user:User, element:Element, collaborators:List[User]
+    ):
+        if user.active_polls > self.poll_limit:
+            raise GameError("Too many active polls")
+        poll = RemoveCollabPoll(user, element, collaborators)
         self.db.polls.append(poll)
         user.active_polls += 1
         return poll

@@ -1,6 +1,6 @@
 from discord.ext import commands, bridge
-from discord import Message, User
-from pyeod.model import GameError
+from discord import Message, User, NotFound
+from pyeod.model import GameError, Poll
 from pyeod.frontend import (
     DiscordGameInstance,
     InstanceManager,
@@ -76,7 +76,7 @@ class Base(commands.Cog):
         if msg.content.startswith("*"):
             multiplier = msg.content.split(" ", 1)[0][1:]
             if multiplier.isdecimal():
-                if len(multiplier) > 2:#Mult above 99
+                if len(multiplier) > 2:  # Mult above 99
                     await msg.reply("You cannot combine more than 21 elements!")
                     return
                 multiplier = int(multiplier)
@@ -133,6 +133,28 @@ class Base(commands.Cog):
                 user.last_combo = ()
                 await msg.reply("Not a valid element")
 
+    async def add_poll(
+        self,
+        server: DiscordGameInstance,
+        poll: Poll,
+        ctx: bridge.BridgeContext,
+        suggestion_message: str,
+    ):
+        if server.vote_req == 0:
+            server.check_polls()
+            news_channel = await self.bot.fetch_channel(server.channels.news_channel)
+            await news_channel.send(poll.get_news_message(server))
+        else:
+            voting_channel = await self.bot.fetch_channel(
+                server.channels.voting_channel
+            )
+            msg = await voting_channel.send(embed=server.convert_poll_to_embed(poll))
+            server.poll_msg_lookup[msg.id] = poll
+        await ctx.reply(suggestion_message)
+        if server.vote_req != 0:  # Adding reactions after just feels snappier
+            await msg.add_reaction("\U0001F53C")  # ⬆️ Emoji
+            await msg.add_reaction("\U0001F53D")
+
     @bridge.bridge_command(aliases=["s"])
     async def suggest(self, ctx: bridge.BridgeContext, *, element_name: str):
         server = InstanceManager.current.get_or_create(
@@ -164,26 +186,15 @@ class Base(commands.Cog):
         else:
             combo = user.last_combo
             poll = server.suggest_element(user, combo, name)
-            if server.vote_req == 0:
-                server.check_polls()
-                news_channel = await self.bot.fetch_channel(
-                    server.channels.news_channel
-                )
-                await news_channel.send(poll.get_news_message(server))
-            else:
-                voting_channel = await self.bot.fetch_channel(
-                    server.channels.voting_channel
-                )
-                msg = await voting_channel.send(
-                    embed=server.convert_poll_to_embed(poll)
-                )
-                server.poll_msg_lookup[msg.id] = poll
-            await ctx.reply(
-                "Suggested " + " + ".join([i.name for i in combo]) + " = " + poll.result
+            await self.add_poll(
+                server,
+                poll,
+                ctx,
+                "Suggested "
+                + " + ".join([i.name for i in combo])
+                + " = "
+                + poll.result,
             )
-            if server.vote_req != 0:  # Adding reactions after just feels snappier
-                await msg.add_reaction('\U0001F53C')  # ⬆️ Emoji
-                await msg.add_reaction('\U0001F53D')  # ⬇️ Emoji
 
     @bridge.bridge_command(aliases=["leaderboard"])
     async def lb(self, ctx: bridge.BridgeContext, *, user: User = None):
@@ -240,9 +251,11 @@ class Base(commands.Cog):
                 return
             marked_element = marked_element.lower()
         else:
-            marked_element, mark = marked_element.split(" | ")
-            marked_element = marked_element.strip().lower()
-            mark = mark.strip()
+            split_msg = marked_element.split("|")
+            if len(split_msg) < 2:
+                await ctx.reply("Please separate each parameter with a |")
+                return
+            mark = split_msg[1].strip()
         if not server.db.has_element(marked_element):
             await ctx.respond("Not a valid element")
             return
@@ -252,21 +265,178 @@ class Base(commands.Cog):
         element = server.db.elements[marked_element]
         poll = server.suggest_mark(user, element, mark)
 
-        if server.vote_req == 0:
-            server.check_polls()
-            news_channel = await self.bot.fetch_channel(server.channels.news_channel)
-            await news_channel.send(poll.get_news_message(server))
-        else:
-            voting_channel = await self.bot.fetch_channel(
-                server.channels.voting_channel
-            )
-            msg = await voting_channel.send(embed=server.convert_poll_to_embed(poll))
-            server.poll_msg_lookup[msg.id] = poll
-        await ctx.reply(f"Suggested a new mark for {element.name}!")
-        if server.vote_req != 0:  # Adding reactions after just feels snappier
-            await msg.add_reaction('\U0001F53C')  # ⬆️ Emoji
-            await msg.add_reaction('\U0001F53D')
+        await self.add_poll(
+            server, poll, ctx, f"Suggested a new mark for {element.name}!"
+        )
 
+    @bridge.bridge_command(aliases=["acol"])
+    async def add_collaborators(
+        self,
+        ctx: bridge.BridgeContext,
+        *,
+        element: str,
+        collaborator1: User = None,
+        collaborator2: User = None,
+        collaborator3: User = None,
+        collaborator4: User = None,
+        collaborator5: User = None,
+        collaborator6: User = None,
+        collaborator7: User = None,
+        collaborator8: User = None,
+        collaborator9: User = None,
+        collaborator10: User = None,
+    ):  # Dude fuck slash commands this is the only way to do this (i think)
+        server = InstanceManager.current.get_or_create(
+            ctx.guild.id, DiscordGameInstance
+        )
+        user = server.login_user(ctx.author.id)
+        extra_authors = []
+        if ctx.is_app:
+            element = element.lower()
+            element = server.db.elements[element]
+            for i in [collaborator1, collaborator2, collaborator3, collaborator4, collaborator5, collaborator6, collaborator7, collaborator8, collaborator9, collaborator10]:
+                if i != None and i not in element.extra_authors and element.author and i.id != element.author.id:
+                    extra_authors.append(server.login_user(i.id))
+        else:
+            split_msg = element.split("|")
+            if len(split_msg) < 2:
+                await ctx.respond("Please separate each parameter with a |")
+                return
+            element = split_msg[0].lower().strip()
+            element = server.db.elements[element]
+            for i in split_msg[1].split(" "):
+                id = int(i.replace("<@", "").replace(">", ""))
+                try:
+                    await self.bot.fetch_user(id)
+                except NotFound:
+                    await ctx.respond("Please only enter valid users, using the @<user> syntax separated by spaces")
+                    return
+                if i not in element.extra_authors and element.author and i.id != element.author.id and element.author.id:
+                    extra_authors.append(server.login_user(id))
+        
+        if len(extra_authors) == 0:
+            await ctx.reply("Please make sure you entered a valid user created element and valid users!")
+            return
+        if len(extra_authors) + len(element.extra_authors) > 10:
+            await ctx.respond("An element cannot have more than 10 collaborators")
+            return
+        poll = server.suggest_add_collaborators(user, element, extra_authors)
+        await self.add_poll(server, poll, ctx, f"Suggested to add those users as collaborators to the element")
+    
+    @bridge.bridge_command(aliases=["acol"])
+    async def add_collaborators(
+        self,
+        ctx: bridge.BridgeContext,
+        *,
+        element: str,
+        collaborator1: User = None,
+        collaborator2: User = None,
+        collaborator3: User = None,
+        collaborator4: User = None,
+        collaborator5: User = None,
+        collaborator6: User = None,
+        collaborator7: User = None,
+        collaborator8: User = None,
+        collaborator9: User = None,
+        collaborator10: User = None,
+    ):  # Dude fuck slash commands this is the only way to do this (i think)
+        server = InstanceManager.current.get_or_create(
+            ctx.guild.id, DiscordGameInstance
+        )
+        user = server.login_user(ctx.author.id)
+        extra_authors = []
+        if ctx.is_app:
+            element = element.lower()
+            element = server.db.elements[element]
+            for i in [collaborator1, collaborator2, collaborator3, collaborator4, collaborator5, collaborator6, collaborator7, collaborator8, collaborator9, collaborator10]:
+                extra_authors.append(i.id)
+                    
+        else:
+            split_msg = element.split("|")
+            if len(split_msg) < 2:
+                await ctx.respond("Please separate each parameter with a |")
+                return
+            element = split_msg[0].lower().strip()
+            element = server.db.elements[element]
+            for i in split_msg[1].split(" "):
+                if not i:
+                    continue
+                id = int(i.replace("<@", "").replace(">", ""))
+                try:
+                    await self.bot.fetch_user(id)
+                except NotFound:
+                    await ctx.respond("Please only enter valid users, using the @<user> syntax separated by spaces")
+                    return
+                extra_authors.append(id)
+        authors = []
+        for i in extra_authors:
+            if i != None and i not in [i.id for i in element.extra_authors] and element.author and i != element.author.id:
+                authors.append(server.login_user(i))
+    
+        if len(authors) == 0:
+            await ctx.reply("Please make sure you entered a valid user created element and valid users!")
+            return
+        if len(authors) + len(element.extra_authors) > 10:
+            await ctx.respond("An element cannot have more than 10 collaborators")
+            return
+        poll = server.suggest_add_collaborators(user, element, authors)
+        await self.add_poll(server, poll, ctx, f"Suggested to add those users as collaborators to {element.name}")
+
+    @bridge.bridge_command(aliases=["rcol"])
+    async def remove_collaborators(
+        self,
+        ctx: bridge.BridgeContext,
+        *,
+        element: str,
+        collaborator1: User = None,
+        collaborator2: User = None,
+        collaborator3: User = None,
+        collaborator4: User = None,
+        collaborator5: User = None,
+        collaborator6: User = None,
+        collaborator7: User = None,
+        collaborator8: User = None,
+        collaborator9: User = None,
+        collaborator10: User = None,
+    ):  # Dude fuck slash commands this is the only way to do this (i think)
+        server = InstanceManager.current.get_or_create(
+            ctx.guild.id, DiscordGameInstance
+        )
+        user = server.login_user(ctx.author.id)
+        extra_authors = []
+        if ctx.is_app:
+            element = element.lower()
+            element = server.db.elements[element]
+            for i in [collaborator1, collaborator2, collaborator3, collaborator4, collaborator5, collaborator6, collaborator7, collaborator8, collaborator9, collaborator10]:
+                extra_authors.append(i.id)
+                    
+        else:
+            split_msg = element.split("|")
+            if len(split_msg) < 2:
+                await ctx.respond("Please separate each parameter with a |")
+                return
+            element = split_msg[0].lower().strip()
+            element = server.db.elements[element]
+            for i in split_msg[1].strip().split(" "):
+                if not i:
+                    continue
+                id = int(i.replace("<@", "").replace(">", ""))
+                try:
+                    await self.bot.fetch_user(id)
+                except NotFound:
+                    await ctx.respond("Please only enter valid users, using the @<user> syntax separated by spaces")
+                    return
+                extra_authors.append(id)
+        authors = []
+        for i in extra_authors:
+            if i != None and i in [i.id for i in element.extra_authors] and element.author and i != element.author.id:
+                authors.append(server.login_user(i))
+    
+        if len(authors) == 0:
+            await ctx.reply("Please make sure you entered a valid user created element and valid users already in the collaboration!")
+            return
+        poll = server.suggest_remove_collaborators(user, element, authors)
+        await self.add_poll(server, poll, ctx, f"Suggested to remove those users as collaborators to {element.name}")
 
 def setup(client):
     client.add_cog(Base(client))
