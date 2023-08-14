@@ -21,6 +21,6 @@ Please feel free to suggest new features, ideas, or bugs. All are welcome to sub
 * Obfuscation is ok if it makes something more accessible
 * Duplicate features should not be used, but if a part of a feature is too annoying to use, making a shortcut to that feature is encouraged
 * Suggestions made by users should be taken at high regard - __You do not know better than the users just because you know the code__
-* Assume good faith when a person is suggesting or talking about a bug - __Do not be rude, aggressive, or dismissive of a new player or suggestions that are already in development
+* Assume good faith when a person is suggesting or talking about a bug - __Do not be rude, aggressive, or dismissive of a new player or suggestions that are already in development__
 * If someone is confused take that as a sign to improve usability
 * If enough of the community wants a feature, it is a good feature, the only reason it would not be is bad implementation
