@@ -306,8 +306,8 @@ class MarkPoll(Poll):
         data["creation_time"] = self.creation_time
 
     @staticmethod
-    def convert_from_dict(loader, data: dict) -> "ElementPoll":
-        poll = ElementPoll(
+    def convert_from_dict(loader, data: dict) -> "MarkPoll":
+        poll = MarkPoll(
             data["author"],
             loader.elem_id_lookup[data["marked_element"]],
             data["mark"],
@@ -360,8 +360,8 @@ class AddCollabPoll(Poll):
         data["creation_time"] = self.creation_time
 
     @staticmethod
-    def convert_from_dict(loader, data: dict) -> "ElementPoll":
-        poll = ElementPoll(
+    def convert_from_dict(loader, data: dict) -> "AddCollabPoll":
+        poll = AddCollabPoll(
             data["author"],
             loader.elem_id_lookup[data["element"]],
             [loader.users[i] for i in data["extra_authors"]],
@@ -416,8 +416,8 @@ class RemoveCollabPoll(Poll):
         data["creation_time"] = self.creation_time
 
     @staticmethod
-    def convert_from_dict(loader, data: dict) -> "ElementPoll":
-        poll = ElementPoll(
+    def convert_from_dict(loader, data: dict) -> "RemoveCollabPoll":
+        poll = RemoveCollabPoll(
             data["author"],
             loader.elem_id_lookup[data["element"]],
             [loader.users[i] for i in data["extra_authors"]],
