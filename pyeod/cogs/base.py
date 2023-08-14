@@ -268,60 +268,6 @@ class Base(commands.Cog):
         await self.add_poll(
             server, poll, ctx, f"Suggested a new mark for {element.name}!"
         )
-
-    @bridge.bridge_command(aliases=["acol"])
-    async def add_collaborators(
-        self,
-        ctx: bridge.BridgeContext,
-        *,
-        element: str,
-        collaborator1: User = None,
-        collaborator2: User = None,
-        collaborator3: User = None,
-        collaborator4: User = None,
-        collaborator5: User = None,
-        collaborator6: User = None,
-        collaborator7: User = None,
-        collaborator8: User = None,
-        collaborator9: User = None,
-        collaborator10: User = None,
-    ):  # Dude fuck slash commands this is the only way to do this (i think)
-        server = InstanceManager.current.get_or_create(
-            ctx.guild.id, DiscordGameInstance
-        )
-        user = server.login_user(ctx.author.id)
-        extra_authors = []
-        if ctx.is_app:
-            element = element.lower()
-            element = server.db.elements[element]
-            for i in [collaborator1, collaborator2, collaborator3, collaborator4, collaborator5, collaborator6, collaborator7, collaborator8, collaborator9, collaborator10]:
-                if i != None and i not in element.extra_authors and element.author and i.id != element.author.id:
-                    extra_authors.append(server.login_user(i.id))
-        else:
-            split_msg = element.split("|")
-            if len(split_msg) < 2:
-                await ctx.respond("Please separate each parameter with a |")
-                return
-            element = split_msg[0].lower().strip()
-            element = server.db.elements[element]
-            for i in split_msg[1].split(" "):
-                id = int(i.replace("<@", "").replace(">", ""))
-                try:
-                    await self.bot.fetch_user(id)
-                except NotFound:
-                    await ctx.respond("Please only enter valid users, using the @<user> syntax separated by spaces")
-                    return
-                if i not in element.extra_authors and element.author and i.id != element.author.id and element.author.id:
-                    extra_authors.append(server.login_user(id))
-        
-        if len(extra_authors) == 0:
-            await ctx.reply("Please make sure you entered a valid user created element and valid users!")
-            return
-        if len(extra_authors) + len(element.extra_authors) > 10:
-            await ctx.respond("An element cannot have more than 10 collaborators")
-            return
-        poll = server.suggest_add_collaborators(user, element, extra_authors)
-        await self.add_poll(server, poll, ctx, f"Suggested to add those users as collaborators to the element")
     
     @bridge.bridge_command(aliases=["acol"])
     async def add_collaborators(
@@ -358,7 +304,7 @@ class Base(commands.Cog):
                 return
             element = split_msg[0].lower().strip()
             element = server.db.elements[element]
-            for i in split_msg[1].split(" "):
+            for i in split_msg[1].strip().replace(",", " ").replace("|", " ").replace("  ", " ").replace("  ", " ").split(" "):
                 if not i:
                     continue
                 id = int(i.replace("<@", "").replace(">", ""))
@@ -370,7 +316,7 @@ class Base(commands.Cog):
                 extra_authors.append(id)
         authors = []
         for i in extra_authors:
-            if i != None and i not in [i.id for i in element.extra_authors] and element.author and i != element.author.id:
+            if i != None and i not in [i.id for i in element.extra_authors] and element.author and i != element.author.id and i not in authors:
                 authors.append(server.login_user(i))
     
         if len(authors) == 0:
@@ -417,7 +363,7 @@ class Base(commands.Cog):
                 return
             element = split_msg[0].lower().strip()
             element = server.db.elements[element]
-            for i in split_msg[1].strip().split(" "):
+            for i in split_msg[1].strip().replace(",", " ").replace("|", " ").replace("  ", " ").replace("  ", " ").split(" "):
                 if not i:
                     continue
                 id = int(i.replace("<@", "").replace(">", ""))
@@ -429,7 +375,7 @@ class Base(commands.Cog):
                 extra_authors.append(id)
         authors = []
         for i in extra_authors:
-            if i != None and i in [i.id for i in element.extra_authors] and element.author and i != element.author.id:
+            if i != None and i in [i.id for i in element.extra_authors] and element.author and i != element.author.id and i not in authors:
                 authors.append(server.login_user(i))
     
         if len(authors) == 0:
