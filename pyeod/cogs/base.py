@@ -295,7 +295,8 @@ class Base(commands.Cog):
             element = element.lower()
             element = server.db.elements[element]
             for i in [collaborator1, collaborator2, collaborator3, collaborator4, collaborator5, collaborator6, collaborator7, collaborator8, collaborator9, collaborator10]:
-                extra_authors.append(i.id)
+                if i:
+                    extra_authors.append(i.id)
                     
         else:
             split_msg = element.split("|")
@@ -316,7 +317,7 @@ class Base(commands.Cog):
                 extra_authors.append(id)
         authors = []
         for i in extra_authors:
-            if i != None and i not in [i.id for i in element.extra_authors] and element.author and i != element.author.id and i not in authors:
+            if i not in [i.id for i in element.extra_authors] and element.author and i != element.author.id and i not in authors:
                 authors.append(server.login_user(i))
     
         if len(authors) == 0:
@@ -354,7 +355,8 @@ class Base(commands.Cog):
             element = element.lower()
             element = server.db.elements[element]
             for i in [collaborator1, collaborator2, collaborator3, collaborator4, collaborator5, collaborator6, collaborator7, collaborator8, collaborator9, collaborator10]:
-                extra_authors.append(i.id)
+                if i:
+                    extra_authors.append(i.id)
                     
         else:
             split_msg = element.split("|")
@@ -375,7 +377,7 @@ class Base(commands.Cog):
                 extra_authors.append(id)
         authors = []
         for i in extra_authors:
-            if i != None and i in [i.id for i in element.extra_authors] and element.author and i != element.author.id and i not in authors:
+            if i in [i.id for i in element.extra_authors] and element.author and i != element.author.id and i not in authors:
                 authors.append(server.login_user(i))
     
         if len(authors) == 0:
