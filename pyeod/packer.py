@@ -6,7 +6,18 @@ import msgpack
 import functools
 import os
 
-types = [Element, User, Poll, ElementPoll, Database, GameInstance, DiscordGameInstance, MarkPoll, AddCollabPoll, RemoveCollabPoll]
+types = [
+    Element,
+    User,
+    Poll,
+    ElementPoll,
+    Database,
+    GameInstance,
+    DiscordGameInstance,
+    MarkPoll,
+    AddCollabPoll,
+    RemoveCollabPoll
+]
 type_dict = {t.__name__: t for t in types}
 
 
@@ -16,9 +27,13 @@ class InstanceLoader:
         self.elem_id_lookup = {}
 
 
+warned_types = []
+
+
 def convert_to_dict(obj: object) -> dict:
-    if type(obj) not in types:
-        raise TypeError(f"Invalid type: {type(obj).__name__}")
+    if type(obj) not in types and type(obj).__name__ not in warned_types:
+        warned_types.append(type(obj).__name__)
+        print(f"Warning: type {type(obj).__name__} saved but not in type_dict")
 
     data = {"__type__": type(obj).__name__}
     obj.convert_to_dict(data)
