@@ -23,7 +23,7 @@ class Config(commands.Cog):
         self.save.start()
         print("Started save loop")
 
-    @tasks.loop(seconds=5, reconnect=True)
+    @tasks.loop(seconds=30, reconnect=True)
     async def save(self):
         for id, instance in InstanceManager.current.instances.items():
             save_instance(instance, str(id) + ".eod")

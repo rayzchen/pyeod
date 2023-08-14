@@ -15,6 +15,7 @@ import simplejson
 import msgpack
 import functools
 import os
+import multiprocessing
 
 types = [
     Element,
@@ -58,9 +59,13 @@ def convert_from_dict(loader: InstanceLoader, data: dict) -> object:
     return type.convert_from_dict(loader, data)
 
 
-def save_instance(instance: GameInstance, filename: str) -> None:
+def multiprocess_save(instance: GameInstance, filename: str) -> None:
     with open(os.path.join(config.package, "db", filename), "wb+") as f:
         msgpack.dump(instance, f, default=convert_to_dict)
+
+
+def save_instance(instance: GameInstance, filename: str) -> None:
+    multiprocessing.Process(target=multiprocess_save, args=(instance, filename)).start()
 
 
 def load_instance(file: str) -> GameInstance:
