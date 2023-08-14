@@ -1,4 +1,14 @@
-from pyeod.model import Element, User, Poll, ElementPoll, Database, GameInstance, MarkPoll, AddCollabPoll, RemoveCollabPoll
+from pyeod.model import (
+    Element,
+    User,
+    Poll,
+    ElementPoll,
+    Database,
+    GameInstance,
+    MarkPoll,
+    AddCollabPoll,
+    RemoveCollabPoll,
+)
 from pyeod.frontend import DiscordGameInstance
 from pyeod import config
 import simplejson
@@ -16,7 +26,7 @@ types = [
     DiscordGameInstance,
     MarkPoll,
     AddCollabPoll,
-    RemoveCollabPoll
+    RemoveCollabPoll,
 ]
 type_dict = {t.__name__: t for t in types}
 

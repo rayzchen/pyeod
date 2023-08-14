@@ -294,7 +294,9 @@ class MarkPoll(Poll):
 
     def get_description(self) -> str:
         text = f"**{self.element.name}**\n"
-        text += f"Old Comment: \n{self.marked_element.mark}\n\nNew Comment:\n{self.mark}"
+        text += (
+            f"Old Comment: \n{self.marked_element.mark}\n\nNew Comment:\n{self.mark}"
+        )
         text += f"\n\nSuggested by <@{self.author.id}>"
         return text
 

@@ -39,9 +39,7 @@ class Main(commands.Cog):
         if err.__cause__ is not None:
             err = err.__cause__
         error = format_traceback(err)
-        await ctx.reply(
-            "There was an error processing the command:\n" + error
-        )
+        await ctx.reply("There was an error processing the command:\n" + error)
 
     async def on_application_command_error(
         self, ctx: ApplicationContext, err: DiscordException

@@ -7,7 +7,7 @@ from typing import Optional
 
 class Polls(commands.Cog):
     def __init__(self, bot):
-        self.bot:bridge.AutoShardedBot = bot
+        self.bot: bridge.AutoShardedBot = bot
         # self.check_polls.start()
 
     @tasks.loop(seconds=1)
@@ -18,29 +18,42 @@ class Polls(commands.Cog):
             if not server.db.polls:
                 continue
 
-            voting_channel = await self.bot.fetch_channel(server.channels.voting_channel)
+            voting_channel = await self.bot.fetch_channel(
+                server.channels.voting_channel
+            )
             if server.channels.news_channel is not None:
-                news_channel = await self.bot.fetch_channel(server.channels.news_channel)
+                news_channel = await self.bot.fetch_channel(
+                    server.channels.news_channel
+                )
             else:
                 news_channel = None
-            messages = await voting_channel.history(limit=50, oldest_first=True).flatten()
+            messages = await voting_channel.history(
+                limit=50, oldest_first=True
+            ).flatten()
             # Only select bot messages
-            messages = [message for message in messages if message.author.id == self.bot.user.id]
+            messages = [
+                message for message in messages if message.author.id == self.bot.user.id
+            ]
             for message in messages:
                 await self.resolve_poll(message, server, news_channel)
 
-    async def resolve_poll(self, message: Message, server: DiscordGameInstance, news_channel: Optional[TextChannel] = None):
+    async def resolve_poll(
+        self,
+        message: Message,
+        server: DiscordGameInstance,
+        news_channel: Optional[TextChannel] = None,
+    ):
         poll = server.poll_msg_lookup[message.id]
         poll.votes = 0
         try:
-            downvotes = get(message.reactions, emoji = '\U0001F53D')
-            upvote_count = get(message.reactions, emoji = '\U0001F53C').count
+            downvotes = get(message.reactions, emoji="\U0001F53D")
+            upvote_count = get(message.reactions, emoji="\U0001F53C").count
             downvote_count = downvotes.count
         except:
             # TODO: handle exceptions properly
             # Just break out of the loop if the above code breaks
             return
-        if get(await downvotes.users().flatten(), id = poll.author.id):
+        if get(await downvotes.users().flatten(), id=poll.author.id):
             # Double it and give it to the next person
             poll.votes -= server.vote_req * 2
         else:
@@ -73,6 +86,7 @@ class Polls(commands.Cog):
         else:
             news_channel = None
         await self.resolve_poll(message, server, news_channel)
+
 
 def setup(client):
     client.add_cog(Polls(client))

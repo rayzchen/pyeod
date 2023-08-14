@@ -161,7 +161,6 @@ async def build_info_embed(
     else:
         description += "**You don't have this.**"
     description += "\n\n**Mark**\n"
-    # TODO: add mark
 
     if element.author is not None:
         creator = f"<@{element.author.id}>"
@@ -175,36 +174,37 @@ async def build_info_embed(
 
     if element.mark:
         marker = f"<@{element.marker.id}>"
-    
+        description += element.mark
+    else:
+        description += "None"
+
     if element.extra_authors:
         collaborators = ", ".join([f"<@{i.id}>" for i in element.extra_authors])
-    
+
+    fields = [
+        EmbedField("Creator", creator, True),
+        EmbedField("Collaborators", collaborators, True) if element.extra_authors else None,
+        EmbedField("Created At", timestamp, True),
+        EmbedField("Tree Size", len(instance.db.paths[element.id]), True),
+        EmbedField("Complexity", instance.db.complexities[element.id], True),
+        EmbedField(
+            "Made With", len(instance.db.combo_lookup[element.id]), True
+        ),
+        EmbedField(
+            "Used In", len(instance.db.used_in_lookup[element.id]), True
+        ),
+        EmbedField("Found By", "N/A", True),
+        EmbedField("Comment", element.mark, True) if element.mark else None,
+        EmbedField("Commenter", marker, True) if element.mark else None,
+        EmbedField("Colorer", "N/A", True),
+        EmbedField("Imager", "N/A", True),
+        EmbedField("Categories", "N/A", False),
+    ]
+
     return Embed(
         title=element.name + " Info",
         description=description,
-        fields=[
-            i
-            for i in [
-                EmbedField("Creator", creator, True),
-                EmbedField("Collaborators", collaborators, True) if element.extra_authors else None,
-                EmbedField("Created At", timestamp, True),
-                EmbedField("Tree Size", len(instance.db.paths[element.id]), True),
-                EmbedField("Complexity", instance.db.complexities[element.id], True),
-                EmbedField(
-                    "Made With", len(instance.db.combo_lookup[element.id]), True
-                ),
-                EmbedField(
-                    "Used In", len(instance.db.used_in_lookup[element.id]), True
-                ),
-                EmbedField("Found By", "N/A", True),
-                EmbedField("Comment", element.mark, True) if element.mark else None,
-                EmbedField("Commenter",marker, True) if element.mark else None,
-                EmbedField("Colorer", "N/A", True),
-                EmbedField("Imager", "N/A", True),
-                EmbedField("Categories", "N/A", False),
-            ]
-            if i != None
-        ],
+        fields=[field for field in fields if field is not None],
     )
 
 

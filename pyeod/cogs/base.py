@@ -91,7 +91,11 @@ class Base(commands.Cog):
         if not elements:
             elements = frontend.parse_element_list(msg.content)
 
-        if msg.content.startswith("*") and len(elements) == 1 and not multiplier.isdecimal():
+        if (
+            msg.content.startswith("*")
+            and len(elements) == 1
+            and not multiplier.isdecimal()
+        ):
             await msg.reply(f"Invalid multiplier: **{multiplier}**")
 
         if msg.content.startswith("+"):

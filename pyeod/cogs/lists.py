@@ -5,7 +5,7 @@ from pyeod.frontend import (
     InstanceManager,
     FooterPaginator,
     generate_embed_list,
-    get_page_limit
+    get_page_limit,
 )
 
 

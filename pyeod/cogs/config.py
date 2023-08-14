@@ -27,7 +27,7 @@ class Config(commands.Cog):
     async def save(self):
         for id, instance in InstanceManager.current.instances.items():
             save_instance(instance, str(id) + ".eod")
-    
+
     @commands.Cog.listener("on_message")
     async def check_for_new_servers(self, msg: Message):
         if InstanceManager.current:  # Messages can be caught before bot is ready
@@ -110,7 +110,7 @@ class Config(commands.Cog):
 
         server.vote_req = vote_req
         await ctx.respond(f"Successfully set the vote requirement to {vote_req}")
-    
+
     @bridge.bridge_command()
     @default_permissions(manage_channels=True)
     async def set_max_polls(self, ctx: bridge.BridgeContext, max_polls: int):
@@ -119,7 +119,9 @@ class Config(commands.Cog):
         )
 
         server.poll_limit = max_polls
-        await ctx.respond(f"Successfully set the max polls a user can have to {max_polls}")
+        await ctx.respond(
+            f"Successfully set the max polls a user can have to {max_polls}"
+        )
 
 
 def setup(client):
