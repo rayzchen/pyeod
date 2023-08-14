@@ -29,9 +29,9 @@ class Path(commands.Cog):
             element = server.check_element(element)
 
         logged_in = server.login_user(ctx.author.id)
-        # if element.id not in logged_in.inv:
-        #     await ctx.respond(f"You don't have **{element.name}**!")
-        #     return
+        if element.id not in logged_in.inv:
+            await ctx.respond(f"You don't have **{element.name}**!")
+            return
 
         lines = []
         i = 0
