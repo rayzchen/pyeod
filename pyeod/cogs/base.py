@@ -268,7 +268,7 @@ class Base(commands.Cog):
         await self.add_poll(
             server, poll, ctx, f"Suggested a new mark for {element.name}!"
         )
-    
+
     @bridge.bridge_command(aliases=["acol"])
     async def add_collaborators(
         self,
@@ -294,10 +294,21 @@ class Base(commands.Cog):
         if ctx.is_app:
             element = element.lower()
             element = server.db.elements[element]
-            for i in [collaborator1, collaborator2, collaborator3, collaborator4, collaborator5, collaborator6, collaborator7, collaborator8, collaborator9, collaborator10]:
+            for i in [
+                collaborator1,
+                collaborator2,
+                collaborator3,
+                collaborator4,
+                collaborator5,
+                collaborator6,
+                collaborator7,
+                collaborator8,
+                collaborator9,
+                collaborator10,
+            ]:
                 if i:
                     extra_authors.append(i.id)
-                    
+
         else:
             split_msg = element.split("|")
             if len(split_msg) < 2:
@@ -305,29 +316,52 @@ class Base(commands.Cog):
                 return
             element = split_msg[0].lower().strip()
             element = server.db.elements[element]
-            for i in split_msg[1].strip().replace(",", " ").replace("|", " ").replace("  ", " ").replace("  ", " ").split(" "):
+            for i in (
+                split_msg[1]
+                .strip()
+                .replace(",", " ")
+                .replace("|", " ")
+                .replace("  ", " ")
+                .replace("  ", " ")
+                .split(" ")
+            ):
                 if not i:
                     continue
                 id = int(i.replace("<@", "").replace(">", ""))
                 try:
                     await self.bot.fetch_user(id)
                 except NotFound:
-                    await ctx.respond("Please only enter valid users, using the @<user> syntax separated by spaces")
+                    await ctx.respond(
+                        "Please only enter valid users, using the @<user> syntax separated by spaces"
+                    )
                     return
                 extra_authors.append(id)
         authors = []
         for i in extra_authors:
-            if i not in [i.id for i in element.extra_authors] and element.author and i != element.author.id and i not in authors:
+            if (
+                i not in [i.id for i in element.extra_authors]
+                and element.author
+                and i != element.author.id
+                and i not in authors
+                and i != self.bot.user.id
+            ):
                 authors.append(server.login_user(i))
-    
+
         if len(authors) == 0:
-            await ctx.reply("Please make sure you entered a valid user created element and valid users!")
+            await ctx.reply(
+                "Please make sure you entered a valid user created element and valid users!"
+            )
             return
         if len(authors) + len(element.extra_authors) > 10:
             await ctx.respond("An element cannot have more than 10 collaborators")
             return
         poll = server.suggest_add_collaborators(user, element, authors)
-        await self.add_poll(server, poll, ctx, f"Suggested to add those users as collaborators to {element.name}")
+        await self.add_poll(
+            server,
+            poll,
+            ctx,
+            f"Suggested to add those users as collaborators to {element.name}",
+        )
 
     @bridge.bridge_command(aliases=["rcol"])
     async def remove_collaborators(
@@ -354,10 +388,21 @@ class Base(commands.Cog):
         if ctx.is_app:
             element = element.lower()
             element = server.db.elements[element]
-            for i in [collaborator1, collaborator2, collaborator3, collaborator4, collaborator5, collaborator6, collaborator7, collaborator8, collaborator9, collaborator10]:
+            for i in [
+                collaborator1,
+                collaborator2,
+                collaborator3,
+                collaborator4,
+                collaborator5,
+                collaborator6,
+                collaborator7,
+                collaborator8,
+                collaborator9,
+                collaborator10,
+            ]:
                 if i:
                     extra_authors.append(i.id)
-                    
+
         else:
             split_msg = element.split("|")
             if len(split_msg) < 2:
@@ -365,26 +410,50 @@ class Base(commands.Cog):
                 return
             element = split_msg[0].lower().strip()
             element = server.db.elements[element]
-            for i in split_msg[1].strip().replace(",", " ").replace("|", " ").replace("  ", " ").replace("  ", " ").split(" "):
+            for i in (
+                split_msg[1]
+                .strip()
+                .replace(",", " ")
+                .replace("|", " ")
+                .replace("  ", " ")
+                .replace("  ", " ")
+                .split(" ")
+            ):
                 if not i:
                     continue
                 id = int(i.replace("<@", "").replace(">", ""))
                 try:
                     await self.bot.fetch_user(id)
                 except NotFound:
-                    await ctx.respond("Please only enter valid users, using the @<user> syntax separated by spaces")
+                    await ctx.respond(
+                        "Please only enter valid users, using the @<user> syntax separated by spaces"
+                    )
                     return
                 extra_authors.append(id)
         authors = []
         for i in extra_authors:
-            if i in [i.id for i in element.extra_authors] and element.author and i != element.author.id and i not in authors:
+            if (
+                i in [i.id for i in element.extra_authors]
+                and element.author
+                and i != element.author.id
+                and i not in authors
+                and i != self.bot.user.id
+            ):
                 authors.append(server.login_user(i))
-    
+
         if len(authors) == 0:
-            await ctx.reply("Please make sure you entered a valid user created element and valid users already in the collaboration!")
+            await ctx.reply(
+                "Please make sure you entered a valid user created element and valid users already in the collaboration!"
+            )
             return
         poll = server.suggest_remove_collaborators(user, element, authors)
-        await self.add_poll(server, poll, ctx, f"Suggested to remove those users as collaborators to {element.name}")
+        await self.add_poll(
+            server,
+            poll,
+            ctx,
+            f"Suggested to remove those users as collaborators to {element.name}",
+        )
+
 
 def setup(client):
     client.add_cog(Base(client))
