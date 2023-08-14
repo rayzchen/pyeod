@@ -483,6 +483,7 @@ class Database:
                     self.combo_lookup.pop(elem_id)
                     self.used_in_lookup.pop(elem_id)
                     self.elem_id_lookup.pop(elem_id)
+                    self.found_by_lookup.pop(elem_id)
                 unseen.clear()
 
     def get_element_info(self, elem_id: int) -> Tuple[Dict[int, None], int]:
