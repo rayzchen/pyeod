@@ -193,7 +193,9 @@ async def build_info_embed(
         EmbedField(
             "Used In", len(instance.db.used_in_lookup[element.id]), True
         ),
-        EmbedField("Found By", "N/A", True),
+        EmbedField(
+            "Found By", len(instance.db.found_by_lookup[element.id]), True
+        ),
         EmbedField("Comment", element.mark, True) if element.mark else None,
         EmbedField("Commenter", marker, True) if element.mark else None,
         EmbedField("Colorer", "N/A", True),
