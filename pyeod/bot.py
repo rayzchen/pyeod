@@ -17,7 +17,7 @@ from pyeod import config
 if os.path.isfile(".token"):
     print("Loading token")
     with open(".token") as f:
-        token = f.read().rstrip()
+        token = f.read().split("\n")[0].rstrip()
 else:
     token = os.getenv("PYEOD_TOKEN", "")
 if not token:
