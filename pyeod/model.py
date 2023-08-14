@@ -495,12 +495,11 @@ class Database:
             if not all(x in self.paths for x in combo):
                 continue
 
-            # Analogous to union of all sets
+            # Order preserved by dict
             path = {}
             for x in combo:
                 path.update(self.paths[x])
-            # Add item to set
-            path[elem_id] = None
+            path[elem_id] = combo
 
             if len(path) < min_path_size or min_path_size == 0:
                 min_path_size = len(path)
