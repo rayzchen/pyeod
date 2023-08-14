@@ -76,10 +76,19 @@ class Base(commands.Cog):
         if msg.content.startswith("*"):
             multiplier = msg.content.split(" ", 1)[0][1:]
             if multiplier.isdecimal():
+                if len(multiplier) > 2:#Mult above 99
+                    await msg.reply("You cannot combine more than 21 elements!")
+                    return
+                multiplier = int(multiplier)
+                if multiplier < 2:
+                    return
+                if multiplier > 21:
+                    await msg.reply("You cannot combine more than 21 elements!")
+                    return
                 if " " in msg.content:
-                    elements = [msg.content.split(" ", 1)[1]] * int(multiplier)
+                    elements = [msg.content.split(" ", 1)[1]] * multiplier
                 elif user.last_element is not None:
-                    elements = [user.last_element.name] * int(multiplier)
+                    elements = [user.last_element.name] * multiplier
                 else:
                     await msg.reply("Combine something first")
                     return
