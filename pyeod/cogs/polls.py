@@ -6,8 +6,8 @@ from typing import Optional
 
 
 class Polls(commands.Cog):
-    def __init__(self, bot):
-        self.bot: bridge.AutoShardedBot = bot
+    def __init__(self, bot: bridge.AutoShardedBot):
+        self.bot = bot
         # self.check_polls.start()
 
     @tasks.loop(seconds=1)
