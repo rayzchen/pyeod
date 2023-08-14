@@ -68,7 +68,7 @@ class DiscordGameInstance(GameInstance):
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "DiscordGameInstance":
         lookup = {}
-        for id, poll_idx in data.get("poll_msg_lookup", {}):
+        for id, poll_idx in data.get("poll_msg_lookup", {}).items():
             lookup[id] = data["db"].polls[poll_idx]
         return DiscordGameInstance(
             data["db"],
