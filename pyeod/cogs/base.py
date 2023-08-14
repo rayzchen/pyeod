@@ -31,6 +31,9 @@ class Base(commands.Cog):
     @commands.Cog.listener("on_message")
     @handle_errors
     async def message_handler(self, msg: Message):
+        if msg.guild is None:
+            # Message from a DM channel
+            return
         if msg.guild.id not in InstanceManager.current.instances:
             return
         server = InstanceManager.current.instances[msg.guild.id]
