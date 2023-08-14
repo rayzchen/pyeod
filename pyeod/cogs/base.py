@@ -76,25 +76,23 @@ class Base(commands.Cog):
         if msg.content.startswith("*"):
             multiplier = msg.content.split(" ", 1)[0][1:]
             if multiplier.isdecimal():
-                if len(multiplier) > 2:  # Mult above 99
-                    await msg.reply("You cannot combine more than 21 elements!")
-                    return
-                multiplier = int(multiplier)
-                if multiplier < 2:
-                    return
-                if multiplier > 21:
-                    await msg.reply("You cannot combine more than 21 elements!")
-                    return
+                multiplier = min(int(multiplier), 22)
                 if " " in msg.content:
-                    elements = [msg.content.split(" ", 1)[1]] * min(int(multiplier), 22)
+                    elements = [msg.content.split(" ", 1)[1]] * multiplier
                 elif user.last_element is not None:
-                    elements = [user.last_element.name] * min(int(multiplier), 22)
+                    elements = [user.last_element.name] * multiplier
                 else:
                     await msg.reply("Combine something first")
+                    return
+                if len(elements) < 2:
+                    await msg.reply("Please combine at least 2 elements")
                     return
 
         if not elements:
             elements = frontend.parse_element_list(msg.content)
+
+        if msg.content.startswith("*") and len(elements) == 1 and not multiplier.isdecimal():
+            await msg.reply(f"Invalid multiplier: **{multiplier}**")
 
         if msg.content.startswith("+"):
             if user.last_element is None:
