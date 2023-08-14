@@ -188,6 +188,7 @@ class ElementPoll(Poll):
             element = database.elements[self.result.lower()]
         database.set_combo_result(self.combo, element)
         database.update_element_info(element)
+        database.found_by_lookup[element.id].append(self.author.id)
         self.author.add_element(element)
         if self.author.last_combo == self.combo:
             self.author.last_combo = ()
@@ -439,12 +440,12 @@ class Database:
         polls: List[Poll],
     ) -> None:
         self.elements = elements
-        self.elem_id_lookup = {elem.id: elem for elem in self.elements.values()}
         self.starters = starters
         self.combos = combos
         self.users = users
         self.polls = polls
 
+        self.elem_id_lookup = {elem.id: elem for elem in self.elements.values()}
         self.combo_lookup = {elem: [] for elem in self.elem_id_lookup}
         self.used_in_lookup = {elem: [] for elem in self.elem_id_lookup}
         for combo, result in combos.items():
@@ -452,6 +453,11 @@ class Database:
             for elem in combo:
                 if combo not in self.used_in_lookup[elem]:
                     self.used_in_lookup[elem].append(combo)
+
+        self.found_by_lookup = {elem: [] for elem in self.elem_id_lookup}
+        for user in self.users.values():
+            for elem in user.inv:
+                self.found_by_lookup[elem].append(user.id)
 
         self.calculate_infos()
 
@@ -529,8 +535,12 @@ class Database:
         )
 
     def add_element(self, element: Element):
-        self.elements[element.name.lower()] = element
-        self.elem_id_lookup[element.id] = element
+        if element.name.lower() not in self.elements:
+            self.elements[element.name.lower()] = element
+            self.elem_id_lookup[element.id] = element
+            self.combo_lookup[element.id] = []
+            self.used_in_lookup[element.id] = []
+            self.found_by_lookup[element.id] = []
 
     def has_element(self, element: str) -> bool:
         return element.lower() in self.elements
@@ -548,11 +558,7 @@ class Database:
         self.combos[sorted_combo] = result
         if result.name.lower() not in self.elements:
             self.add_element(result)
-        if result.id not in self.combo_lookup:
-            self.combo_lookup[result.id] = [sorted_combo]
-        else:
-            self.combo_lookup[result.id].append(sorted_combo)
-        self.used_in_lookup[result.id] = []
+        self.combo_lookup[result.id].append(sorted_combo)
         for elem in sorted_combo:
             if sorted_combo not in self.used_in_lookup[elem]:
                 self.used_in_lookup[elem].append(sorted_combo)
@@ -659,6 +665,7 @@ class GameInstance:
                 "Already have element",
                 f"You made {result.name}, but you already have it",
             )
+        self.db.found_by_lookup[result.id].append(user.id)
         user.add_element(result)
         user.last_element = result
         return result
