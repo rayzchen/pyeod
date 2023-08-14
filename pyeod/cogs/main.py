@@ -26,18 +26,19 @@ class Main(commands.Cog):
         self, ctx: commands.Context, err: commands.errors.CommandError
     ):
         # Handle different exceptions from parsing arguments here
-        if isinstance(err, commands.errors.UserNotFound):
+        if isinstance(err, commands.errors.BadArgument):
             await ctx.reply(str(err))
             return
-        elif isinstance(err, GameError):
+
+        if err.__cause__ is not None:
+            err = err.__cause__
+        if isinstance(err, GameError):
             if err.type == "Not an element":
                 await ctx.reply(f"Element **{err.meta['name']}** doesn't exist!")
                 return
 
         lines = traceback.format_exception(type(err), err, err.__traceback__)
         sys.stderr.write("".join(lines))
-        if err.__cause__ is not None:
-            err = err.__cause__
         error = format_traceback(err)
         await ctx.reply("There was an error processing the command:\n" + error)
 
