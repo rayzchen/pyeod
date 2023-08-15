@@ -236,6 +236,10 @@ class FooterPaginator(pages.Paginator):
 
 
 def generate_embed_list(lines: List[str], title: str, limit: int) -> List[Embed]:
+    if not lines:
+        embeds = [Embed(title=title)]
+        return embeds
+
     embeds = []
     for i in range(math.ceil(len(lines) / limit)):
         embeds.append(
