@@ -183,7 +183,7 @@ async def build_info_embed(
         EmbedField("Creator", creator, True),
         EmbedField("Collaborators", collaborators, True) if element.extra_authors else None,
         EmbedField("Created At", timestamp, True),
-        EmbedField("Tree Size", len(instance.db.paths[element.id]), True),
+        EmbedField("Tree Size", len(instance.db.get_path(element)), True),
         EmbedField("Complexity", instance.db.complexities[element.id], True),
         EmbedField(
             "Made With", len(instance.db.combo_lookup[element.id]), True

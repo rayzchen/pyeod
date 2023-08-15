@@ -472,22 +472,21 @@ class Database:
 
     def calculate_infos(self) -> None:
         # Ordered set but using dict
-        self.paths = {elem.id: {elem.id: None} for elem in self.starters}
         self.complexities = {elem.id: 0 for elem in self.starters}
+        self.min_elem_tree = {elem.id: [] for elem in self.starters}
         unseen = list(self.elem_id_lookup)
         for elem in self.starters:
             unseen.remove(elem.id)
         while len(unseen) != 0:
             for elem in unseen:
-                complexity, path = self.get_element_info(elem)
+                complexity = self.get_complexity(elem)
                 if complexity is not None:
-                    self.complexities[elem] = complexity
-                    self.paths[elem] = path
                     unseen.remove(elem)
                     break
             else:
                 print("Warning: Dropping elements:", unseen)
                 for elem_id in unseen:
+                    assert elem_id not in self.complexities
                     element = self.elem_id_lookup[elem_id]
                     self.elements.pop(element.name.lower())
                     self.combo_lookup.pop(elem_id)
@@ -496,42 +495,58 @@ class Database:
                     self.found_by_lookup.pop(elem_id)
                 unseen.clear()
 
-    def get_element_info(self, elem_id: int) -> Tuple[int, Dict[int, None]]:
+    def get_complexity(self, elem_id: int) -> Union[int, None]:
         combos = self.combo_lookup[elem_id]
         min_complexity = None
-        min_path_size = 0
-        min_path = None
+        min_combo = None
         for combo in combos:
-            if not all(x in self.paths for x in combo):
+            if not all(x in self.complexities for x in combo):
                 continue
-
-            # Order preserved by dict
-            path = {}
-            for x in combo:
-                path.update(self.paths[x])
-            path[elem_id] = combo
-
-            if min_path_size == 0 or len(path) < min_path_size:
-                min_path_size = len(path)
-                min_path = path
 
             complexities = [self.complexities[x] for x in combo]
             if min_complexity is None or max(complexities) + 1 < min_complexity:
                 min_complexity = max(complexities) + 1
+                min_combo = combo
 
         if min_complexity is not None:
-            return min_complexity, min_path
+            self.complexities[elem_id] = min_complexity
+            self.min_elem_tree[elem_id] = min_combo
+            return min_complexity
         else:
-            return None, None
+            return None
 
     def update_element_info(self, element: Element) -> None:
-        complexity, path = self.get_element_info(element.id)
+        complexity = self.get_complexity(element.id)
         if complexity is None:
             raise InternalError(
                 "Elem path failed", "Could not generate complexity for element"
             )
-        self.complexities[element.id] = complexity
-        self.paths[element.id] = path
+
+    def get_path(self, element: Element) -> List[int]:
+        idx = 0
+        stack = []
+        path = []
+        root = element.id
+        while stack or root is not None:
+            if root is not None:
+                stack.append((root, idx))
+                if len(self.min_elem_tree[root]) >= 1:
+                    root = self.min_elem_tree[root][0]
+                else:
+                    root = None
+                continue
+            
+            while True:
+                node = stack.pop()
+                if node[0] not in path:
+                    path.append(node[0])
+                if not stack or node[1] != len(self.min_elem_tree[stack[-1][0]]) - 1:
+                    break
+
+            if stack:
+                root = self.min_elem_tree[stack[-1][0]][node[1] + 1]
+                idx = node[1] + 1
+        return path
 
     @staticmethod
     def new_db(starter_elements: Tuple[Element, ...]) -> "Database":

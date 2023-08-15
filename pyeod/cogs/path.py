@@ -30,11 +30,13 @@ class Path(commands.Cog):
         if element.id not in logged_in.inv:
             await ctx.respond(f"You don't have **{element.name}**!")
             return
+        await ctx.defer()
 
         lines = []
         i = 0
-        for elem, combo in server.db.paths[element.id].items():
-            if combo is None:
+        for elem in server.db.get_path(element):
+            combo = server.db.min_elem_tree[elem]
+            if not combo:
                 # Only starter elements should end up here
                 continue
             i += 1
