@@ -5,9 +5,11 @@ from pyeod.utils import format_traceback
 from pyeod.frontend import DiscordGameInstance, InstanceManager, ElementalBot
 from pyeod.model import GameError
 from pyeod import config
+import subprocess
 import traceback
 import sys
 import os
+import io
 
 
 class Main(commands.Cog):
@@ -60,6 +62,23 @@ class Main(commands.Cog):
         server.db.polls.clear()
         # TODO: delete polls and notify in news
         await ctx.reply("Cleared polls!")
+
+    @bridge.bridge_command()
+    @default_permissions(manage_messages=True)
+    async def update(self, ctx: bridge.BridgeContext):
+        msg = await ctx.respond("Updating...")
+        stderr = io.StringIO()
+        retcode = subprocess.call(["git", "pull"], stderr=stderr)
+        if retcode != 0:
+            await msg.edit(f"Command `git pull` exited with code {retcode}:\n```{stderr.read()}```")
+            return
+        stdout = io.StringIO()
+        retcode = subprocess.call(["git", "rev-parse", "HEAD"], stdout=stdout, stderr=stderr)
+        if retcode != 0:
+            await msg.edit(f"Command `git rev-parse HEAD` exited with code {retcode}:\n```{stderr.read()}```")
+            return
+        await msg.edit(f"Updated successfully to commit {stdout.read()[:7]}. Restarting")
+        open(config.restartfile, "w+").close()
 
     @tasks.loop(seconds=2)
     async def restart_checker(self):
