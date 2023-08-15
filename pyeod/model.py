@@ -444,7 +444,17 @@ class Database:
         self.users = users
         self.polls = polls
 
+        notfound = []
         self.elem_id_lookup = {elem.id: elem for elem in self.elements.values()}
+        for user in self.users.values():
+            for i in range(len(user.inv) - 1, -1, -1):  # iterate backwards
+                if user.inv[i] in notfound:
+                    user.inv.pop(i)
+                elif user.inv[i] not in self.elem_id_lookup:
+                    elem = user.inv.pop(i)
+                    notfound.append(elem)
+                    print(f"Warning: dropping element {elem} from invs")
+
         self.combo_lookup = {elem: [] for elem in self.elem_id_lookup}
         self.used_in_lookup = {elem: [] for elem in self.elem_id_lookup}
         for combo, result in combos.items():
