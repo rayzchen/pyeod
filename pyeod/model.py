@@ -310,7 +310,7 @@ class MarkPoll(Poll):
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "MarkPoll":
         poll = MarkPoll(
-            data["author"],
+            loader.users[data["author"]],
             loader.elem_id_lookup[data["marked_element"]],
             data["mark"],
         )
@@ -364,7 +364,7 @@ class AddCollabPoll(Poll):
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "AddCollabPoll":
         poll = AddCollabPoll(
-            data["author"],
+            loader.users[data["author"]],
             loader.elem_id_lookup[data["element"]],
             [loader.users[i] for i in data["extra_authors"]],
         )
@@ -420,7 +420,7 @@ class RemoveCollabPoll(Poll):
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "RemoveCollabPoll":
         poll = RemoveCollabPoll(
-            data["author"],
+            loader.users[data["author"]],
             loader.elem_id_lookup[data["element"]],
             [loader.users[i] for i in data["extra_authors"]],
         )
