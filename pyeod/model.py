@@ -479,10 +479,10 @@ class Database:
             unseen.remove(elem.id)
         while len(unseen) != 0:
             for elem in unseen:
-                path, complexity = self.get_element_info(elem)
-                if path is not None:
-                    self.paths[elem] = path
+                complexity, path = self.get_element_info(elem)
+                if complexity is not None:
                     self.complexities[elem] = complexity
+                    self.paths[elem] = path
                     unseen.remove(elem)
                     break
             else:
@@ -496,9 +496,9 @@ class Database:
                     self.found_by_lookup.pop(elem_id)
                 unseen.clear()
 
-    def get_element_info(self, elem_id: int) -> Tuple[Dict[int, None], int]:
+    def get_element_info(self, elem_id: int) -> Tuple[int, Dict[int, None]]:
         combos = self.combo_lookup[elem_id]
-        min_complexity = 0
+        min_complexity = None
         min_path_size = 0
         min_path = None
         for combo in combos:
@@ -511,27 +511,27 @@ class Database:
                 path.update(self.paths[x])
             path[elem_id] = combo
 
-            if len(path) < min_path_size or min_path_size == 0:
+            if min_path_size == 0 or len(path) < min_path_size:
                 min_path_size = len(path)
                 min_path = path
 
             complexities = [self.complexities[x] for x in combo]
-            if max(complexities) + 1 < min_complexity or min_complexity == 0:
+            if min_complexity is None or max(complexities) + 1 < min_complexity:
                 min_complexity = max(complexities) + 1
 
-        if min_path is not None:
-            return min_path, min_complexity
+        if min_complexity is not None:
+            return min_complexity, min_path
         else:
             return None, None
 
     def update_element_info(self, element: Element) -> None:
-        path, complexity = self.get_element_info(element.id)
-        if path is None:
+        complexity, path = self.get_element_info(element.id)
+        if complexity is None:
             raise InternalError(
-                "Elem path failed", "Could not generate path for element"
+                "Elem path failed", "Could not generate complexity for element"
             )
-        self.paths[element.id] = path
         self.complexities[element.id] = complexity
+        self.paths[element.id] = path
 
     @staticmethod
     def new_db(starter_elements: Tuple[Element, ...]) -> "Database":
