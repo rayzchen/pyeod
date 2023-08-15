@@ -61,8 +61,12 @@ def run():
     finally:
         print("Stopped")
         # Make sure final save
+        processes = []
         for id, instance in InstanceManager.current.instances.items():
-            save_instance(instance, str(id) + ".eod")
+            process = save_instance(instance, str(id) + ".eod")
+            processes.append(process)
+        for process in processes:
+            process.join()
     if os.path.isfile(config.stopfile):
         os.remove(config.stopfile)
         return False
