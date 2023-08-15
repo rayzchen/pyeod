@@ -3,6 +3,7 @@ from discord import Message, TextChannel, default_permissions
 from pyeod.frontend import DiscordGameInstance, InstanceManager, ElementalBot
 from pyeod.packer import save_instance, load_instance
 from pyeod import config
+import time
 import glob
 import os
 
@@ -14,12 +15,17 @@ class Config(commands.Cog):
         # Manager instance is stored under InstanceManager.current
         manager = InstanceManager()
         print("Loading instance databases")
+
+        tic = time.perf_counter()
         for file in glob.glob(os.path.join(config.package, "db", "*.eod")):
             print(file)
             instance = load_instance(file)
             guild_id = int(os.path.basename(file)[:-4])
             manager.add_instance(guild_id, instance)
-        print("Loaded instance databases")
+        print(f"Loaded instance databases in {time.perf_counter() - tic} seconds")
+
+    @commands.Cog.listener()
+    async def on_ready(self):
         self.save.start()
         print("Started save loop")
 
