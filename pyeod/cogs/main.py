@@ -67,17 +67,17 @@ class Main(commands.Cog):
     @default_permissions(manage_messages=True)
     async def update(self, ctx: bridge.BridgeContext):
         msg = await ctx.respond("Updating...")
-        stderr = io.StringIO()
-        retcode = subprocess.call(["git", "pull"], stderr=stderr)
-        if retcode != 0:
-            await msg.edit(f"Command `git pull` exited with code {retcode}:\n```{stderr.read()}```")
+        p = subprocess.Popen(["git", "pull"], stderr=subprocess.PIPE)
+        _, stderr = p.communicate()
+        if p.returncode != 0:
+            await msg.edit(f"Command `git pull` exited with code {p.returncode}:\n```{stderr.decode()}```")
             return
-        stdout = io.StringIO()
-        retcode = subprocess.call(["git", "rev-parse", "HEAD"], stdout=stdout, stderr=stderr)
-        if retcode != 0:
-            await msg.edit(f"Command `git rev-parse HEAD` exited with code {retcode}:\n```{stderr.read()}```")
+        p = subprocess.Popen(["git", "rev-parse", "HEAD"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        if p.returncode != 0:
+            await msg.edit(f"Command `git rev-parse HEAD` exited with code {p.returncode}:\n```{stderr.decode()}```")
             return
-        await msg.edit(f"Updated successfully to commit {stdout.read()[:7]}. Restarting")
+        await msg.edit(f"Updated successfully to commit {stdout.decode()[:7]}. Restarting")
         open(config.restartfile, "w+").close()
 
     @tasks.loop(seconds=2)
