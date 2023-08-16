@@ -181,7 +181,7 @@ class ElementPoll(Poll):
         if self.result.lower() not in database.elements:
             database.max_id += 1
             element = Element(
-                self.result, self.author, round(time.time), database.max_id
+                self.result, self.author, round(time.time()), database.max_id
             )
         else:
             element = database.elements[self.result.lower()]
