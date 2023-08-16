@@ -580,10 +580,10 @@ class Database:
         sorted_combo = tuple(sorted(elem.id for elem in combo))
         if sorted_combo in self.combos:
             raise InternalError("Combo exists", "That combo already exists")
-        self.combos[sorted_combo] = result
-        self.combo_lookup[result.id].append(sorted_combo)
         if result.name.lower() not in self.elements:
             self.add_element(result)
+        self.combos[sorted_combo] = result
+        self.combo_lookup[result.id].append(sorted_combo)
         if result.id not in self.complexities:
             if self.get_complexity(result.id) is None:
                 raise InternalError(
