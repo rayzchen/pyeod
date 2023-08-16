@@ -518,7 +518,7 @@ class Database:
     def update_element_info(self, element: Element, combo: Tuple[int, ...]) -> None:
         new_complexity = max(self.complexities[x] for x in combo)
         if new_complexity < self.complexities[element.id]:
-            self.complexities[element.id] = element
+            self.complexities[element.id] = new_complexity
             self.min_elem_tree[element.id] = combo
 
     def get_path(self, element: Element) -> List[int]:
@@ -579,12 +579,16 @@ class Database:
         if sorted_combo in self.combos:
             raise InternalError("Combo exists", "That combo already exists")
         self.combos[sorted_combo] = result
+        self.combo_lookup[result.id].append(sorted_combo)
         if result.name.lower() not in self.elements:
             self.add_element(result)
-            self.get_complexity(result.id)
+        if result.id not in self.complexities:
+            if self.get_complexity(result.id) is None:
+                raise InternalError(
+                    "Failed getting complexity", "No combo found with existing complexity"
+                )
         else:
             self.update_element_info(result, sorted_combo)
-        self.combo_lookup[result.id].append(sorted_combo)
         for elem in sorted_combo:
             if sorted_combo not in self.used_in_lookup[elem]:
                 self.used_in_lookup[elem].append(sorted_combo)
