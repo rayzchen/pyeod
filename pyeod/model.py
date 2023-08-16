@@ -184,7 +184,6 @@ class ElementPoll(Poll):
         else:
             element = database.elements[self.result.lower()]
         database.set_combo_result(self.combo, element)
-        database.update_element_info(element)
         database.found_by_lookup[element.id].append(self.author.id)
         self.author.add_element(element)
         if self.author.last_combo == self.combo:
@@ -515,12 +514,11 @@ class Database:
         else:
             return None
 
-    def update_element_info(self, element: Element) -> None:
-        complexity = self.get_complexity(element.id)
-        if complexity is None:
-            raise InternalError(
-                "Elem path failed", "Could not generate complexity for element"
-            )
+    def update_element_info(self, element: Element, combo: Tuple[int, ...]) -> None:
+        new_complexity = max(self.complexities[x] for x in combo)
+        if new_complexity < self.complexities[element.id]:
+            self.complexities[element.id] = element
+            self.min_elem_tree[element.id] = combo
 
     def get_path(self, element: Element) -> List[int]:
         idx = 0
@@ -535,7 +533,7 @@ class Database:
                 else:
                     root = None
                 continue
-            
+
             while True:
                 node = stack.pop()
                 if node[0] not in path:
@@ -582,6 +580,9 @@ class Database:
         self.combos[sorted_combo] = result
         if result.name.lower() not in self.elements:
             self.add_element(result)
+            self.get_complexity(result.id)
+        else:
+            self.update_element_info(result, sorted_combo)
         self.combo_lookup[result.id].append(sorted_combo)
         for elem in sorted_combo:
             if sorted_combo not in self.used_in_lookup[elem]:
