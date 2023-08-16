@@ -52,7 +52,7 @@ class Element:
         return NotImplemented
 
     def convert_to_dict(self, data: dict) -> None:
-        data["name"] = self.name
+        data["name"] = self.name.strip()
         # author can be None or 0
         data["author"] = self.author.id if self.author else self.author
         data["created"] = self.created
@@ -68,7 +68,7 @@ class Element:
         marker = loader.users[data.get("marker")]
         extra_authors = [loader.users[i] for i in data.get("extra_authors", [])]
         element = Element(
-            data["name"],
+            data["name"].strip(),
             author,
             data["created"],
             data["id"],
