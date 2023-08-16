@@ -541,7 +541,7 @@ class Database:
                 node = stack.pop()
                 if node[0] not in path:
                     path.append(node[0])
-                if not stack or node[1] != len(self.min_elem_tree[stack[-1][0]]) - 1:
+                if not stack or node[1] < len(self.min_elem_tree[stack[-1][0]]) - 1:
                     break
 
             if stack:
