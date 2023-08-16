@@ -59,7 +59,14 @@ class Main(commands.Cog):
         server = InstanceManager.current.get_or_create(
             ctx.guild.id, DiscordGameInstance
         )
+        if server.channels.voting_channel is not None:
+            channel = await self.bot.fetch_channel(server.channels.voting_channel)
+            for msg_id in server.poll_msg_lookup:
+                message = await channel.fetch_message(msg_id)
+                await message.delete()
         server.db.polls.clear()
+        for user in server.db.users.values():
+            user.active_polls = 0
         # TODO: delete polls and notify in news
         await ctx.reply("Cleared polls!")
 
