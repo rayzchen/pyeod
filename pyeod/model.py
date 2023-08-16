@@ -524,29 +524,14 @@ class Database:
             self.min_elem_tree[element.id] = combo
 
     def get_path(self, element: Element) -> List[int]:
-        idx = 0
-        stack = []
+        stack = [element.id]
         path = []
-        root = element.id
-        while stack or root is not None:
-            if root is not None:
-                stack.append((root, idx))
-                if len(self.min_elem_tree[root]) >= 1:
-                    root = self.min_elem_tree[root][0]
-                else:
-                    root = None
-                continue
-
-            while True:
-                node = stack.pop()
-                if node[0] not in path:
-                    path.append(node[0])
-                if not stack or node[1] < len(self.min_elem_tree[stack[-1][0]]) - 1:
-                    break
-
-            if stack:
-                root = self.min_elem_tree[stack[-1][0]][node[1] + 1]
-                idx = node[1] + 1
+        while stack:
+            node = stack.pop()
+            if node not in path:
+                path.insert(0, node)
+            for elem in self.min_elem_tree[node]:
+                stack.append(elem)
         return path
 
     @staticmethod
