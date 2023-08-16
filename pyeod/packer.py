@@ -11,10 +11,10 @@ from pyeod.model import (
 )
 from pyeod.frontend import DiscordGameInstance
 from pyeod import config
-import simplejson
 import msgpack
 import functools
 import os
+import copy
 import multiprocessing
 
 types = [
@@ -65,7 +65,15 @@ def multiprocess_save(instance: GameInstance, filename: str) -> None:
 
 
 def save_instance(instance: GameInstance, filename: str) -> multiprocessing.Process:
-    process = multiprocessing.Process(target=multiprocess_save, args=(instance, filename))
+    instance2 = copy.copy(instance)  # don't deepcopy, no need
+    old_db = instance2.db
+    instance2.db = Database.__new__(Database)
+    instance2.db.elements = old_db.elements
+    instance2.db.starters = old_db.starters
+    instance2.db.combos = old_db.combos
+    instance2.db.users = old_db.users
+    instance2.db.polls = old_db.polls
+    process = multiprocessing.Process(target=multiprocess_save, args=(instance2, filename))
     process.start()
     return process
 
@@ -78,6 +86,7 @@ def load_instance(file: str) -> GameInstance:
 
 
 if __name__ == "__main__":
+    import simplejson
     game = GameInstance()
     user = game.login_user(0)
     combo = ("fire", "fire")
