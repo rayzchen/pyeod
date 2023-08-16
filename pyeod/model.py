@@ -178,7 +178,7 @@ class ElementPoll(Poll):
         self.exists = exists
 
     def resolve(self, database: "Database") -> Element:  # Return Element back
-        if not self.exists:
+        if self.result.lower() not in database.elements:
             element = Element(
                 self.result, self.author, round(time.time()), len(database.elements) + 1
             )
