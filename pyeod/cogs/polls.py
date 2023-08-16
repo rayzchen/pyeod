@@ -45,6 +45,7 @@ class Polls(commands.Cog):
     ):
         poll = server.poll_msg_lookup[message.id]
         poll.votes = 0
+        send_news_message = True
         try:
             downvotes = get(message.reactions, emoji="\U0001F53D")
             upvote_count = get(message.reactions, emoji="\U0001F53C").count
@@ -56,6 +57,7 @@ class Polls(commands.Cog):
         if get(await downvotes.users().flatten(), id=poll.author.id):
             # Double it and give it to the next person
             poll.votes -= server.vote_req * 2
+            send_news_message = False
         else:
             # Do not include the bot's own reaction
             poll.votes += upvote_count - 1
@@ -64,7 +66,7 @@ class Polls(commands.Cog):
             # Delete messages before we send to news
             await message.delete()
             server.poll_msg_lookup.pop(message.id)
-            if news_channel is not None:
+            if send_news_message and news_channel is not None:
                 await news_channel.send(poll.get_news_message(server))
 
     @commands.Cog.listener()
