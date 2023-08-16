@@ -65,13 +65,21 @@ class Main(commands.Cog):
 
     @bridge.bridge_command()
     @default_permissions(manage_messages=True)
-    async def update(self, ctx: bridge.BridgeContext):
+    async def update(self, ctx: bridge.BridgeContext, revision: str = ""):
         msg = await ctx.respond("Updating...")
         p = subprocess.Popen(["git", "pull"], stderr=subprocess.PIPE)
         _, stderr = p.communicate()
         if p.returncode != 0:
             await msg.edit(f"Command `git pull` exited with code {p.returncode}:\n```{stderr.decode()}```")
             return
+
+        if revision:
+            p = subprocess.Popen(["git", "reset", "--hard", revision], stderr=subprocess.PIPE)
+            _, stderr = p.communicate()
+            if p.returncode != 0:
+                await msg.edit(f"Command `git pull` exited with code {p.returncode}:\n```{stderr.decode()}```")
+                return
+
         p = subprocess.Popen(["git", "rev-parse", "HEAD"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
         if p.returncode != 0:
