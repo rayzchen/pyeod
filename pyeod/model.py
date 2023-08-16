@@ -179,8 +179,9 @@ class ElementPoll(Poll):
 
     def resolve(self, database: "Database") -> Element:  # Return Element back
         if self.result.lower() not in database.elements:
+            database.max_id += 1
             element = Element(
-                self.result, self.author, round(time.time()), len(database.elements) + 1
+                self.result, self.author, round(time.time), database.max_id
             )
         else:
             element = database.elements[self.result.lower()]
@@ -446,6 +447,7 @@ class Database:
 
         notfound = []
         self.elem_id_lookup = {elem.id: elem for elem in self.elements.values()}
+        self.max_id = max(self.elem_id_lookup)
         for user in self.users.values():
             for i in range(len(user.inv) - 1, -1, -1):  # iterate backwards
                 if user.inv[i] in notfound:
