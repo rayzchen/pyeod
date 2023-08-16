@@ -160,10 +160,12 @@ async def build_info_embed(
         description += "**You don't have this.**"
     description += "\n\n**Mark**\n"
 
-    if element.author is not None:
-        creator = f"<@{element.author.id}>"
-    else:
+    if element.author is None:
         creator = "The Big Bang"
+    elif element.author == 0:
+        creator = "<@0>"
+    else:
+        creator = f"<@{element.author.id}>"
 
     if element.created == 0:
         timestamp = "The Dawn Of Time"

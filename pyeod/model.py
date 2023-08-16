@@ -53,7 +53,8 @@ class Element:
 
     def convert_to_dict(self, data: dict) -> None:
         data["name"] = self.name
-        data["author"] = self.author.id if self.author is not None else None
+        # author can be None or 0
+        data["author"] = self.author.id if self.author else self.author
         data["created"] = self.created
         data["id"] = self.id
         data["mark"] = self.mark
