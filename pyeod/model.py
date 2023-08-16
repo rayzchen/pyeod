@@ -587,7 +587,8 @@ class Database:
         if result.id not in self.complexities:
             if self.get_complexity(result.id) is None:
                 raise InternalError(
-                    "Failed getting complexity", "No combo found with existing complexity"
+                    "Failed getting complexity",
+                    "No combo found with existing complexity",
                 )
         else:
             self.update_element_info(result, sorted_combo)

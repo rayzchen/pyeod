@@ -73,7 +73,9 @@ def save_instance(instance: GameInstance, filename: str) -> multiprocessing.Proc
     instance2.db.combos = old_db.combos
     instance2.db.users = old_db.users
     instance2.db.polls = old_db.polls
-    process = multiprocessing.Process(target=multiprocess_save, args=(instance2, filename))
+    process = multiprocessing.Process(
+        target=multiprocess_save, args=(instance2, filename)
+    )
     process.start()
     return process
 
@@ -87,6 +89,7 @@ def load_instance(file: str) -> GameInstance:
 
 if __name__ == "__main__":
     import simplejson
+
     game = GameInstance()
     user = game.login_user(0)
     combo = ("fire", "fire")

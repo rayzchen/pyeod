@@ -77,22 +77,34 @@ class Main(commands.Cog):
         p = subprocess.Popen(["git", "pull"], stderr=subprocess.PIPE)
         _, stderr = p.communicate()
         if p.returncode != 0:
-            await msg.edit(f"Command `git pull` exited with code {p.returncode}:\n```{stderr.decode()}```")
+            await msg.edit(
+                f"Command `git pull` exited with code {p.returncode}:\n```{stderr.decode()}```"
+            )
             return
 
         if revision:
-            p = subprocess.Popen(["git", "reset", "--hard", revision], stderr=subprocess.PIPE)
+            p = subprocess.Popen(
+                ["git", "reset", "--hard", revision], stderr=subprocess.PIPE
+            )
             _, stderr = p.communicate()
             if p.returncode != 0:
-                await msg.edit(f"Command `git pull` exited with code {p.returncode}:\n```{stderr.decode()}```")
+                await msg.edit(
+                    f"Command `git pull` exited with code {p.returncode}:\n```{stderr.decode()}```"
+                )
                 return
 
-        p = subprocess.Popen(["git", "rev-parse", "HEAD"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p = subprocess.Popen(
+            ["git", "rev-parse", "HEAD"], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
         stdout, stderr = p.communicate()
         if p.returncode != 0:
-            await msg.edit(f"Command `git rev-parse HEAD` exited with code {p.returncode}:\n```{stderr.decode()}```")
+            await msg.edit(
+                f"Command `git rev-parse HEAD` exited with code {p.returncode}:\n```{stderr.decode()}```"
+            )
             return
-        await msg.edit(f"Updated successfully to commit {stdout.decode()[:7]}. Restarting")
+        await msg.edit(
+            f"Updated successfully to commit {stdout.decode()[:7]}. Restarting"
+        )
         open(config.restartfile, "w+").close()
 
     @tasks.loop(seconds=2)

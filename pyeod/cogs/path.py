@@ -42,15 +42,12 @@ class Path(commands.Cog):
             i += 1
             elements = [server.db.elem_id_lookup[x].name for x in combo]
             result = server.db.elem_id_lookup[elem].name
-            lines.append(
-                str(i) + ". " + " + ".join(elements) + " = " + result
-            )
+            lines.append(str(i) + ". " + " + ".join(elements) + " = " + result)
 
         stream = io.StringIO("\n".join(lines))
         user = await self.bot.fetch_user(ctx.author.id)
         await user.send(
-            f"Path for **{element.name}**:",
-            file=File(fp=stream, filename="path.txt")
+            f"Path for **{element.name}**:", file=File(fp=stream, filename="path.txt")
         )
         await ctx.respond("Sent path in DM!")
 

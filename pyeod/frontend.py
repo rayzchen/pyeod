@@ -183,19 +183,15 @@ async def build_info_embed(
 
     fields = [
         EmbedField("Creator", creator, True),
-        EmbedField("Collaborators", collaborators, True) if element.extra_authors else None,
+        EmbedField("Collaborators", collaborators, True)
+        if element.extra_authors
+        else None,
         EmbedField("Created At", timestamp, True),
         EmbedField("Tree Size", len(instance.db.get_path(element)), True),
         EmbedField("Complexity", instance.db.complexities[element.id], True),
-        EmbedField(
-            "Made With", len(instance.db.combo_lookup[element.id]), True
-        ),
-        EmbedField(
-            "Used In", len(instance.db.used_in_lookup[element.id]), True
-        ),
-        EmbedField(
-            "Found By", len(instance.db.found_by_lookup[element.id]), True
-        ),
+        EmbedField("Made With", len(instance.db.combo_lookup[element.id]), True),
+        EmbedField("Used In", len(instance.db.used_in_lookup[element.id]), True),
+        EmbedField("Found By", len(instance.db.found_by_lookup[element.id]), True),
         EmbedField("Comment", element.mark, True) if element.mark else None,
         EmbedField("Commenter", marker, True) if element.mark else None,
         EmbedField("Colorer", "N/A", True),
@@ -272,9 +268,7 @@ class ElementalBot(bridge.AutoShardedBot):
             news_channel = await self.fetch_channel(server.channels.news_channel)
             await news_channel.send(poll.get_news_message(server))
         else:
-            voting_channel = await self.fetch_channel(
-                server.channels.voting_channel
-            )
+            voting_channel = await self.fetch_channel(server.channels.voting_channel)
             msg = await voting_channel.send(embed=server.convert_poll_to_embed(poll))
             server.poll_msg_lookup[msg.id] = poll
         await ctx.reply(suggestion_message)
