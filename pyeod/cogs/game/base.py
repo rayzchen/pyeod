@@ -162,7 +162,7 @@ class Base(commands.Cog):
             return
         else:
             combo = user.last_combo
-            poll = server.suggest_element(user, combo, name)
+            poll = server.suggest_element(user, combo, name.strip())
             await self.bot.add_poll(
                 server,
                 poll,
