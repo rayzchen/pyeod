@@ -470,13 +470,11 @@ class Database:
             for elem in user.inv:
                 self.found_by_lookup[elem].append(user.id)
 
-        self.calculate_infos()
-
     def calculate_infos(self) -> None:
         # Ordered set but using dict
         self.complexities = {elem.id: 0 for elem in self.starters}
         self.min_elem_tree = {elem.id: [] for elem in self.starters}
-        unseen = list(self.elem_id_lookup)
+        unseen = set(self.elem_id_lookup)
         for elem in self.starters:
             unseen.remove(elem.id)
         while len(unseen) != 0:
@@ -536,13 +534,15 @@ class Database:
 
     @staticmethod
     def new_db(starter_elements: Tuple[Element, ...]) -> "Database":
-        return Database(
+        database = Database(
             elements={i.name.lower(): i for i in starter_elements},
             starters=starter_elements,
             combos={},
             users={},
             polls=[],
         )
+        database.calculate_infos()
+        return database
 
     def add_element(self, element: Element):
         if element.name.lower() not in self.elements:

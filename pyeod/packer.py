@@ -87,6 +87,9 @@ def load_instance(file: str) -> GameInstance:
     with open(file, "rb") as f:
         data = f.read()
     instance = msgpack.loads(data, strict_map_key=False, object_hook=hook)
+    # Free up some unneeded local variables
+    del loader, hook, data
+    instance.db.calculate_infos()
     return instance
 
 
