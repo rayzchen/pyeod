@@ -567,14 +567,22 @@ class Database:
             self.min_elem_tree[element.id] = combo
 
     def get_path(self, element: Element) -> List[int]:
-        stack = [element.id]
         path = []
+        visited = set()
+        stack = [element.id]
         while stack:
-            node = stack.pop()
-            if node not in path:
-                path.insert(0, node)
-            for elem in self.min_elem_tree[node]:
-                stack.append(elem)
+            node = stack[-1]
+            if node not in visited:
+                if not self.min_elem_tree[node] or self.min_elem_tree[node][-1] in visited:
+                    stack.pop()
+                    visited.add(node)
+                    path.append(node)
+                else:
+                    for child in reversed(self.min_elem_tree[node]):
+                        if child not in visited:
+                            stack.append(child)
+            else:
+                stack.pop()
         return path
 
     @staticmethod
