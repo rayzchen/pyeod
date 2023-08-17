@@ -22,6 +22,8 @@ class GameError(ModelBaseError):
 
 
 class Element:
+    __slots__ = ("name", "author", "created", "id", "mark", "marker", "extra_authors")
+
     def __init__(
         self,
         name: str,
@@ -81,6 +83,8 @@ class Element:
 
 
 class User:
+    __slots__ = ("inv", "active_polls", "id", "last_combo", "last_element")
+
     def __init__(
         self,
         inv: List[int],
@@ -117,6 +121,8 @@ class User:
 
 
 class Poll:
+    __slots__ = ("author", "votes", "accepted", "creation_time")
+
     def __init__(self, author: User) -> None:
         self.author = author
         self.votes = 0
@@ -169,6 +175,16 @@ def capitalize(name: str) -> str:
 
 
 class ElementPoll(Poll):
+    __slots__ = (
+        "author",
+        "votes",
+        "accepted",
+        "creation_time",
+        "combo",
+        "result",
+        "exists",
+    )
+
     def __init__(
         self, author: User, combo: Tuple[Element, ...], result: str, exists: bool
     ) -> None:
@@ -266,6 +282,15 @@ class ElementPoll(Poll):
 
 
 class MarkPoll(Poll):
+    __slots__ = (
+        "author",
+        "votes",
+        "accepted",
+        "creation_time",
+        "marked_element",
+        "mark",
+    )
+
     def __init__(self, author: User, marked_element: Element, mark: str) -> None:
         super(MarkPoll, self).__init__(author)
         self.marked_element = marked_element
@@ -321,6 +346,15 @@ class MarkPoll(Poll):
 
 
 class AddCollabPoll(Poll):
+    __slots__ = (
+        "author",
+        "votes",
+        "accepted",
+        "creation_time",
+        "element",
+        "extra_authors",
+    )
+
     def __init__(
         self, author: User, element: Element, extra_authors: List[User]
     ) -> None:
@@ -375,6 +409,15 @@ class AddCollabPoll(Poll):
 
 
 class RemoveCollabPoll(Poll):
+    __slots__ = (
+        "author",
+        "votes",
+        "accepted",
+        "creation_time",
+        "element",
+        "extra_authors",
+    )
+
     def __init__(
         self, author: User, element: Element, extra_authors: List[User]
     ) -> None:
@@ -431,6 +474,8 @@ class RemoveCollabPoll(Poll):
 
 
 class Database:
+    # TODO: requires __slots__? only one instance of Database per GameInstance
+
     def __init__(
         self,
         elements: Dict[str, Element],
