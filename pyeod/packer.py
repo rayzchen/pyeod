@@ -60,8 +60,9 @@ def convert_from_dict(loader: InstanceLoader, data: dict) -> object:
 
 
 def multiprocess_save(instance: GameInstance, filename: str) -> None:
+    data = msgpack.dumps(instance, default=convert_to_dict)
     with open(os.path.join(config.package, "db", filename), "wb+") as f:
-        msgpack.dump(instance, f, default=convert_to_dict)
+        f.write(data)
 
 
 def save_instance(instance: GameInstance, filename: str) -> multiprocessing.Process:
@@ -81,10 +82,12 @@ def save_instance(instance: GameInstance, filename: str) -> multiprocessing.Proc
 
 
 def load_instance(file: str) -> GameInstance:
+    loader = InstanceLoader()
+    hook = functools.partial(convert_from_dict, loader)
     with open(file, "rb") as f:
-        loader = InstanceLoader()
-        hook = functools.partial(convert_from_dict, loader)
-        return msgpack.load(f, strict_map_key=False, object_hook=hook)
+        data = f.read()
+    instance = msgpack.loads(data, strict_map_key=False, object_hook=hook)
+    return instance
 
 
 if __name__ == "__main__":
