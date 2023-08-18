@@ -573,7 +573,10 @@ class Database:
         while stack:
             node = stack[-1]
             if node not in visited:
-                if not self.min_elem_tree[node] or self.min_elem_tree[node][-1] in visited:
+                if (
+                    not self.min_elem_tree[node]
+                    or self.min_elem_tree[node][-1] in visited
+                ):
                     stack.pop()
                     visited.add(node)
                     path.append(node)
