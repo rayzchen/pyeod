@@ -1,6 +1,7 @@
 from discord.ext import commands, bridge
 from discord import User, NotFound
 from pyeod.frontend import DiscordGameInstance, InstanceManager, ElementalBot
+from pyeod.model import MarkPoll, ColorPoll, AddCollabPoll, RemoveCollabPoll
 
 
 class Info(commands.Cog):
@@ -33,7 +34,7 @@ class Info(commands.Cog):
             await ctx.respond("Marks cannot be over 3000 characters in length")
             return
         element = server.db.elements[marked_element]
-        poll = server.suggest_mark(user, element, mark)
+        poll = server.suggest_poll(MarkPoll(user, element, mark))
 
         await self.bot.add_poll(
             server, poll, ctx, f"Suggested a new mark for {element.name}!"
@@ -63,7 +64,7 @@ class Info(commands.Cog):
         if not self.check_color(color):
             await ctx.respond("Invalid hex code")
             return
-        poll = server.suggest_color(user, element, color)
+        poll = server.suggest_poll(ColorPoll(user, element, color))
 
         await self.bot.add_poll(
             server, poll, ctx, f"Suggested a new color for {element.name}!"
@@ -155,7 +156,7 @@ class Info(commands.Cog):
         if len(authors) + len(element.extra_authors) > 10:
             await ctx.respond("An element cannot have more than 10 collaborators")
             return
-        poll = server.suggest_add_collaborators(user, element, authors)
+        poll = server.suggest_poll(AddCollabPoll(user, element, authors))
         await self.bot.add_poll(
             server,
             poll,
@@ -246,7 +247,7 @@ class Info(commands.Cog):
                 "Please make sure you entered a valid user created element and valid users already in the collaboration!"
             )
             return
-        poll = server.suggest_remove_collaborators(user, element, authors)
+        poll = server.suggest_poll(RemoveCollabPoll(user, element, authors))
         await self.bot.add_poll(
             server,
             poll,

@@ -268,7 +268,7 @@ class ElementalBot(bridge.AutoShardedBot):
         suggestion_message: str,
     ):
         if server.vote_req == 0:
-            server.check_polls()
+            server.check_single_poll(poll)
             news_channel = await self.fetch_channel(server.channels.news_channel)
             await news_channel.send(poll.get_news_message(server))
         else:

@@ -888,50 +888,17 @@ class GameInstance:
         user.last_element = result
         return result
 
+    def suggest_poll(self, poll: Poll) -> None:
+        if poll.author.active_polls > self.poll_limit:
+            raise GameError("Too many active polls")
+        self.db.polls.append(poll)
+        poll.author.active_polls += 1
+
     def suggest_element(
         self, user: User, combo: Tuple[Element, ...], result: str
     ) -> ElementPoll:
-        if user.active_polls > self.poll_limit:
-            raise GameError("Too many active polls")
         poll = ElementPoll(user, combo, result, self.db.has_element(result))
-        self.db.polls.append(poll)
-        user.active_polls += 1
-        return poll
-
-    def suggest_mark(self, user: User, marked_element: Element, mark: str):
-        if user.active_polls > self.poll_limit:
-            raise GameError("Too many active polls")
-        poll = MarkPoll(user, marked_element, mark)
-        self.db.polls.append(poll)
-        user.active_polls += 1
-        return poll
-
-    def suggest_color(self, user: User, element: Element, color: int):
-        if user.active_polls > self.poll_limit:
-            raise GameError("Too many active polls")
-        poll = ColorPoll(user, element, color)
-        self.db.polls.append(poll)
-        user.active_polls += 1
-        return poll
-
-    def suggest_add_collaborators(
-        self, user: User, element: Element, collaborators: List[User]
-    ):
-        if user.active_polls > self.poll_limit:
-            raise GameError("Too many active polls")
-        poll = AddCollabPoll(user, element, collaborators)
-        self.db.polls.append(poll)
-        user.active_polls += 1
-        return poll
-
-    def suggest_remove_collaborators(
-        self, user: User, element: Element, collaborators: List[User]
-    ):
-        if user.active_polls > self.poll_limit:
-            raise GameError("Too many active polls")
-        poll = RemoveCollabPoll(user, element, collaborators)
-        self.db.polls.append(poll)
-        user.active_polls += 1
+        self.suggest_poll(poll)
         return poll
 
     def check_polls(self) -> List[Poll]:
