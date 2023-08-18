@@ -1,4 +1,6 @@
 from pyeod.model import (
+    GameError,
+    SavableMixin,
     Element,
     User,
     Poll,
@@ -12,16 +14,16 @@ from pyeod.model import (
 )
 from pyeod.frontend import DiscordGameInstance
 from pyeod import config
+from typing import List, Dict, Union, Type
 import msgpack
 import functools
 import os
 import copy
 import multiprocessing
 
-types = [
+types: List[Type[SavableMixin]] = [
     Element,
     User,
-    Poll,
     ElementPoll,
     Database,
     GameInstance,
@@ -31,19 +33,19 @@ types = [
     AddCollabPoll,
     RemoveCollabPoll,
 ]
-type_dict = {t.__name__: t for t in types}
+type_dict: Dict[str, Type[SavableMixin]] = {t.__name__: t for t in types}
 
 
 class InstanceLoader:
     def __init__(self) -> None:
-        self.users = {None: None, 0: 0}
-        self.elem_id_lookup = {}
+        self.users: Dict[Union[int, None], Union[User, int, None]] = {None: None, 0: 0}
+        self.elem_id_lookup: Dict[int, Element] = {}
 
 
 warned_types = []
 
 
-def convert_to_dict(obj: object) -> dict:
+def convert_to_dict(obj: SavableMixin) -> dict:
     if type(obj) not in types and type(obj).__name__ not in warned_types:
         warned_types.append(type(obj).__name__)
         print(f"Warning: type {type(obj).__name__} saved but not in type_dict")
@@ -53,7 +55,7 @@ def convert_to_dict(obj: object) -> dict:
     return data
 
 
-def convert_from_dict(loader: InstanceLoader, data: dict) -> object:
+def convert_from_dict(loader: InstanceLoader, data: Dict[str, str]) -> Union[SavableMixin, dict]:
     if "__type__" not in data:
         return data
 
@@ -104,9 +106,9 @@ if __name__ == "__main__":
     combo = ("fire", "fire")
     try:
         game.combine(user, combo)
-    except Exception as g:
+    except GameError as g:
         if g.type == "Not a combo":
-            game.suggest_element(user, combo, "Inferno")
+            game.suggest_element(user, tuple(game.check_element(name) for name in combo), "inferno")
     game.db.polls[0].votes += 4
     game.check_polls()
 

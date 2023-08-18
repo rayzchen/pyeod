@@ -16,9 +16,7 @@ class Lists(commands.Cog):
 
     @bridge.bridge_command()
     async def inv(self, ctx: bridge.BridgeContext, *, user: User = None):
-        server = InstanceManager.current.get_or_create(
-            ctx.guild.id, DiscordGameInstance
-        )
+        server = InstanceManager.current.get_or_create(ctx.guild.id)
         if user is None:
             user = ctx.author
         elif user.id not in server.db.users:

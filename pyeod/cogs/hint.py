@@ -33,9 +33,7 @@ class Hint(commands.Cog):
             await ctx.respond("Not implemented")
             return
 
-        server = InstanceManager.current.get_or_create(
-            ctx.guild.id, DiscordGameInstance
-        )
+        server = InstanceManager.current.get_or_create(ctx.guild.id)
         element = server.check_element(element)
 
         user = server.login_user(ctx.author.id)
@@ -60,9 +58,7 @@ class Hint(commands.Cog):
 
     @bridge.bridge_command(aliases=["p", "invhint", "ih"])
     async def products(self, ctx: bridge.BridgeContext, *, element: str):
-        server = InstanceManager.current.get_or_create(
-            ctx.guild.id, DiscordGameInstance
-        )
+        server = InstanceManager.current.get_or_create(ctx.guild.id)
         element = server.check_element(element)
 
         user = server.login_user(ctx.author.id)

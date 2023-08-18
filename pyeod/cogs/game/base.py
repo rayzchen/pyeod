@@ -134,9 +134,7 @@ class Base(commands.Cog):
 
     @bridge.bridge_command(aliases=["s"])
     async def suggest(self, ctx: bridge.BridgeContext, *, element_name: str):
-        server = InstanceManager.current.get_or_create(
-            ctx.guild.id, DiscordGameInstance
-        )
+        server = InstanceManager.current.get_or_create(ctx.guild.id)
         if ctx.channel.id not in server.channels.play_channels:
             await ctx.respond("You can only suggest in play channels!")
             return

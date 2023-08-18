@@ -7,7 +7,7 @@ from pyeod.model import (
     User,
     Poll,
 )
-from discord import Embed, EmbedField, ButtonStyle
+from discord import Embed, EmbedField, ButtonStyle, TextChannel
 from discord.ext import pages, bridge
 import math
 
@@ -15,8 +15,8 @@ import math
 class ChannelList:
     def __init__(
         self,
-        news_channel: int = None,
-        voting_channel: int = None,
+        news_channel: Optional[int] = None,
+        voting_channel: Optional[int] = None,
         play_channels: Optional[List[int]] = None,
     ) -> None:
         self.news_channel = news_channel
@@ -127,9 +127,9 @@ class InstanceManager:
             )
         return self.instances[id]
 
-    def get_or_create(self, id: int, type: Type[InstT]) -> InstT:
+    def get_or_create(self, id: int) -> DiscordGameInstance:
         if not self.has_instance(id):
-            instance = type()
+            instance = DiscordGameInstance()
             self.add_instance(id, instance)
         else:
             instance = self.get_instance(id)
@@ -172,7 +172,7 @@ async def build_info_embed(
     else:
         timestamp = f"<t:{element.created}>"
 
-    if element.mark:
+    if element.mark and element.marker is not None:
         marker = f"<@{element.marker.id}>"
         description += element.mark
     else:
@@ -190,11 +190,11 @@ async def build_info_embed(
         if element.extra_authors
         else None,
         EmbedField("Created At", timestamp, True),
-        EmbedField("Tree Size", len(instance.db.get_path(element)), True),
-        EmbedField("Complexity", instance.db.complexities[element.id], True),
-        EmbedField("Made With", len(instance.db.combo_lookup[element.id]), True),
-        EmbedField("Used In", len(instance.db.used_in_lookup[element.id]), True),
-        EmbedField("Found By", len(instance.db.found_by_lookup[element.id]), True),
+        EmbedField("Tree Size", str(len(instance.db.get_path(element))), True),
+        EmbedField("Complexity", str(instance.db.complexities[element.id]), True),
+        EmbedField("Made With", str(len(instance.db.combo_lookup[element.id])), True),
+        EmbedField("Used In", str(len(instance.db.used_in_lookup[element.id])), True),
+        EmbedField("Found By", str(len(instance.db.found_by_lookup[element.id])), True),
         EmbedField("Comment", element.mark, True) if element.mark else None,
         EmbedField("Commenter", marker, True) if element.marker else None,
         EmbedField("Colorer", colorer, True) if element.colorer else None,
@@ -269,9 +269,17 @@ class ElementalBot(bridge.AutoShardedBot):
     ):
         if server.vote_req == 0:
             server.check_single_poll(poll)
+            if server.channels.news_channel is None:
+                raise InternalError(
+                    "News channel unset", "Please set the news channel before adding polls"
+                )
             news_channel = await self.fetch_channel(server.channels.news_channel)
             await news_channel.send(poll.get_news_message(server))
         else:
+            if server.channels.voting_channel is None:
+                raise InternalError(
+                    "Voting channel unset", "Please set the voting channel before adding polls"
+                )
             voting_channel = await self.fetch_channel(server.channels.voting_channel)
             msg = await voting_channel.send(embed=server.convert_poll_to_embed(poll))
             server.poll_msg_lookup[msg.id] = poll

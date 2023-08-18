@@ -12,9 +12,7 @@ class Info(commands.Cog):
     async def comment(
         self, ctx: bridge.BridgeContext, *, marked_element: str, mark: str = None
     ):
-        server = InstanceManager.current.get_or_create(
-            ctx.guild.id, DiscordGameInstance
-        )
+        server = InstanceManager.current.get_or_create(ctx.guild.id)
         user = server.login_user(ctx.author.id)
         if ctx.is_app:
             if not mark:
@@ -54,9 +52,7 @@ class Info(commands.Cog):
     async def color(
         self, ctx: bridge.BridgeContext, *, element: str, color: str = None
     ):
-        server = InstanceManager.current.get_or_create(
-            ctx.guild.id, DiscordGameInstance
-        )
+        server = InstanceManager.current.get_or_create(ctx.guild.id)
         if not ctx.is_app:
             element, color = element.rsplit(" ", 1)
         user = server.login_user(ctx.author.id)
@@ -87,9 +83,7 @@ class Info(commands.Cog):
         collaborator9: User = None,
         collaborator10: User = None,
     ):  # Dude fuck slash commands this is the only way to do this (i think)
-        server = InstanceManager.current.get_or_create(
-            ctx.guild.id, DiscordGameInstance
-        )
+        server = InstanceManager.current.get_or_create(ctx.guild.id)
         user = server.login_user(ctx.author.id)
         extra_authors = []
         if ctx.is_app:
@@ -181,9 +175,7 @@ class Info(commands.Cog):
         collaborator9: User = None,
         collaborator10: User = None,
     ):  # Dude fuck slash commands this is the only way to do this (i think)
-        server = InstanceManager.current.get_or_create(
-            ctx.guild.id, DiscordGameInstance
-        )
+        server = InstanceManager.current.get_or_create(ctx.guild.id)
         user = server.login_user(ctx.author.id)
         extra_authors = []
         if ctx.is_app:

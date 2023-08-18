@@ -92,9 +92,7 @@ class Polls(commands.Cog):
     @bridge.bridge_command()
     @default_permissions(manage_messages=True)
     async def clear_polls(self, ctx: bridge.BridgeContext):
-        server = InstanceManager.current.get_or_create(
-            ctx.guild.id, DiscordGameInstance
-        )
+        server = InstanceManager.current.get_or_create(ctx.guild.id)
         if server.channels.voting_channel is not None:
             channel = await self.bot.fetch_channel(server.channels.voting_channel)
             for msg_id in server.poll_msg_lookup:

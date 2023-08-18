@@ -1,4 +1,5 @@
 from typing import Optional, Dict, Tuple, List, Union
+from abc import ABCMeta, abstractmethod, abstractstaticmethod
 import colorsys
 import copy
 import time
@@ -21,7 +22,18 @@ class GameError(ModelBaseError):
     pass
 
 
-class Element:
+class SavableMixin(metaclass=ABCMeta):
+    @abstractmethod
+    def convert_to_dict(self, data: dict) -> None:
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def convert_from_dict(loader, data: dict) -> "SavableMixin":
+        pass
+
+
+class Element(SavableMixin):
     __slots__ = (
         "name",
         "author",
@@ -40,9 +52,9 @@ class Element:
         author: Optional["User"] = None,
         created: int = 0,
         id: int = 1,
-        mark: str = None,
+        mark: str = "",
         marker: Optional["User"] = None,
-        color: int = None,
+        color: int = 0,
         colorer: Optional["User"] = None,
         extra_authors: Optional[List["User"]] = None,
     ) -> None:  # author:User
@@ -73,23 +85,22 @@ class Element:
             (self.color & 0x00FF00) >> 8,
             self.color & 0x0000FF,
         ]
-        for i in range(3):
-            rgb[i] /= 255
-        return colorsys.rgb_to_hsv(*rgb)
+        return colorsys.rgb_to_hsv(rgb[0] / 255, rgb[1] / 255, rgb[2] / 255)
 
     @staticmethod
-    def get_color(combo: List["Element"]) -> int:
+    def get_color(combo: Tuple["Element", ...]) -> int:
         if any(element.color == 0 for element in combo):
             return 0
         colors = [element.get_hsv() for element in combo]
-        out = [0, 0, 0]
+        out = [0.0, 0.0, 0.0]
         for i in range(3):
             for color in colors:
                 out[i] += color[i]
             out[i] /= len(colors)
-        rgb = list(colorsys.hsv_to_rgb(*out))
+        rgb_float = list(colorsys.hsv_to_rgb(*out))
+        rgb = [0, 0, 0]
         for i in range(3):
-            rgb[i] = int(rgb[i] * 255)
+            rgb[i] = int(rgb_float[i] * 255)
         print(rgb)
         return (rgb[0] << 16) | (rgb[1] << 8) | (rgb[2])
 
@@ -127,7 +138,7 @@ class Element:
         return element
 
 
-class User:
+class User(SavableMixin):
     __slots__ = ("inv", "active_polls", "id", "last_combo", "last_element")
 
     def __init__(
@@ -165,7 +176,7 @@ class User:
         return user
 
 
-class Poll:
+class Poll(SavableMixin):
     __slots__ = ("author", "votes", "accepted", "creation_time")
 
     def __init__(self, author: User) -> None:
@@ -174,7 +185,8 @@ class Poll:
         self.accepted = False
         self.creation_time = round(time.time())
 
-    def resolve(self, database):
+    @abstractmethod
+    def resolve(self, database: "Database"):
         pass
 
     def get_time(self):
@@ -195,21 +207,17 @@ class Poll:
             string = f"{weeks}w{string}"
         return string
 
+    @abstractmethod
     def get_news_message(self, instance: "GameInstance") -> str:
         pass
 
+    @abstractmethod
     def get_title(self) -> str:
         pass
 
+    @abstractmethod
     def get_description(self) -> str:
         pass
-
-    def convert_to_dict(self, data: dict) -> None:
-        raise TypeError
-
-    @staticmethod
-    def convert_from_dict(loader, data: dict) -> "Poll":
-        raise TypeError
 
 
 def capitalize(name: str) -> str:
@@ -322,7 +330,7 @@ class ElementPoll(Poll):
                 return None
         poll = ElementPoll(
             loader.users[data["author"]],
-            [loader.elem_id_lookup[elem] for elem in data["combo"]],
+            tuple(loader.elem_id_lookup[elem] for elem in data["combo"]),
             data["result"],
             data["exists"],
         )
@@ -346,7 +354,7 @@ class MarkPoll(Poll):
         self.marked_element = marked_element
         self.mark = mark
 
-    def resolve(self, database: "Database") -> Element:  # Return Mark back
+    def resolve(self, database: "Database") -> str:
         self.marked_element.mark = self.mark
         self.marked_element.marker = self.author
         return self.mark
@@ -369,7 +377,7 @@ class MarkPoll(Poll):
         return "Comment"
 
     def get_description(self) -> str:
-        text = f"**{self.element.name}**\n"
+        text = f"**{self.marked_element.name}**\n"
         text += (
             f"Old Comment: \n{self.marked_element.mark}\n\nNew Comment:\n{self.mark}"
         )
@@ -453,9 +461,10 @@ class ColorPoll(Poll):
         return "#" + "".join(hex(x)[2:].rjust(2, "0") for x in rgb)
 
     def get_int(self, color: str) -> int:
-        rgb = [color[1:3], color[3:5], color[5:]]
+        rgb_str = [color[1:3], color[3:5], color[5:]]
+        rgb = [0, 0, 0]
         for i in range(3):
-            rgb[i] = int(rgb[i], 16)
+            rgb[i] = int(rgb_str[i], 16)
         return (rgb[0] << 16) | (rgb[1] << 8) | (rgb[2])
 
     def convert_to_dict(self, data: dict) -> None:
@@ -488,13 +497,13 @@ class AddCollabPoll(Poll):
     )
 
     def __init__(
-        self, author: User, element: Element, extra_authors: List[User]
+        self, author: User, element: Element, extra_authors: Tuple[User, ...]
     ) -> None:
         super(AddCollabPoll, self).__init__(author)
         self.element = element
         self.extra_authors = extra_authors
 
-    def resolve(self, database: "Database") -> Element:  # Return Mark back
+    def resolve(self, database: "Database") -> Tuple[User, ...]:
         self.element.extra_authors += self.extra_authors
         return self.extra_authors
 
@@ -533,7 +542,7 @@ class AddCollabPoll(Poll):
         poll = AddCollabPoll(
             loader.users[data["author"]],
             loader.elem_id_lookup[data["element"]],
-            [loader.users[i] for i in data["extra_authors"]],
+            tuple(loader.users[i] for i in data["extra_authors"]),
         )
         poll.votes = data["votes"]
         poll.creation_time = data["creation_time"]
@@ -551,16 +560,15 @@ class RemoveCollabPoll(Poll):
     )
 
     def __init__(
-        self, author: User, element: Element, extra_authors: List[User]
+        self, author: User, element: Element, extra_authors: Tuple[User, ...]
     ) -> None:
         super(RemoveCollabPoll, self).__init__(author)
         self.element = element
         self.extra_authors = extra_authors
 
-    def resolve(self, database: "Database") -> Element:  # Return Mark back
-        [
-            self.element.extra_authors.remove(i) for i in self.extra_authors
-        ]  # This is fucked
+    def resolve(self, database: "Database") -> Tuple[User, ...]:
+        for i in self.extra_authors:
+            self.element.extra_authors.remove(i)
         return self.extra_authors
 
     def get_news_message(self, instance: "GameInstance") -> str:
@@ -598,14 +606,14 @@ class RemoveCollabPoll(Poll):
         poll = RemoveCollabPoll(
             loader.users[data["author"]],
             loader.elem_id_lookup[data["element"]],
-            [loader.users[i] for i in data["extra_authors"]],
+            tuple(loader.users[i] for i in data["extra_authors"]),
         )
         poll.votes = data["votes"]
         poll.creation_time = data["creation_time"]
         return poll
 
 
-class Database:
+class Database(SavableMixin):
     # TODO: requires __slots__? only one instance of Database per GameInstance
 
     def __init__(
@@ -634,31 +642,31 @@ class Database:
                     notfound.append(elem)
                     print(f"Warning: dropping element {elem} from invs")
 
-        self.combo_lookup = {elem: [] for elem in self.elem_id_lookup}
-        self.used_in_lookup = {elem: [] for elem in self.elem_id_lookup}
+        self.combo_lookup: Dict[int, List[Tuple[int, ...]]] = {elem: [] for elem in self.elem_id_lookup}
+        self.used_in_lookup: Dict[int, List[Tuple[int, ...]]] = {elem: [] for elem in self.elem_id_lookup}
         for combo, result in combos.items():
             self.combo_lookup[result.id].append(combo)
             for elem in combo:
                 if combo not in self.used_in_lookup[elem]:
                     self.used_in_lookup[elem].append(combo)
 
-        self.found_by_lookup = {elem: [] for elem in self.elem_id_lookup}
+        self.found_by_lookup: Dict[int, List[int]] = {elem: [] for elem in self.elem_id_lookup}
         for user in self.users.values():
             for elem in user.inv:
                 self.found_by_lookup[elem].append(user.id)
 
     def calculate_infos(self) -> None:
         # Ordered set but using dict
-        self.complexities = {elem.id: 0 for elem in self.starters}
-        self.min_elem_tree = {elem.id: [] for elem in self.starters}
+        self.complexities: Dict[int, int] = {elem.id: 0 for elem in self.starters}
+        self.min_elem_tree: Dict[int, Tuple[int, ...]] = {elem.id: () for elem in self.starters}
         unseen = set(self.elem_id_lookup)
         for elem in self.starters:
             unseen.remove(elem.id)
         while len(unseen) != 0:
-            for elem in unseen:
-                complexity = self.get_complexity(elem)
+            for elem_id in unseen:
+                complexity = self.get_complexity(elem_id)
                 if complexity is not None:
-                    unseen.remove(elem)
+                    unseen.remove(elem_id)
                     break
             else:
                 print("Warning: Dropping elements:", unseen)
@@ -675,7 +683,6 @@ class Database:
     def get_complexity(self, elem_id: int) -> Union[int, None]:
         combos = self.combo_lookup[elem_id]
         min_complexity = None
-        min_combo = None
         for combo in combos:
             if not all(x in self.complexities for x in combo):
                 continue
@@ -794,7 +801,7 @@ class Database:
 
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "Database":
-        starters = [loader.elem_id_lookup[elem] for elem in data["starters"]]
+        starters = tuple(loader.elem_id_lookup[elem] for elem in data["starters"])
         combos = {}
         for combo_ids in data["combos"]:
             key = tuple(int(id) for id in combo_ids.split(","))
@@ -826,7 +833,7 @@ WATER = Element("Water", id=4)
 DEFAULT_STARTER_ELEMENTS = (AIR, EARTH, FIRE, WATER)
 
 
-class GameInstance:
+class GameInstance(SavableMixin):
     def __init__(
         self,
         db: Optional[Database] = None,
@@ -846,7 +853,7 @@ class GameInstance:
     # Deprecate this function?
     def normalize_starter(self, element: Element) -> Element:
         starter = self.db.elements[element.name.lower()]
-        assert starter in self.db.starter_elements
+        assert starter in self.db.starters
         return starter
 
     def login_user(self, user_id: int) -> User:
@@ -962,7 +969,7 @@ if __name__ == "__main__":
         game.combine(user, combo)
     except GameError as g:
         if g.type == "Not a combo":
-            game.suggest_element(user, combo, "inferno")
+            game.suggest_element(user, tuple(game.check_element(name) for name in combo), "inferno")
     game.db.polls[0].votes += 4
     game.check_polls()
     print(user.inv)

@@ -16,9 +16,7 @@ class Leaderboard(commands.Cog):
 
     @bridge.bridge_command(aliases=["leaderboard"])
     async def lb(self, ctx: bridge.BridgeContext, *, user: User = None):
-        server = InstanceManager.current.get_or_create(
-            ctx.guild.id, DiscordGameInstance
-        )
+        server = InstanceManager.current.get_or_create(ctx.guild.id)
         if user is None:
             user = ctx.author
         # Don't add new user to db
