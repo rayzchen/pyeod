@@ -1,5 +1,5 @@
 from typing import Optional, Dict, Tuple, List, Union
-import inspect
+import colorsys
 import copy
 import time
 
@@ -22,7 +22,17 @@ class GameError(ModelBaseError):
 
 
 class Element:
-    __slots__ = ("name", "author", "created", "id", "mark", "marker", "extra_authors")
+    __slots__ = (
+        "name",
+        "author",
+        "created",
+        "id",
+        "mark",
+        "marker",
+        "color",
+        "colorer",
+        "extra_authors",
+    )
 
     def __init__(
         self,
@@ -32,6 +42,8 @@ class Element:
         id: int = 1,
         mark: str = None,
         marker: Optional["User"] = None,
+        color: int = None,
+        colorer: Optional["User"] = None,
         extra_authors: Optional[List["User"]] = None,
     ) -> None:  # author:User
         self.name = name
@@ -40,6 +52,8 @@ class Element:
         self.id = id
         self.mark = mark
         self.marker = marker
+        self.color = color
+        self.colorer = colorer
         if extra_authors is not None:
             self.extra_authors = extra_authors
         else:
@@ -53,6 +67,32 @@ class Element:
             return self.name < other.name
         return NotImplemented
 
+    def get_hsv(self) -> Tuple[float, float, float]:
+        rgb = [
+            (self.color & 0xFF0000) >> 16,
+            (self.color & 0x00FF00) >> 8,
+            self.color & 0x0000FF,
+        ]
+        for i in range(3):
+            rgb[i] /= 255
+        return colorsys.rgb_to_hsv(*rgb)
+
+    @staticmethod
+    def get_color(combo: List["Element"]) -> int:
+        if any(element.color == 0 for element in combo):
+            return 0
+        colors = [element.get_hsv() for element in combo]
+        out = [0, 0, 0]
+        for i in range(3):
+            for color in colors:
+                out[i] += color[i]
+            out[i] /= len(colors)
+        rgb = list(colorsys.hsv_to_rgb(*out))
+        for i in range(3):
+            rgb[i] = int(rgb[i] * 255)
+        print(rgb)
+        return (rgb[0] << 16) | (rgb[1] << 8) | (rgb[2])
+
     def convert_to_dict(self, data: dict) -> None:
         data["name"] = self.name.strip()
         # author can be None or 0
@@ -61,6 +101,8 @@ class Element:
         data["id"] = self.id
         data["mark"] = self.mark
         data["marker"] = self.marker.id if self.marker is not None else None
+        data["color"] = self.color
+        data["colorer"] = self.colorer.id if self.colorer is not None else None
         data["extra_authors"] = [i.id for i in self.extra_authors]
 
     @staticmethod
@@ -68,6 +110,7 @@ class Element:
         # TODO: Convert all convert_from_dict to using .get as it's more robust and allows for defaults
         author = loader.users[data["author"]]
         marker = loader.users[data.get("marker")]
+        colorer = loader.users[data.get("colorer")]
         extra_authors = [loader.users[i] for i in data.get("extra_authors", [])]
         element = Element(
             data["name"].strip(),
@@ -76,6 +119,8 @@ class Element:
             data["id"],
             data.get("mark", ""),
             marker,
+            data.get("color", 0x0),
+            colorer,
             extra_authors,
         )
         loader.elem_id_lookup[element.id] = element
@@ -196,8 +241,13 @@ class ElementPoll(Poll):
     def resolve(self, database: "Database") -> Element:  # Return Element back
         if self.result.lower() not in database.elements:
             database.max_id += 1
+            color = Element.get_color(self.combo)
             element = Element(
-                self.result, self.author, round(time.time()), database.max_id
+                self.result,
+                self.author,
+                round(time.time()),
+                database.max_id,
+                color=color,
             )
         else:
             element = database.elements[self.result.lower()]
@@ -339,6 +389,88 @@ class MarkPoll(Poll):
             loader.users[data["author"]],
             loader.elem_id_lookup[data["marked_element"]],
             data["mark"],
+        )
+        poll.votes = data["votes"]
+        poll.creation_time = data["creation_time"]
+        return poll
+
+
+class ColorPoll(Poll):
+    __slots__ = (
+        "author",
+        "votes",
+        "accepted",
+        "creation_time",
+        "colored_element",
+        "color",
+    )
+
+    def __init__(
+        self, author: User, colored_element: Element, color: Union[int, str]
+    ) -> None:
+        super(ColorPoll, self).__init__(author)
+        self.colored_element = colored_element
+        if isinstance(color, str):
+            self.color = self.get_int(color)
+        else:
+            self.color = color
+
+    def resolve(self, database: "Database") -> int:
+        self.colored_element.color = self.color
+        self.colored_element.colorer = self.author
+        return self.color
+
+    def get_news_message(self, instance: "GameInstance") -> str:
+        msg = ""
+        if self.accepted:
+            msg += "🎨 "
+            msg += "Color"
+            msg += (
+                f" - **{self.colored_element.name}** (Lasted **{self.get_time()}** • "
+            )
+            msg += f"By <@{self.author.id}>)"
+        else:
+            msg += "❌ Poll Rejected - "
+            msg += f"Color"
+            msg += (
+                f" - **{self.colored_element.name}** (Lasted **{self.get_time()}** • "
+            )
+            msg += f"By <@{self.author.id}>) "
+        return msg
+
+    def get_title(self) -> str:
+        return "Color"
+
+    def get_description(self) -> str:
+        text = f"**{self.colored_element.name}**\n"
+        text += f"Old Color: \n{self.get_hex(self.colored_element.color)}\n"
+        text += f"\nNew Color:\n{self.get_hex(self.color)}"
+        text += f"\n\nSuggested by <@{self.author.id}>"
+        return text
+
+    def get_hex(self, color: int) -> str:
+        rgb = [(color & 0xFF0000) >> 16, (color & 0x00FF00) >> 8, color & 0x0000FF]
+        return "#" + "".join(hex(x)[2:].rjust(2, "0") for x in rgb)
+
+    def get_int(self, color: str) -> int:
+        rgb = [color[1:3], color[3:5], color[5:]]
+        for i in range(3):
+            rgb[i] = int(rgb[i], 16)
+        return (rgb[0] << 16) | (rgb[1] << 8) | (rgb[2])
+
+    def convert_to_dict(self, data: dict) -> None:
+        data["author"] = self.author.id
+        data["votes"] = self.votes
+        data["colored_element"] = self.colored_element.id
+        data["color"] = self.color
+        data["creation_time"] = self.creation_time
+
+    @staticmethod
+    def convert_from_dict(loader, data: dict) -> "ColorPoll":
+        poll = ColorPoll(
+            loader.users[data["author"]],
+            loader.elem_id_lookup[data["colored_element"]],
+            data["color"],
         )
         poll.votes = data["votes"]
         poll.creation_time = data["creation_time"]
@@ -560,6 +692,18 @@ class Database:
         else:
             return None
 
+    def check_colors(self):
+        for element in self.elements.values():
+            if element.colorer is not None:
+                continue
+            if 0 < element.color < 0xFFFFFF:
+                continue
+            if not self.combo_lookup[element.id]:
+                continue
+
+            combo = [self.elem_id_lookup[x] for x in self.combo_lookup[element.id][0]]
+            element.color = Element.get_color(combo)
+
     def update_element_info(self, element: Element, combo: Tuple[int, ...]) -> None:
         new_complexity = max(self.complexities[x] for x in combo)
         if new_complexity < self.complexities[element.id]:
@@ -758,6 +902,14 @@ class GameInstance:
         if user.active_polls > self.poll_limit:
             raise GameError("Too many active polls")
         poll = MarkPoll(user, marked_element, mark)
+        self.db.polls.append(poll)
+        user.active_polls += 1
+        return poll
+
+    def suggest_color(self, user: User, element: Element, color: int):
+        if user.active_polls > self.poll_limit:
+            raise GameError("Too many active polls")
+        poll = ColorPoll(user, element, color)
         self.db.polls.append(poll)
         user.active_polls += 1
         return poll

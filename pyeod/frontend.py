@@ -178,6 +178,9 @@ async def build_info_embed(
     else:
         description += "None"
 
+    if element.colorer:
+        colorer = f"<@{element.colorer.id}>"
+
     if element.extra_authors:
         collaborators = ", ".join([f"<@{i.id}>" for i in element.extra_authors])
 
@@ -193,8 +196,8 @@ async def build_info_embed(
         EmbedField("Used In", len(instance.db.used_in_lookup[element.id]), True),
         EmbedField("Found By", len(instance.db.found_by_lookup[element.id]), True),
         EmbedField("Comment", element.mark, True) if element.mark else None,
-        EmbedField("Commenter", marker, True) if element.mark else None,
-        EmbedField("Colorer", "N/A", True),
+        EmbedField("Commenter", marker, True) if element.marker else None,
+        EmbedField("Colorer", colorer, True) if element.colorer else None,
         EmbedField("Imager", "N/A", True),
         EmbedField("Categories", "N/A", False),
     ]
@@ -203,6 +206,7 @@ async def build_info_embed(
         title=element.name + " Info",
         description=description,
         fields=[field for field in fields if field is not None],
+        color=element.color,
     )
 
 

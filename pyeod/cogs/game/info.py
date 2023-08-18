@@ -7,11 +7,10 @@ class Info(commands.Cog):
     def __init__(self, bot: ElementalBot):
         self.bot = bot
 
-    # Don't use bridge command cus params
     @bridge.bridge_command(aliases=["c", "mark", "note"])
     async def comment(
         self, ctx: bridge.BridgeContext, *, marked_element: str, mark: str = None
-    ):  # Sneaky use of args here
+    ):
         server = InstanceManager.current.get_or_create(
             ctx.guild.id, DiscordGameInstance
         )
@@ -38,6 +37,36 @@ class Info(commands.Cog):
 
         await self.bot.add_poll(
             server, poll, ctx, f"Suggested a new mark for {element.name}!"
+        )
+
+    def check_color(self, color: str) -> bool:
+        if not color.startswith("#"):
+            return False
+        if not len(color) == 7:
+            return False
+        numbers = "0123456789abcdef"
+        if not all(x.lower() in numbers for x in color[1:]):
+            return False
+        return True
+
+    @bridge.bridge_command()
+    async def color(
+        self, ctx: bridge.BridgeContext, *, element: str, color: str = None
+    ):
+        server = InstanceManager.current.get_or_create(
+            ctx.guild.id, DiscordGameInstance
+        )
+        if not ctx.is_app:
+            element, color = element.rsplit(" ", 1)
+        user = server.login_user(ctx.author.id)
+        element = server.check_element(element)
+        if not self.check_color(color):
+            await ctx.respond("Invalid hex code")
+            return
+        poll = server.suggest_color(user, element, color)
+
+        await self.bot.add_poll(
+            server, poll, ctx, f"Suggested a new color for {element.name}!"
         )
 
     @bridge.bridge_command(aliases=["acol"])
