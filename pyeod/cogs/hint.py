@@ -34,23 +34,23 @@ class Hint(commands.Cog):
         user = server.login_user(ctx.author.id)
 
         if not element:
-            for _ in range(5):  # Only try to get a hint a user can make 5 times
-                for _ in range(25):  # Only try to get a valid hint 25 times
-                    product_id = random.choice(user.inv)
-                    products = server.db.used_in_lookup[product_id]
-                    if products:
-                        break
-                element = random.choice([server.db.combos[i] for i in products])
+            inv_set = set(user.inv)
+            max_id = max(inv_set)
+            choices = set()
+            for i in range(1, max_id + 2):
+                if i in server.db.elem_id_lookup and i - 1 in inv_set:
+                    choices.add(i)
+            choices.difference_update(inv_set)
+            if not len(choices):
+                for i in range(max_id + 1, max_id + 21):
+                    if i in server.db.elem_id_lookup:
+                        choices.add(i)
+            if not len(choices):
+                # User has every single element
+                await ctx.respond("Could not get any hints")
+                return
 
-                if element.id in user.inv:
-                    break
-                
-                for combo in server.db.combo_lookup[element.id]:
-                    if all(elem in user.inv for elem in combo):
-                        break
-                else:
-                    continue
-                break
+            element = server.db.elem_id_lookup[random.choice(list(choices))]
         else:
             element = server.check_element(element)
 
