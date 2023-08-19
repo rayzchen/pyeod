@@ -158,6 +158,8 @@ class Base(commands.Cog):
         if user.last_combo == ():
             await ctx.reply("Combine something first")
             return
+        elif user.last_element is not None:
+            await ctx.reply("That combo already exists")
         else:
             combo = user.last_combo
             poll = server.suggest_element(user, combo, name.strip())
