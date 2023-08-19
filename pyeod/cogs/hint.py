@@ -39,7 +39,8 @@ class Hint(commands.Cog):
             choices = set()
             for i in range(1, max_id + 2):
                 if i in server.db.elem_id_lookup and i - 1 in inv_set:
-                    choices.add(i)
+                    if all(x in inv_set for x in server.db.combo_lookup[i][0]):
+                        choices.add(i)
             choices.difference_update(inv_set)
             if not len(choices):
                 for i in range(max_id + 1, max_id + 21):
