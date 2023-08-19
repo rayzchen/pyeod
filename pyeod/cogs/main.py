@@ -36,13 +36,13 @@ class Main(commands.Cog):
             err = err.__cause__
         if isinstance(err, GameError):
             if err.type == "Not an element":
-                await ctx.reply(f"Element **{err.meta['name']}** doesn't exist!")
+                await ctx.reply(f"🔴 Element **{err.meta['name']}** doesn't exist!")
                 return
 
         lines = traceback.format_exception(type(err), err, err.__traceback__)
         sys.stderr.write("".join(lines))
         error = format_traceback(err)
-        await ctx.reply("There was an error processing the command:\n" + error)
+        await ctx.reply("⚠️ There was an error processing the command:\n" + error)
 
     async def on_application_command_error(
         self, ctx: ApplicationContext, err: DiscordException
@@ -56,12 +56,12 @@ class Main(commands.Cog):
     @bridge.bridge_command()
     @default_permissions(manage_messages=True)
     async def update(self, ctx: bridge.BridgeContext, revision: str = ""):
-        msg = await ctx.respond("Updating...")
+        msg = await ctx.respond("💽 Updating...")
         p = subprocess.Popen(["git", "pull"], stderr=subprocess.PIPE)
         _, stderr = p.communicate()
         if p.returncode != 0:
             await msg.edit(
-                f"Command `git pull` exited with code {p.returncode}:\n```{stderr.decode()}```"
+                f"⚠️ Command `git pull` exited with code {p.returncode}:\n```{stderr.decode()}```"
             )
             return
 
@@ -72,7 +72,7 @@ class Main(commands.Cog):
             _, stderr = p.communicate()
             if p.returncode != 0:
                 await msg.edit(
-                    f"Command `git pull` exited with code {p.returncode}:\n```{stderr.decode()}```"
+                    f"⚠️ Command `git pull` exited with code {p.returncode}:\n```{stderr.decode()}```"
                 )
                 return
 
@@ -82,11 +82,11 @@ class Main(commands.Cog):
         stdout, stderr = p.communicate()
         if p.returncode != 0:
             await msg.edit(
-                f"Command `git rev-parse HEAD` exited with code {p.returncode}:\n```{stderr.decode()}```"
+                f"⚠️ Command `git rev-parse HEAD` exited with code {p.returncode}:\n```{stderr.decode()}```"
             )
             return
         await msg.edit(
-            f"Updated successfully to commit {stdout.decode()[:7]}. Restarting"
+            f"💽 Updated successfully to commit {stdout.decode()[:7]}. Restarting"
         )
         open(config.restartfile, "w+").close()
 

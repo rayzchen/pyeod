@@ -16,26 +16,26 @@ class Info(commands.Cog):
         user = server.login_user(ctx.author.id)
         if ctx.is_app:
             if not mark:
-                await ctx.respond("Please suggest a mark")
+                await ctx.respond("🔴 Please suggest a mark!")
                 return
             marked_element = marked_element.lower()
         else:
             split_msg = marked_element.split("|")
             if len(split_msg) < 2:
-                await ctx.reply("Please separate each parameter with a |")
+                await ctx.reply("🔴 Please separate each parameter with a | !")
                 return
             mark = split_msg[1].strip()
         if not server.db.has_element(marked_element):
-            await ctx.respond("Not a valid element")
+            await ctx.respond("🔴 Not a valid element!")
             return
         if len(mark) > 3000:
-            await ctx.respond("Marks cannot be over 3000 characters in length")
+            await ctx.respond("🔴 Marks cannot be over 3000 characters in length!")
             return
         element = server.db.elements[marked_element]
         poll = server.suggest_poll(MarkPoll(user, element, mark))
 
         await self.bot.add_poll(
-            server, poll, ctx, f"Suggested a new mark for {element.name}!"
+            server, poll, ctx, f"🗳️ Suggested a new mark for {element.name}!"
         )
 
     def check_color(self, color: str) -> bool:
@@ -58,12 +58,12 @@ class Info(commands.Cog):
         user = server.login_user(ctx.author.id)
         element = server.check_element(element)
         if not self.check_color(color):
-            await ctx.respond("Invalid hex code")
+            await ctx.respond("🔴 Invalid hex code!")
             return
         poll = server.suggest_poll(ColorPoll(user, element, color))
 
         await self.bot.add_poll(
-            server, poll, ctx, f"Suggested a new color for {element.name}!"
+            server, poll, ctx, f"🗳️ Suggested a new color for {element.name}!"
         )
 
     @bridge.bridge_command(aliases=["acol"])
@@ -107,7 +107,7 @@ class Info(commands.Cog):
         else:
             split_msg = element.split("|")
             if len(split_msg) < 2:
-                await ctx.respond("Please separate each parameter with a |")
+                await ctx.respond("🔴 Please separate each parameter with a | !")
                 return
             element = split_msg[0].lower().strip()
             element = server.db.elements[element]
@@ -127,7 +127,7 @@ class Info(commands.Cog):
                     await self.bot.fetch_user(id)
                 except NotFound:
                     await ctx.respond(
-                        "Please only enter valid users, using the @<user> syntax separated by spaces"
+                        "🔴 Please only enter valid users, using the @<user> syntax separated by spaces!"
                     )
                     return
                 extra_authors.append(id)
@@ -144,7 +144,7 @@ class Info(commands.Cog):
 
         if len(authors) == 0:
             await ctx.reply(
-                "Please make sure you entered a valid user created element and valid users!"
+                "🔴 Please make sure you entered a valid user created element and valid users!"
             )
             return
         if len(authors) + len(element.extra_authors) > 10:
@@ -155,7 +155,7 @@ class Info(commands.Cog):
             server,
             poll,
             ctx,
-            f"Suggested to add those users as collaborators to {element.name}",
+            f"🗳️ Suggested to add those users as collaborators to {element.name}!",
         )
 
     @bridge.bridge_command(aliases=["rcol"])
@@ -199,7 +199,7 @@ class Info(commands.Cog):
         else:
             split_msg = element.split("|")
             if len(split_msg) < 2:
-                await ctx.respond("Please separate each parameter with a |")
+                await ctx.respond("🔴 Please separate each parameter with a | !")
                 return
             element = split_msg[0].lower().strip()
             element = server.db.elements[element]
@@ -219,7 +219,7 @@ class Info(commands.Cog):
                     await self.bot.fetch_user(id)
                 except NotFound:
                     await ctx.respond(
-                        "Please only enter valid users, using the @<user> syntax separated by spaces"
+                        "🔴 Please only enter valid users, using the @<user> syntax separated by spaces!"
                     )
                     return
                 extra_authors.append(id)
@@ -236,7 +236,7 @@ class Info(commands.Cog):
 
         if len(authors) == 0:
             await ctx.reply(
-                "Please make sure you entered a valid user created element and valid users already in the collaboration!"
+                "🔴 Please make sure you entered a valid user created element and valid users already in the collaboration!"
             )
             return
         poll = server.suggest_poll(RemoveCollabPoll(user, element, authors))
@@ -244,7 +244,7 @@ class Info(commands.Cog):
             server,
             poll,
             ctx,
-            f"Suggested to remove those users as collaborators to {element.name}",
+            f"🗳️ Suggested to remove those users as collaborators to {element.name}!",
         )
 
 

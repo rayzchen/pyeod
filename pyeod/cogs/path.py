@@ -14,11 +14,11 @@ class Path(commands.Cog):
         if element.startswith("#"):
             elem_id = element[1:].strip()
             if not elem_id.isdecimal():
-                await ctx.respond(f"Element ID **{elem_id}** doesn't exist!")
+                await ctx.respond(f"🔴 Element ID **{elem_id}** doesn't exist!")
                 return
             elem_id = int(elem_id)
             if elem_id not in server.db.elem_id_lookup:
-                await ctx.respond(f"Element ID **{elem_id}** doesn't exist!")
+                await ctx.respond(f"🔴 Element ID **{elem_id}** doesn't exist!")
                 return
             element = server.db.elem_id_lookup[elem_id]
         else:
@@ -26,7 +26,7 @@ class Path(commands.Cog):
 
         logged_in = server.login_user(ctx.author.id)
         if element.id not in logged_in.inv:
-            await ctx.respond(f"You don't have **{element.name}**!")
+            await ctx.respond(f"🔴 You don't have **{element.name}**!")
             return
         await ctx.defer()
 
@@ -47,7 +47,7 @@ class Path(commands.Cog):
         await user.send(
             f"Path for **{element.name}**:", file=File(fp=stream, filename="path.txt")
         )
-        await ctx.respond("Sent path in DM!")
+        await ctx.respond("💬 Sent path in DM!")
 
 
 def setup(client):

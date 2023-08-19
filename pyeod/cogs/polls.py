@@ -105,7 +105,7 @@ class Polls(commands.Cog):
         for user in server.db.users.values():
             user.active_polls = 0
         # TODO: delete polls and notify in news
-        await ctx.reply("Cleared polls!")
+        await ctx.reply("🧹 Cleared polls!")
 
 
 def setup(client):

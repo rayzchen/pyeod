@@ -2,10 +2,12 @@ from discord.ext import commands, bridge
 from discord import Message, Embed
 from pyeod.model import GameError
 from pyeod.frontend import DiscordGameInstance, InstanceManager, ElementalBot
+from pyeod.utils import format_list
 from pyeod import frontend
 from typing import Union
 import functools
 import random
+
 
 class Base(commands.Cog):
     def __init__(self, bot: ElementalBot) -> None:
@@ -50,10 +52,10 @@ class Base(commands.Cog):
         if msg.content.startswith("?#"):
             element_id = msg.content[2:].strip()
             if not element_id.isdecimal():
-                await msg.reply(f"Element ID **{element_id}** doesn't exist!")
+                await msg.reply(f"🔴 Element ID **{element_id}** doesn't exist!")
                 return
             if int(element_id) not in server.db.elem_id_lookup:
-                await msg.reply(f"Element ID **{element_id}** doesn't exist!")
+                await msg.reply(f"🔴 Element ID **{element_id}** doesn't exist!")
                 return
             element = server.db.elem_id_lookup[int(element_id)]
         else:
@@ -79,10 +81,10 @@ class Base(commands.Cog):
                 elif user.last_element is not None:
                     elements = [user.last_element.name] * multiplier
                 else:
-                    await msg.reply("Combine something first")
+                    await msg.reply("🔴 Combine something first!")
                     return
                 if len(elements) < 2:
-                    await msg.reply("Please combine at least 2 elements")
+                    await msg.reply("🔴 Please combine at least 2 elements!")
                     return
 
         if not elements:
@@ -93,44 +95,46 @@ class Base(commands.Cog):
             and len(elements) == 1
             and not multiplier.isdecimal()
         ):
-            await msg.reply(f"Invalid multiplier: **{multiplier}**")
+            await msg.reply(f"🔴 Invalid multiplier: **{multiplier}**")
 
         if msg.content.startswith("+"):
             if user.last_element is None:
-                await msg.reply("Combine something first")
+                await msg.reply("🔴 Combine something first!")
                 return
             elements.insert(0, user.last_element.name)
 
         if len(elements) < 2:
             return
         if len(elements) > 21:
-            await msg.reply("You cannot combine more than 21 elements!")
+            await msg.reply("🔴 You cannot combine more than 21 elements!")
             return
 
         try:
             element = server.combine(user, [i.strip() for i in elements])
-            await msg.reply(f"You made {element.name}")
+            await msg.reply(f"🆕 You made **{element.name}**!")
         except GameError as g:
             if g.type == "Not a combo":
                 # Keep last combo
                 user.last_element = None
                 await msg.reply(
-                    "Not a combo, use !s <element_name> to suggest an element"
+                    "🟥 Not a combo! Use !s <element_name> to suggest an element"
                 )
             if g.type == "Already have element":
                 # Keep last element
                 user.last_combo = ()
-                await msg.reply(g.message)
+                await msg.reply(
+                    f"🟦 You made **{g.meta['element'].name}**, but you already have it!"
+                )
             elif g.type == "Not in inv":
                 user.last_element = None
                 user.last_combo = ()
                 await msg.reply(
-                    "You don't have one or more of those elements"
-                )  # Todo: Fix how vague this is
+                    f"🔴 You don't have {format_list([f'**{i.name}**' for i in g.meta['elements']])}!"
+                )
             if g.type == "Not an element":
                 user.last_element = None
                 user.last_combo = ()
-                await msg.reply("Not a valid element")
+                await msg.reply("🔴 Not a valid element!")
 
     @bridge.bridge_command(aliases=["s"])
     async def suggest(self, ctx: bridge.BridgeContext, *, element_name: str):
@@ -141,16 +145,20 @@ class Base(commands.Cog):
         await self.suggest_element(server, element_name, ctx)
 
     @bridge.bridge_command(aliases=["rc"])
-    async def random_combination(self, ctx: bridge.BridgeContext, amount_of_elements:int = 2):
+    async def random_combination(
+        self, ctx: bridge.BridgeContext, amount_of_elements: int = 2
+    ):
         if not (1 < amount_of_elements < 21):
-            await ctx.reply("Invalid amount of elements")
+            await ctx.respond("Invalid amount of elements")
             return
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         user = server.login_user(ctx.author.id)
         combo = []
         for _ in range(amount_of_elements):
             combo.append(server.db.elem_id_lookup[random.choice(user.inv)].name)
-        embed = Embed(title=" ", description=f"Combined:\n**{'** + **'.join(combo)}**\n\n")
+        embed = Embed(
+            title=" ", description=f"Combined:\n**{'** + **'.join(combo)}**\n\n"
+        )
         embed.set_author(name="Random Combo")
         try:
             element = server.combine(user, combo)
@@ -159,12 +167,16 @@ class Base(commands.Cog):
             if g.type == "Not a combo":
                 # Keep last combo
                 user.last_element = None
-                embed.description += "Not a combo, use !s <element_name> to suggest an element"
+                embed.description += (
+                    "🟥 Not a combo! Use !s <element_name> to suggest an element"
+                )
             if g.type == "Already have element":
                 # Keep last element
                 user.last_combo = ()
-                embed.description += g.message
-        await ctx.respond(embed = embed)
+                msg += (
+                    f"🟦 You made **{g.meta['element'].name}**, but you already have it!"
+                )
+        await ctx.respond(embed=embed)
 
     async def suggest_element(
         self,
@@ -174,18 +186,18 @@ class Base(commands.Cog):
     ) -> None:
         user = server.login_user(ctx.author.id)
         if server.channels.voting_channel is None:
-            await ctx.respond("Server not configured, please set voting channel")
+            await ctx.respond("🤖 Server not configured, please set voting channel")
         if server.channels.news_channel is None:
-            await ctx.respond("Server not configured, please set news channel")
+            await ctx.respond("🤖 Server not configured, please set news channel")
         if ctx.channel.id not in server.channels.play_channels:
-            await ctx.respond("You can only suggest in play channels!")
+            await ctx.respond("🔴 You can only suggest in play channels!")
             return
 
         if user.last_combo == ():
-            await ctx.reply("Combine something first")
+            await ctx.reply("🔴 Combine something first!")
             return
         elif user.last_element is not None:
-            await ctx.reply("That combo already exists")
+            await ctx.reply("🔴 That combo already exists!")
         else:
             combo = user.last_combo
             poll = server.suggest_element(user, combo, name.strip())
@@ -193,11 +205,7 @@ class Base(commands.Cog):
                 server,
                 poll,
                 ctx,
-                "Suggested **"
-                + "** + **".join([i.name for i in combo])
-                + "** = **"
-                + poll.result
-                + "**",
+                f"🗳️ Suggested **{'** + **'.join([i.name for i in combo])}** = **{poll.result}**!",
             )
 
 

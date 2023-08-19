@@ -155,9 +155,9 @@ async def build_info_embed(
 ) -> Embed:
     description = f"Element **#{element.id}**\n"
     if element.id in user.inv:
-        description += "**You have this.**"
+        description += "📫 **You have this.**"
     else:
-        description += "**You don't have this.**"
+        description += "📭 **You don't have this.**"
     description += "\n\n**Mark**\n"
 
     if element.author is None:
@@ -185,21 +185,23 @@ async def build_info_embed(
         collaborators = ", ".join([f"<@{i.id}>" for i in element.extra_authors])
 
     fields = [
-        EmbedField("Creator", creator, True),
-        EmbedField("Collaborators", collaborators, True)
+        EmbedField("🧙‍♂️ Creator", creator, True),
+        EmbedField("👥 Collaborators", collaborators, True)
         if element.extra_authors
         else None,
-        EmbedField("Created At", timestamp, True),
-        EmbedField("Tree Size", str(len(instance.db.get_path(element))), True),
-        EmbedField("Complexity", str(instance.db.complexities[element.id]), True),
-        EmbedField("Made With", str(len(instance.db.combo_lookup[element.id])), True),
-        EmbedField("Used In", str(len(instance.db.used_in_lookup[element.id])), True),
-        EmbedField("Found By", str(len(instance.db.found_by_lookup[element.id])), True),
-        EmbedField("Comment", element.mark, True) if element.mark else None,
-        EmbedField("Commenter", marker, True) if element.marker else None,
-        EmbedField("Colorer", colorer, True) if element.colorer else None,
-        EmbedField("Imager", "N/A", True),
-        EmbedField("Categories", "N/A", False),
+        EmbedField("📅 Created At", timestamp, True),
+        EmbedField("🌲 Tree Size", str(len(instance.db.get_path(element))), True),
+        EmbedField("🔀 Complexity", str(instance.db.complexities[element.id]), True),
+        EmbedField("🔨 Made With", str(len(instance.db.combo_lookup[element.id])), True),
+        EmbedField("🧰 Used In", str(len(instance.db.used_in_lookup[element.id])), True),
+        EmbedField(
+            "🔍 Found By", str(len(instance.db.found_by_lookup[element.id])), True
+        ),
+        EmbedField("📜 Comment", element.mark, True) if element.mark else None,
+        EmbedField("🗣️ Commenter", marker, True) if element.marker else None,
+        EmbedField("🎨 Colorer", colorer, True) if element.colorer else None,
+        EmbedField("🖼️ Imager", "N/A", True),
+        EmbedField("📂 Categories", "N/A", False),
     ]
 
     return Embed(
@@ -271,14 +273,16 @@ class ElementalBot(bridge.AutoShardedBot):
             server.check_single_poll(poll)
             if server.channels.news_channel is None:
                 raise InternalError(
-                    "News channel unset", "Please set the news channel before adding polls"
+                    "News channel unset",
+                    "Please set the news channel before adding polls",
                 )
             news_channel = await self.fetch_channel(server.channels.news_channel)
             await news_channel.send(poll.get_news_message(server))
         else:
             if server.channels.voting_channel is None:
                 raise InternalError(
-                    "Voting channel unset", "Please set the voting channel before adding polls"
+                    "Voting channel unset",
+                    "Please set the voting channel before adding polls",
                 )
             voting_channel = await self.fetch_channel(server.channels.voting_channel)
             msg = await voting_channel.send(embed=server.convert_poll_to_embed(poll))

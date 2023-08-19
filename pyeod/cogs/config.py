@@ -47,7 +47,7 @@ class Config(commands.Cog):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
         server.channels.play_channels.append(channel.id)
-        await ctx.respond(f"Successfully added {channel.name} as a play channel!")
+        await ctx.respond(f"🤖 Successfully added {channel.name} as a play channel!")
 
     @commands.slash_command()
     @default_permissions(manage_channels=True)
@@ -58,9 +58,11 @@ class Config(commands.Cog):
 
         try:
             server.channels.play_channels.remove(channel.id)
-            await ctx.respond(f"Successfully removed {channel.name} as a play channel!")
+            await ctx.respond(
+                f"🤖 Successfully removed {channel.name} as a play channel!"
+            )
         except ValueError:
-            await ctx.respond(f"That is not a play channel")
+            await ctx.respond(f"🔴 That is not a play channel!")
 
     @commands.slash_command()
     @default_permissions(manage_channels=True)
@@ -68,7 +70,7 @@ class Config(commands.Cog):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
         server.channels.news_channel = channel.id
-        await ctx.respond(f"Successfully set {channel.name} as the news channel!")
+        await ctx.respond(f"🤖 Successfully set {channel.name} as the news channel!")
 
     @commands.slash_command()
     @default_permissions(manage_channels=True)
@@ -76,7 +78,7 @@ class Config(commands.Cog):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
         server.channels.voting_channel = channel.id
-        await ctx.respond(f"Successfully set {channel.name} as the voting channel!")
+        await ctx.respond(f"🤖 Successfully set {channel.name} as the voting channel!")
 
     @bridge.bridge_command()
     @default_permissions(manage_channels=True)
@@ -85,7 +87,7 @@ class Config(commands.Cog):
     ):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if elem_id not in server.db.elem_id_lookup:
-            await ctx.respond(f"No element with id #{elem_id}!")
+            await ctx.respond(f"🔴 No element with id #{elem_id}!")
             return
 
         element = server.db.elem_id_lookup[elem_id]
@@ -94,7 +96,7 @@ class Config(commands.Cog):
         server.db.elements.pop(old_name.lower())
         server.db.elements[name.lower()] = element
         await ctx.respond(
-            f"Renamed element #{elem_id} ({old_name}) to {name} successfully!"
+            f"🤖 Renamed element #{elem_id} ({old_name}) to {name} successfully!"
         )
 
     @bridge.bridge_command()
@@ -103,7 +105,7 @@ class Config(commands.Cog):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
         server.vote_req = vote_req
-        await ctx.respond(f"Successfully set the vote requirement to {vote_req}")
+        await ctx.respond(f"🤖 Successfully set the vote requirement to {vote_req}")
 
     @bridge.bridge_command()
     @default_permissions(manage_channels=True)
@@ -112,7 +114,7 @@ class Config(commands.Cog):
 
         server.poll_limit = max_polls
         await ctx.respond(
-            f"Successfully set the max polls a user can have to {max_polls}"
+            f"🤖 Successfully set the max polls a user can have to {max_polls}"
         )
 
 

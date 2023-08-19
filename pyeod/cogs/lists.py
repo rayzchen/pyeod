@@ -21,7 +21,7 @@ class Lists(commands.Cog):
             user = ctx.author
         elif user.id not in server.db.users:
             # If user was None, this shouldn't run
-            await ctx.respond("User not found!")
+            await ctx.respond("🔴 User not found!")
             return
 
         logged_in = server.login_user(user.id)

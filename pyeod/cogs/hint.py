@@ -34,7 +34,7 @@ class Hint(commands.Cog):
         user = server.login_user(ctx.author.id)
 
         sorted_inv = sorted(user.inv)
-        
+
         for index, i in enumerate(sorted_inv):
             try:
                 if i + 1 != sorted_inv[index + 1]:
@@ -57,9 +57,9 @@ class Hint(commands.Cog):
             lines, f"Hints for {element.name} ({len(lines)})", limit
         )
         if element.id in user.inv:
-            footer = "You have this"
+            footer = "📫 You have this"
         else:
-            footer = "You don't have this"
+            footer = "📭 You don't have this"
         paginator = FooterPaginator(embeds, footer)
         await paginator.respond(ctx)
 
@@ -83,7 +83,7 @@ class Hint(commands.Cog):
                         choices.add(i)
             if not len(choices):
                 # User has every single element
-                await ctx.respond("Could not get any hints")
+                await ctx.respond("🔴 Could not get any hints!")
                 return
 
             element = server.db.elem_id_lookup[random.choice(list(choices))]
@@ -103,9 +103,9 @@ class Hint(commands.Cog):
             lines, f"Hints for {element.name} ({len(lines)})", limit
         )
         if element.id in user.inv:
-            footer = "You have this"
+            footer = "📫 You have this"
         else:
-            footer = "You don't have this"
+            footer = "📭 You don't have this"
         paginator = FooterPaginator(embeds, footer)
         await paginator.respond(ctx)
 
@@ -135,9 +135,9 @@ class Hint(commands.Cog):
             lines, f"Products of {element.name} ({len(lines)})", limit
         )
         if element.id in user.inv:
-            footer = "You have this"
+            footer = "📫 You have this"
         else:
-            footer = "You don't have this"
+            footer = "📭 You don't have this"
         paginator = FooterPaginator(embeds, footer)
         await paginator.respond(ctx)
 

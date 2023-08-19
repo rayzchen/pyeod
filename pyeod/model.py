@@ -642,15 +642,21 @@ class Database(SavableMixin):
                     notfound.append(elem)
                     print(f"Warning: dropping element {elem} from invs")
 
-        self.combo_lookup: Dict[int, List[Tuple[int, ...]]] = {elem: [] for elem in self.elem_id_lookup}
-        self.used_in_lookup: Dict[int, List[Tuple[int, ...]]] = {elem: [] for elem in self.elem_id_lookup}
+        self.combo_lookup: Dict[int, List[Tuple[int, ...]]] = {
+            elem: [] for elem in self.elem_id_lookup
+        }
+        self.used_in_lookup: Dict[int, List[Tuple[int, ...]]] = {
+            elem: [] for elem in self.elem_id_lookup
+        }
         for combo, result in combos.items():
             self.combo_lookup[result.id].append(combo)
             for elem in combo:
                 if combo not in self.used_in_lookup[elem]:
                     self.used_in_lookup[elem].append(combo)
 
-        self.found_by_lookup: Dict[int, List[int]] = {elem: [] for elem in self.elem_id_lookup}
+        self.found_by_lookup: Dict[int, List[int]] = {
+            elem: [] for elem in self.elem_id_lookup
+        }
         for user in self.users.values():
             for elem in user.inv:
                 self.found_by_lookup[elem].append(user.id)
@@ -658,7 +664,9 @@ class Database(SavableMixin):
     def calculate_infos(self) -> None:
         # Ordered set but using dict
         self.complexities: Dict[int, int] = {elem.id: 0 for elem in self.starters}
-        self.min_elem_tree: Dict[int, Tuple[int, ...]] = {elem.id: () for elem in self.starters}
+        self.min_elem_tree: Dict[int, Tuple[int, ...]] = {
+            elem.id: () for elem in self.starters
+        }
         unseen = set(self.elem_id_lookup)
         for elem in self.starters:
             unseen.remove(elem.id)
@@ -787,7 +795,7 @@ class Database(SavableMixin):
         for elem in sorted_combo:
             if sorted_combo not in self.used_in_lookup[elem]:
                 self.used_in_lookup[elem].append(sorted_combo)
-    
+
     def convert_to_dict(self, data: dict) -> None:
         # Users MUST be first to be saved or loaded
         data["users"] = self.users
@@ -798,7 +806,7 @@ class Database(SavableMixin):
             combo_ids = ",".join(str(elem) for elem in combo)
             data["combos"][combo_ids] = self.combos[combo].id
         data["polls"] = self.polls
-    
+
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "Database":
         starters = tuple(loader.elem_id_lookup[elem] for elem in data["starters"])
@@ -878,8 +886,29 @@ class GameInstance(SavableMixin):
             )
         return element
 
+    def check_elements(
+        self, element_name_list: List[str], user: Optional[User] = None
+    ) -> Tuple[Element]:
+        elements = []
+        not_in_inv = []
+        for i in element_name_list:
+            try:
+                elements.append(self.check_element(i, user))
+            except GameError as g:
+                if g.type == "Not in inv":
+                    not_in_inv.append(g.meta["element"])
+                else:
+                    raise g
+        if not_in_inv:
+            raise GameError(
+                "Not in inv",
+                "The user does not have the element requested",
+                {"elements": not_in_inv, "user": user},
+            )
+        return tuple(elements)
+
     def combine(self, user: User, combo: Tuple[str, ...]) -> Element:
-        element_combo = tuple(self.check_element(name, user) for name in combo)
+        element_combo = self.check_elements(combo, user)
         user.last_combo = tuple(sorted(element_combo))
         result = self.db.get_combo_result(element_combo)
         if result is None:
@@ -889,6 +918,7 @@ class GameInstance(SavableMixin):
             raise GameError(
                 "Already have element",
                 f"You made {result.name}, but you already have it",
+                {"element": result},
             )
         self.db.found_by_lookup[result.id].append(user.id)
         user.add_element(result)
@@ -969,7 +999,9 @@ if __name__ == "__main__":
         game.combine(user, combo)
     except GameError as g:
         if g.type == "Not a combo":
-            game.suggest_element(user, tuple(game.check_element(name) for name in combo), "inferno")
+            game.suggest_element(
+                user, tuple(game.check_element(name) for name in combo), "inferno"
+            )
     game.db.polls[0].votes += 4
     game.check_polls()
     print(user.inv)
