@@ -1,11 +1,11 @@
 from discord.ext import commands, bridge
-from discord import Message
+from discord import Message, Embed
 from pyeod.model import GameError
 from pyeod.frontend import DiscordGameInstance, InstanceManager, ElementalBot
 from pyeod import frontend
 from typing import Union
 import functools
-
+import random
 
 class Base(commands.Cog):
     def __init__(self, bot: ElementalBot) -> None:
@@ -139,6 +139,32 @@ class Base(commands.Cog):
             await ctx.respond("You can only suggest in play channels!")
             return
         await self.suggest_element(server, element_name, ctx)
+
+    @bridge.bridge_command(aliases=["rc"])
+    async def random_combination(self, ctx: bridge.BridgeContext, amount_of_elements:int = 2):
+        if not (1 < amount_of_elements < 21):
+            await ctx.reply("Invalid amount of elements")
+            return
+        server = InstanceManager.current.get_or_create(ctx.guild.id)
+        user = server.login_user(ctx.author.id)
+        combo = []
+        for _ in range(amount_of_elements):
+            combo.append(server.db.elem_id_lookup[random.choice(user.inv)].name)
+        embed = Embed(title=" ", description=f"Combined:\n**{'** + **'.join(combo)}**\n\n")
+        embed.set_author(name="Random Combo")
+        try:
+            element = server.combine(user, combo)
+            embed.description += f"🆕 You made **{element.name}**!"
+        except GameError as g:
+            if g.type == "Not a combo":
+                # Keep last combo
+                user.last_element = None
+                embed.description += "Not a combo, use !s <element_name> to suggest an element"
+            if g.type == "Already have element":
+                # Keep last element
+                user.last_combo = ()
+                embed.description += g.message
+        await ctx.respond(embed = embed)
 
     async def suggest_element(
         self,
