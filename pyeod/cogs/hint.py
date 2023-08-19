@@ -28,6 +28,39 @@ class Hint(commands.Cog):
                 chars[i] = "?"
         return "".join(chars)
 
+    @bridge.bridge_command(aliases=["n"])
+    async def next(self, ctx: bridge.BridgeContext):
+        server = InstanceManager.current.get_or_create(ctx.guild.id)
+        user = server.login_user(ctx.author.id)
+
+        for index, i in enumerate(sorted(user.inv)):
+            try:
+                if i + 1 != user.inv[index + 1]:
+                    element = server.db.elem_id_lookup[i + 1]
+                    break
+            except IndexError:
+                element = server.db.elem_id_lookup[i + 1]
+                break
+
+        lines = []
+        for combo in server.db.combo_lookup[element.id]:
+            tick = all(elem in user.inv for elem in combo)
+            names = [server.db.elem_id_lookup[elem].name for elem in combo]
+            names.sort()
+            names[-1] = self.obfuscate(names[-1])
+            lines.append(self.get_emoji(tick) + " " + " + ".join(names))
+
+        limit = get_page_limit(server, ctx.channel.id)
+        embeds = generate_embed_list(
+            lines, f"Hints for {element.name} ({len(lines)})", limit
+        )
+        if element.id in user.inv:
+            footer = "You have this"
+        else:
+            footer = "You don't have this"
+        paginator = FooterPaginator(embeds, footer)
+        await paginator.respond(ctx)
+
     @bridge.bridge_command(aliases=["h"])
     async def hint(self, ctx: bridge.BridgeContext, *, element: str = ""):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
