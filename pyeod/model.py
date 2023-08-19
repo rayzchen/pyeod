@@ -787,7 +787,7 @@ class Database(SavableMixin):
         for elem in sorted_combo:
             if sorted_combo not in self.used_in_lookup[elem]:
                 self.used_in_lookup[elem].append(sorted_combo)
-
+    
     def convert_to_dict(self, data: dict) -> None:
         # Users MUST be first to be saved or loaded
         data["users"] = self.users
@@ -798,7 +798,7 @@ class Database(SavableMixin):
             combo_ids = ",".join(str(elem) for elem in combo)
             data["combos"][combo_ids] = self.combos[combo].id
         data["polls"] = self.polls
-
+    
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "Database":
         starters = tuple(loader.elem_id_lookup[elem] for elem in data["starters"])

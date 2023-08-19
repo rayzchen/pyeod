@@ -7,6 +7,7 @@ from pyeod.frontend import (
     generate_embed_list,
     get_page_limit,
 )
+import random
 
 
 class Hint(commands.Cog):
@@ -29,14 +30,27 @@ class Hint(commands.Cog):
 
     @bridge.bridge_command(aliases=["h"])
     async def hint(self, ctx: bridge.BridgeContext, *, element: str = ""):
-        if not element:
-            await ctx.respond("Not implemented")
-            return
-
         server = InstanceManager.current.get_or_create(ctx.guild.id)
-        element = server.check_element(element)
-
         user = server.login_user(ctx.author.id)
+
+        if not element:
+            for _ in range(5):  # Only try to get a hint a user can make 5 times
+                for _ in range(25):  # Only try to get a valid hint 25 times
+                    product_id = random.choice(user.inv)
+                    products = server.db.used_in_lookup[product_id]
+                    if not products:
+                        continue
+                element = random.choice([server.db.combos[i] for i in products])
+
+                for combo in server.db.combo_lookup[element.id]:
+                    if all(elem in user.inv for elem in combo):
+                        break
+                else:
+                    continue
+                break
+        else:
+            element = server.check_element(element)
+
         lines = []
         for combo in server.db.combo_lookup[element.id]:
             tick = all(elem in user.inv for elem in combo)
