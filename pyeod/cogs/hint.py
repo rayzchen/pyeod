@@ -33,9 +33,11 @@ class Hint(commands.Cog):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         user = server.login_user(ctx.author.id)
 
-        for index, i in enumerate(sorted(user.inv)):
+        sorted_inv = sorted(user.inv)
+        
+        for index, i in enumerate(sorted_inv):
             try:
-                if i + 1 != user.inv[index + 1]:
+                if i + 1 != sorted_inv[index + 1]:
                     element = server.db.elem_id_lookup[i + 1]
                     break
             except IndexError:
