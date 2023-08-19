@@ -42,6 +42,9 @@ class Hint(commands.Cog):
                         break
                 element = random.choice([server.db.combos[i] for i in products])
 
+                if element.id in user.inv:
+                    break
+                
                 for combo in server.db.combo_lookup[element.id]:
                     if all(elem in user.inv for elem in combo):
                         break
