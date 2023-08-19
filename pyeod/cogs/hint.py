@@ -38,8 +38,8 @@ class Hint(commands.Cog):
                 for _ in range(25):  # Only try to get a valid hint 25 times
                     product_id = random.choice(user.inv)
                     products = server.db.used_in_lookup[product_id]
-                    if not products:
-                        continue
+                    if products:
+                        break
                 element = random.choice([server.db.combos[i] for i in products])
 
                 for combo in server.db.combo_lookup[element.id]:
