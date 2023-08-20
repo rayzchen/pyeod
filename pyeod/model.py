@@ -44,6 +44,8 @@ class Element(SavableMixin):
         "color",
         "colorer",
         "extra_authors",
+        "image",
+        "imager",
     )
 
     def __init__(
@@ -57,6 +59,8 @@ class Element(SavableMixin):
         color: int = 0,
         colorer: Optional["User"] = None,
         extra_authors: Optional[List["User"]] = None,
+        image: str = "",
+        imager: Optional["User"] = None,
     ) -> None:  # author:User
         self.name = name
         self.author = author
@@ -66,6 +70,10 @@ class Element(SavableMixin):
         self.marker = marker
         self.color = color
         self.colorer = colorer
+        self.image = image
+        if imager == []:
+            print(imager)
+        self.imager = imager
         if extra_authors is not None:
             self.extra_authors = extra_authors
         else:
@@ -115,6 +123,8 @@ class Element(SavableMixin):
         data["color"] = self.color
         data["colorer"] = self.colorer.id if self.colorer is not None else None
         data["extra_authors"] = [i.id for i in self.extra_authors]
+        data["image"] = self.image
+        data["imager"] = self.imager.id if self.imager is not None else None
 
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "Element":
@@ -122,6 +132,7 @@ class Element(SavableMixin):
         author = loader.users[data["author"]]
         marker = loader.users[data.get("marker")]
         colorer = loader.users[data.get("colorer")]
+        imager = loader.users[data.get("imager")]
         extra_authors = [loader.users[i] for i in data.get("extra_authors", [])]
         element = Element(
             data["name"].strip(),
@@ -133,6 +144,8 @@ class Element(SavableMixin):
             data.get("color", 0x0),
             colorer,
             extra_authors,
+            data.get("image", ""),
+            imager
         )
         loader.elem_id_lookup[element.id] = element
         return element
@@ -480,6 +493,72 @@ class ColorPoll(Poll):
             loader.users[data["author"]],
             loader.elem_id_lookup[data["colored_element"]],
             data["color"],
+        )
+        poll.votes = data["votes"]
+        poll.creation_time = data["creation_time"]
+        return poll
+
+
+class ImagePoll(Poll):
+    __slots__ = (
+        "author",
+        "votes",
+        "accepted",
+        "creation_time",
+        "imaged_element",
+        "image",
+    )
+
+    def __init__(self, author: User, imaged_element: Element, image: str) -> None:
+        super(ImagePoll, self).__init__(author)
+        self.imaged_element = imaged_element
+        self.image = image
+
+    def resolve(self, database: "Database") -> int:
+        self.imaged_element.image = self.image
+        self.imaged_element.imager = self.author
+        return self.image
+
+    def get_news_message(self, instance: "GameInstance") -> str:
+        msg = ""
+        if self.accepted:
+            msg += "🖼️ "
+            msg += "Image"
+            msg += f" - **{self.imaged_element.name}** (Lasted **{self.get_time()}** • "
+            msg += f"By <@{self.author.id}>)"
+        else:
+            msg += "❌ Poll Rejected - "
+            msg += f"Image"
+            msg += f" - **{self.imaged_element.name}** (Lasted **{self.get_time()}** • "
+            msg += f"By <@{self.author.id}>) "
+        return msg
+
+    def get_title(self) -> str:
+        return "Image"
+
+    def get_description(self) -> str:
+        text = f"**{self.imaged_element.name}**\n"
+        text += (
+            f"[Old Image]({self.imaged_element.image})"
+            if self.imaged_element.image
+            else ""
+        )
+        text += f"\nNew Image Suggested by <@{self.author.id}>:"
+        return text
+
+    def convert_to_dict(self, data: dict) -> None:
+        data["author"] = self.author.id
+        data["votes"] = self.votes
+        data["imaged_element"] = self.imaged_element.id
+        data["image"] = self.image
+        data["creation_time"] = self.creation_time
+
+    @staticmethod
+    def convert_from_dict(loader, data: dict) -> "ImagePoll":
+        poll = ImagePoll(
+            loader.users[data["author"]],
+            loader.elem_id_lookup[data["imaged_element"]],
+            data["image"],
         )
         poll.votes = data["votes"]
         poll.creation_time = data["creation_time"]
@@ -925,11 +1004,12 @@ class GameInstance(SavableMixin):
         user.last_element = result
         return result
 
-    def suggest_poll(self, poll: Poll) -> None:
+    def suggest_poll(self, poll: Poll) -> Poll:
         if poll.author.active_polls > self.poll_limit:
             raise GameError("Too many active polls")
         self.db.polls.append(poll)
         poll.author.active_polls += 1
+        return poll
 
     def suggest_element(
         self, user: User, combo: Tuple[Element, ...], result: str

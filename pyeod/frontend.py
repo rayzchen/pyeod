@@ -6,6 +6,7 @@ from pyeod.model import (
     InternalError,
     User,
     Poll,
+    ImagePoll
 )
 from discord import Embed, EmbedField, ButtonStyle, TextChannel
 from discord.ext import pages, bridge
@@ -82,6 +83,8 @@ class DiscordGameInstance(GameInstance):
 
     def convert_poll_to_embed(self, poll: Poll):
         embed = Embed(title=poll.get_title(), description=poll.get_description())
+        if isinstance(poll, ImagePoll):
+            embed.set_image(url=poll.image)
         # Ray: You can change your vote, if you suggested this poll, downvote it to delete it
         # Ray: Shorter footer is neater?
         # Cheesy: How do new users know how to delete polls tho?
@@ -181,6 +184,9 @@ async def build_info_embed(
     if element.colorer:
         colorer = f"<@{element.colorer.id}>"
 
+    if element.imager:
+        imager = f"<@{element.imager.id}>"
+    
     if element.extra_authors:
         collaborators = ", ".join([f"<@{i.id}>" for i in element.extra_authors])
 
@@ -200,16 +206,21 @@ async def build_info_embed(
         EmbedField("📜 Comment", element.mark, True) if element.mark else None,
         EmbedField("🗣️ Commenter", marker, True) if element.marker else None,
         EmbedField("🎨 Colorer", colorer, True) if element.colorer else None,
-        EmbedField("🖼️ Imager", "N/A", True),
+        EmbedField("🖼️ Imager", imager, True) if element.imager else None,
         EmbedField("📂 Categories", "N/A", False),
     ]
-
-    return Embed(
+    
+    embed = Embed(
         title=element.name + " Info",
         description=description,
         fields=[field for field in fields if field is not None],
         color=element.color,
     )
+    
+    if element.image:
+        embed.set_thumbnail(url=element.image)
+    
+    return embed
 
 
 class FooterPaginator(pages.Paginator):

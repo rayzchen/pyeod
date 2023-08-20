@@ -11,6 +11,7 @@ from pyeod.model import (
     ColorPoll,
     AddCollabPoll,
     RemoveCollabPoll,
+    ImagePoll
 )
 from pyeod.frontend import DiscordGameInstance
 from pyeod import config
@@ -32,6 +33,7 @@ types: List[Type[SavableMixin]] = [
     ColorPoll,
     AddCollabPoll,
     RemoveCollabPoll,
+    ImagePoll
 ]
 type_dict: Dict[str, Type[SavableMixin]] = {t.__name__: t for t in types}
 
