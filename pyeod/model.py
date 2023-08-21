@@ -46,6 +46,8 @@ class Element(SavableMixin):
         "extra_authors",
         "image",
         "imager",
+        "icon",
+        "iconer"
     )
 
     def __init__(
@@ -61,6 +63,8 @@ class Element(SavableMixin):
         extra_authors: Optional[List["User"]] = None,
         image: str = "",
         imager: Optional["User"] = None,
+        icon:str = "",
+        iconer:Optional["User"] = None,
     ) -> None:  # author:User
         self.name = name
         self.author = author
@@ -71,6 +75,8 @@ class Element(SavableMixin):
         self.color = color
         self.colorer = colorer
         self.image = image
+        self.icon = icon
+        self.iconer = iconer
         if imager == []:
             print(imager)
         self.imager = imager
@@ -125,6 +131,8 @@ class Element(SavableMixin):
         data["extra_authors"] = [i.id for i in self.extra_authors]
         data["image"] = self.image
         data["imager"] = self.imager.id if self.imager is not None else None
+        data["icon"] = self.icon
+        data["iconer"] = self.iconer.id if self.iconer is not None else None
 
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "Element":
@@ -133,6 +141,7 @@ class Element(SavableMixin):
         marker = loader.users[data.get("marker")]
         colorer = loader.users[data.get("colorer")]
         imager = loader.users[data.get("imager")]
+        iconer = loader.users[data.get("iconer")]
         extra_authors = [loader.users[i] for i in data.get("extra_authors", [])]
         element = Element(
             data["name"].strip(),
@@ -145,7 +154,9 @@ class Element(SavableMixin):
             colorer,
             extra_authors,
             data.get("image", ""),
-            imager
+            imager,
+            data.get("icon", ""),
+            iconer
         )
         loader.elem_id_lookup[element.id] = element
         return element
@@ -564,6 +575,70 @@ class ImagePoll(Poll):
         poll.creation_time = data["creation_time"]
         return poll
 
+class IconPoll(Poll):
+    __slots__ = (
+        "author",
+        "votes",
+        "accepted",
+        "creation_time",
+        "iconed_element",
+        "icon",
+    )
+
+    def __init__(self, author: User, iconed_element: Element, icon: str) -> None:
+        super(IconPoll, self).__init__(author)
+        self.iconed_element = iconed_element
+        self.icon = icon
+
+    def resolve(self, database: "Database") -> int:
+        self.iconed_element.icon = self.icon
+        self.iconed_element.iconer = self.author
+        return self.icon
+
+    def get_news_message(self, instance: "GameInstance") -> str:
+        msg = ""
+        if self.accepted:
+            msg += "📍 "
+            msg += "Icon"
+            msg += f" - **{self.iconed_element.name}** (Lasted **{self.get_time()}** • "
+            msg += f"By <@{self.author.id}>)"
+        else:
+            msg += "❌ Poll Rejected - "
+            msg += f"Icon"
+            msg += f" - **{self.iconed_element.name}** (Lasted **{self.get_time()}** • "
+            msg += f"By <@{self.author.id}>) "
+        return msg
+
+    def get_title(self) -> str:
+        return "Icon"
+
+    def get_description(self) -> str:
+        text = f"**{self.iconed_element.name}**\n"
+        text += (
+            f"[Old Icon]({self.iconed_element.icon})"
+            if self.iconed_element.icon
+            else ""
+        )
+        text += f"\nNew Icon Suggested by <@{self.author.id}>:"
+        return text
+
+    def convert_to_dict(self, data: dict) -> None:
+        data["author"] = self.author.id
+        data["votes"] = self.votes
+        data["iconed_element"] = self.iconed_element.id
+        data["icon"] = self.icon
+        data["creation_time"] = self.creation_time
+
+    @staticmethod
+    def convert_from_dict(loader, data: dict) -> "IconPoll":
+        poll = IconPoll(
+            loader.users[data["author"]],
+            loader.elem_id_lookup[data["iconed_element"]],
+            data["icon"],
+        )
+        poll.votes = data["votes"]
+        poll.creation_time = data["creation_time"]
+        return poll
 
 class AddCollabPoll(Poll):
     __slots__ = (

@@ -6,7 +6,8 @@ from pyeod.model import (
     InternalError,
     User,
     Poll,
-    ImagePoll
+    ImagePoll,
+    IconPoll
 )
 from discord import Embed, EmbedField, ButtonStyle, TextChannel
 from discord.ext import pages, bridge
@@ -85,6 +86,8 @@ class DiscordGameInstance(GameInstance):
         embed = Embed(title=poll.get_title(), description=poll.get_description())
         if isinstance(poll, ImagePoll):
             embed.set_image(url=poll.image)
+        if isinstance(poll, IconPoll):
+            embed.set_image(url = poll.icon)
         # Ray: You can change your vote, if you suggested this poll, downvote it to delete it
         # Ray: Shorter footer is neater?
         # Cheesy: How do new users know how to delete polls tho?
@@ -187,6 +190,9 @@ async def build_info_embed(
     if element.imager:
         imager = f"<@{element.imager.id}>"
     
+    if element.iconer:
+        iconer = f"<@{element.iconer.id}>"
+    
     if element.extra_authors:
         collaborators = ", ".join([f"<@{i.id}>" for i in element.extra_authors])
 
@@ -207,6 +213,7 @@ async def build_info_embed(
         EmbedField("🗣️ Commenter", marker, True) if element.marker else None,
         EmbedField("🎨 Colorer", colorer, True) if element.colorer else None,
         EmbedField("🖼️ Imager", imager, True) if element.imager else None,
+        EmbedField("📍 Iconer", iconer, True) if element.iconer else None,
         EmbedField("📂 Categories", "N/A", False),
     ]
     
@@ -219,6 +226,10 @@ async def build_info_embed(
     
     if element.image:
         embed.set_thumbnail(url=element.image)
+    
+    if element.icon:
+        embed.title = " "
+        embed.set_author(name = element.name + " Info", icon_url = element.icon)
     
     return embed
 

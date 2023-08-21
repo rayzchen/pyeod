@@ -1,7 +1,7 @@
 from discord.ext import commands, bridge
 from discord import User, NotFound, Attachment
 from pyeod.frontend import DiscordGameInstance, InstanceManager, ElementalBot
-from pyeod.model import MarkPoll, ColorPoll, AddCollabPoll, RemoveCollabPoll, ImagePoll
+from pyeod.model import MarkPoll, ColorPoll, AddCollabPoll, RemoveCollabPoll, ImagePoll, IconPoll
 import aiohttp
 
 class Info(commands.Cog):
@@ -109,6 +109,40 @@ class Info(commands.Cog):
         
         await self.bot.add_poll(
             server, poll, ctx, f"🗳️ Suggested a new image for {element.name}!"
+        )
+    
+    @bridge.bridge_command()
+    async def icon(
+        self, ctx: bridge.Context, *, element: str, icon: Attachment = None
+    ):
+        import discord
+        server = InstanceManager.current.get_or_create(ctx.guild.id)
+        if not ctx.is_app:
+            if not ctx.message.attachments:
+                element, icon_link = element.rsplit(" | ", 1)
+                if not await self.check_image_link(icon_link):
+                    await ctx.respond("🔴 Invalid image link!")
+                    return
+            else:
+                if ctx.message.attachments[0].content_type in ['image/png', 'image/jpeg', 'image/jpg']:
+                    icon_link = ctx.message.attachments[0].url
+                else:
+                    await ctx.respond("🔴 Invalid image!")
+                    return
+        else:
+            if icon.content_type in ['image/png', 'image/jpeg', 'image/jpg']:
+                icon_link = icon.url
+            else:
+                await ctx.respond("🔴 Invalid image!")
+                return
+        
+        user = server.login_user(ctx.author.id)
+        element = server.check_element(element)
+        
+        poll = server.suggest_poll(IconPoll(user, element, icon_link))
+        
+        await self.bot.add_poll(
+            server, poll, ctx, f"🗳️ Suggested a new icon for {element.name}!"
         )
     
     @bridge.bridge_command(aliases=["acol"])
