@@ -60,6 +60,8 @@ class Base(commands.Cog):
             element = server.db.elem_id_lookup[int(element_id)]
         else:
             element_name = msg.content[1:].strip()
+            if not element_name:
+                return
             element = server.check_element(element_name)
         user = server.login_user(msg.author.id)
 
