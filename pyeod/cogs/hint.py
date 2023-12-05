@@ -41,6 +41,9 @@ class Hint(commands.Cog):
                     element = server.db.elem_id_lookup[i + 1]
                     break
             except IndexError:
+                if i + 1 not in server.db.elem_id_lookup:
+                    await ctx.respond("🔴 Could not get next element!")
+                    return
                 element = server.db.elem_id_lookup[i + 1]
                 break
 
