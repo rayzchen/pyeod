@@ -75,7 +75,7 @@ class Hint(commands.Cog):
             inv_set = set(user.inv)
             max_id = max(inv_set)
             choices = set()
-            for i in range(1, max_id + 2):
+            for i in range(1, max_id + 1):
                 if i not in inv_set:
                     if i in server.db.elem_id_lookup and i - 1 in inv_set:
                         if all(x in inv_set for x in server.db.combo_lookup[i][0]):
@@ -83,7 +83,8 @@ class Hint(commands.Cog):
             if not len(choices):
                 for i in range(max_id + 1, max_id + 21):
                     if i in server.db.elem_id_lookup:
-                        choices.add(i)
+                        if all(x in inv_set for x in server.db.combo_lookup[i][0]):
+                            choices.add(i)
             if not len(choices):
                 # User has every single element
                 await ctx.respond("🔴 Could not get any hints!")
