@@ -142,21 +142,21 @@ class Base(commands.Cog):
     async def suggest(self, ctx: bridge.BridgeContext, *, element_name: str):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if ctx.channel.id not in server.channels.play_channels:
-            await ctx.respond("You can only suggest in play channels!")
+            await ctx.respond("🔴 You can only suggest in play channels!")
             return
         await self.suggest_element(server, element_name, ctx)
 
     @bridge.bridge_command(aliases=["rc"])
     async def random_combination(
-        self, ctx: bridge.BridgeContext, amount_of_elements: int = 2
+        self, ctx: bridge.BridgeContext, number_of_elements: int = 2
     ):
-        if not (1 < amount_of_elements < 21):
-            await ctx.respond("Invalid amount of elements")
+        if not (1 < number_of_elements < 21):
+            await ctx.respond("🔴 Invalid number of elements!")
             return
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         user = server.login_user(ctx.author.id)
         combo = []
-        for _ in range(amount_of_elements):
+        for _ in range(number_of_elements):
             combo.append(server.db.elem_id_lookup[random.choice(user.inv)].name)
         embed = Embed(
             title=" ", description=f"Combined:\n**{'** + **'.join(combo)}**\n\n"
@@ -175,7 +175,7 @@ class Base(commands.Cog):
             if g.type == "Already have element":
                 # Keep last element
                 user.last_combo = ()
-                msg += (
+                embed.description += (
                     f"🟦 You made **{g.meta['element'].name}**, but you already have it!"
                 )
         await ctx.respond(embed=embed)

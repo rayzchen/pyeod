@@ -7,7 +7,7 @@ from pyeod.model import (
     User,
     Poll,
     ImagePoll,
-    IconPoll
+    IconPoll,
 )
 from discord import Embed, EmbedField, ButtonStyle, TextChannel
 from discord.ext import pages, bridge
@@ -87,7 +87,7 @@ class DiscordGameInstance(GameInstance):
         if isinstance(poll, ImagePoll):
             embed.set_image(url=poll.image)
         if isinstance(poll, IconPoll):
-            embed.set_image(url = poll.icon)
+            embed.set_image(url=poll.icon)
         # Ray: You can change your vote, if you suggested this poll, downvote it to delete it
         # Ray: Shorter footer is neater?
         # Cheesy: How do new users know how to delete polls tho?
@@ -231,7 +231,7 @@ async def build_info_embed(
 
     if element.icon:
         embed.title = " "
-        embed.set_author(name = element.name + " Info", icon_url = element.icon)
+        embed.set_author(name=element.name + " Info", icon_url=element.icon)
 
     return embed
 

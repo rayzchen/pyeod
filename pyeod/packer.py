@@ -12,7 +12,7 @@ from pyeod.model import (
     AddCollabPoll,
     RemoveCollabPoll,
     ImagePoll,
-    IconPoll
+    IconPoll,
 )
 from pyeod.frontend import DiscordGameInstance
 from pyeod import config
@@ -36,7 +36,7 @@ types: List[Type[SavableMixin]] = [
     AddCollabPoll,
     RemoveCollabPoll,
     ImagePoll,
-    IconPoll
+    IconPoll,
 ]
 type_dict: Dict[str, Type[SavableMixin]] = {t.__name__: t for t in types}
 
@@ -60,7 +60,9 @@ def convert_to_dict(obj: SavableMixin) -> dict:
     return data
 
 
-def convert_from_dict(loader: InstanceLoader, data: Dict[str, str]) -> Union[SavableMixin, dict]:
+def convert_from_dict(
+    loader: InstanceLoader, data: Dict[str, str]
+) -> Union[SavableMixin, dict]:
     if "__type__" not in data:
         return data
 
@@ -103,6 +105,7 @@ def load_instance(file: str) -> GameInstance:
     def wrapper():
         instance.db.calculate_infos()
         print("Finished calculating complexity tree for", os.path.basename(file))
+
     t = threading.Thread(target=wrapper, daemon=True)
     t.start()
     return instance
@@ -118,7 +121,9 @@ if __name__ == "__main__":
         game.combine(user, combo)
     except GameError as g:
         if g.type == "Not a combo":
-            game.suggest_element(user, tuple(game.check_element(name) for name in combo), "inferno")
+            game.suggest_element(
+                user, tuple(game.check_element(name) for name in combo), "inferno"
+            )
     game.db.polls[0].votes += 4
     game.check_polls()
 

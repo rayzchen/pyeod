@@ -40,7 +40,9 @@ class Main(commands.Cog):
                 return
         elif isinstance(err, InternalError):
             if err.type == "Complexity lock":
-                await ctx.reply(f"🔴 Complexity calculations ongoing, cannot access element data")
+                await ctx.reply(
+                    f"🔴 Complexity calculations ongoing, cannot access element data"
+                )
                 return
 
         lines = traceback.format_exception(type(err), err, err.__traceback__)
@@ -55,7 +57,7 @@ class Main(commands.Cog):
 
     @bridge.bridge_command(aliases=["ms"])
     async def ping(self, ctx: bridge.BridgeContext):
-        await ctx.respond(f"Pong {round(self.bot.latency*1000)}ms")
+        await ctx.respond(f"🏓 Pong! {round(self.bot.latency*1000)}ms")
 
     @bridge.bridge_command()
     @default_permissions(manage_messages=True)

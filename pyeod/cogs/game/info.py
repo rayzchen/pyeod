@@ -1,8 +1,16 @@
 from discord.ext import commands, bridge
 from discord import User, NotFound, Attachment
 from pyeod.frontend import DiscordGameInstance, InstanceManager, ElementalBot
-from pyeod.model import MarkPoll, ColorPoll, AddCollabPoll, RemoveCollabPoll, ImagePoll, IconPoll
+from pyeod.model import (
+    MarkPoll,
+    ColorPoll,
+    AddCollabPoll,
+    RemoveCollabPoll,
+    ImagePoll,
+    IconPoll,
+)
 import aiohttp
+
 
 class Info(commands.Cog):
     def __init__(self, bot: ElementalBot):
@@ -65,23 +73,26 @@ class Info(commands.Cog):
         await self.bot.add_poll(
             server, poll, ctx, f"🗳️ Suggested a new color for {element.name}!"
         )
-    
+
     async def check_image_link(self, url):
         async with aiohttp.ClientSession() as session:
             try:
                 async with session.head(url, allow_redirects=True) as response:
-                    if 200 <= response.status < 300 and response.headers['Content-Type'] in ['image/png', 'image/jpeg', 'image/jpg']:
+                    if 200 <= response.status < 300 and response.headers[
+                        "Content-Type"
+                    ] in ["image/png", "image/jpeg", "image/jpg"]:
                         return True
                     else:
                         return False
             except:
                 return False
-    
+
     @bridge.bridge_command()
     async def image(
         self, ctx: bridge.Context, *, element: str, image: Attachment = None
     ):
         import discord
+
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if not ctx.is_app:
             if not ctx.message.attachments:
@@ -90,32 +101,35 @@ class Info(commands.Cog):
                     await ctx.respond("🔴 Invalid image link!")
                     return
             else:
-                if ctx.message.attachments[0].content_type in ['image/png', 'image/jpeg', 'image/jpg']:
+                if ctx.message.attachments[0].content_type in [
+                    "image/png",
+                    "image/jpeg",
+                    "image/jpg",
+                ]:
                     image_link = ctx.message.attachments[0].url
                 else:
                     await ctx.respond("🔴 Invalid image!")
                     return
         else:
-            if image.content_type in ['image/png', 'image/jpeg', 'image/jpg']:
+            if image.content_type in ["image/png", "image/jpeg", "image/jpg"]:
                 image_link = image.url
             else:
                 await ctx.respond("🔴 Invalid image!")
                 return
-        
+
         user = server.login_user(ctx.author.id)
         element = server.check_element(element)
-        
+
         poll = server.suggest_poll(ImagePoll(user, element, image_link))
-        
+
         await self.bot.add_poll(
             server, poll, ctx, f"🗳️ Suggested a new image for {element.name}!"
         )
-    
+
     @bridge.bridge_command()
-    async def icon(
-        self, ctx: bridge.Context, *, element: str, icon: Attachment = None
-    ):
+    async def icon(self, ctx: bridge.Context, *, element: str, icon: Attachment = None):
         import discord
+
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if not ctx.is_app:
             if not ctx.message.attachments:
@@ -124,27 +138,31 @@ class Info(commands.Cog):
                     await ctx.respond("🔴 Invalid image link!")
                     return
             else:
-                if ctx.message.attachments[0].content_type in ['image/png', 'image/jpeg', 'image/jpg']:
+                if ctx.message.attachments[0].content_type in [
+                    "image/png",
+                    "image/jpeg",
+                    "image/jpg",
+                ]:
                     icon_link = ctx.message.attachments[0].url
                 else:
                     await ctx.respond("🔴 Invalid image!")
                     return
         else:
-            if icon.content_type in ['image/png', 'image/jpeg', 'image/jpg']:
+            if icon.content_type in ["image/png", "image/jpeg", "image/jpg"]:
                 icon_link = icon.url
             else:
                 await ctx.respond("🔴 Invalid image!")
                 return
-        
+
         user = server.login_user(ctx.author.id)
         element = server.check_element(element)
-        
+
         poll = server.suggest_poll(IconPoll(user, element, icon_link))
-        
+
         await self.bot.add_poll(
             server, poll, ctx, f"🗳️ Suggested a new icon for {element.name}!"
         )
-    
+
     @bridge.bridge_command(aliases=["acol"])
     async def add_collaborators(
         self,
@@ -227,7 +245,7 @@ class Info(commands.Cog):
             )
             return
         if len(authors) + len(element.extra_authors) > 10:
-            await ctx.respond("An element cannot have more than 10 collaborators")
+            await ctx.respond("🔴 You can only add 10 collaborators!")
             return
         poll = server.suggest_poll(AddCollabPoll(user, element, authors))
         await self.bot.add_poll(

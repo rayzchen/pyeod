@@ -47,7 +47,7 @@ class Element(SavableMixin):
         "image",
         "imager",
         "icon",
-        "iconer"
+        "iconer",
     )
 
     def __init__(
@@ -63,8 +63,8 @@ class Element(SavableMixin):
         extra_authors: Optional[List["User"]] = None,
         image: str = "",
         imager: Optional["User"] = None,
-        icon:str = "",
-        iconer:Optional["User"] = None,
+        icon: str = "",
+        iconer: Optional["User"] = None,
     ) -> None:  # author:User
         self.name = name
         self.author = author
@@ -156,7 +156,7 @@ class Element(SavableMixin):
             data.get("image", ""),
             imager,
             data.get("icon", ""),
-            iconer
+            iconer,
         )
         loader.elem_id_lookup[element.id] = element
         return element
@@ -575,6 +575,7 @@ class ImagePoll(Poll):
         poll.creation_time = data["creation_time"]
         return poll
 
+
 class IconPoll(Poll):
     __slots__ = (
         "author",
@@ -639,6 +640,7 @@ class IconPoll(Poll):
         poll.votes = data["votes"]
         poll.creation_time = data["creation_time"]
         return poll
+
 
 class AddCollabPoll(Poll):
     __slots__ = (
