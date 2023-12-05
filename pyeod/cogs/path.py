@@ -11,6 +11,8 @@ class Path(commands.Cog):
     @bridge.bridge_command()
     async def path(self, ctx: bridge.Context, element: str):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
+        if server.db.complexity_lock:
+            raise InternalError("Complexity lock", "Complexity calculations in process")
         if element.startswith("#"):
             elem_id = element[1:].strip()
             if not elem_id.isdecimal():

@@ -21,6 +21,7 @@ import msgpack
 import functools
 import os
 import copy
+import threading
 import multiprocessing
 
 types: List[Type[SavableMixin]] = [
@@ -98,7 +99,12 @@ def load_instance(file: str) -> GameInstance:
     instance.db.check_colors()
     # Free up some unneeded local variables
     del loader, hook, data
-    instance.db.calculate_infos()
+
+    def wrapper():
+        instance.db.calculate_infos()
+        print("Finished calculating complexity tree for", os.path.basename(file))
+    t = threading.Thread(target=wrapper, daemon=True)
+    t.start()
     return instance
 
 

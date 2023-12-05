@@ -3,7 +3,7 @@ from discord import default_permissions, DiscordException
 from discord.commands import ApplicationContext
 from pyeod.utils import format_traceback
 from pyeod.frontend import DiscordGameInstance, InstanceManager, ElementalBot
-from pyeod.model import GameError
+from pyeod.model import GameError, InternalError
 from pyeod import config
 import subprocess
 import traceback
@@ -37,6 +37,10 @@ class Main(commands.Cog):
         if isinstance(err, GameError):
             if err.type == "Not an element":
                 await ctx.reply(f"🔴 Element **{err.meta['name']}** doesn't exist!")
+                return
+        elif isinstance(err, InternalError):
+            if err.type == "Complexity lock":
+                await ctx.reply(f"🔴 Complexity calculations ongoing, cannot access element data")
                 return
 
         lines = traceback.format_exception(type(err), err, err.__traceback__)

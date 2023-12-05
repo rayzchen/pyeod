@@ -159,6 +159,8 @@ def parse_element_list(content: str) -> List[str]:
 async def build_info_embed(
     instance: GameInstance, element: Element, user: User
 ) -> Embed:
+    if instance.db.complexity_lock:
+        raise InternalError("Complexity lock", "Complexity calculations in process")
     description = f"Element **#{element.id}**\n"
     if element.id in user.inv:
         description += "📫 **You have this.**"
@@ -189,10 +191,10 @@ async def build_info_embed(
 
     if element.imager:
         imager = f"<@{element.imager.id}>"
-    
+
     if element.iconer:
         iconer = f"<@{element.iconer.id}>"
-    
+
     if element.extra_authors:
         collaborators = ", ".join([f"<@{i.id}>" for i in element.extra_authors])
 
@@ -216,21 +218,21 @@ async def build_info_embed(
         EmbedField("📍 Iconer", iconer, True) if element.iconer else None,
         EmbedField("📂 Categories", "N/A", False),
     ]
-    
+
     embed = Embed(
         title=element.name + " Info",
         description=description,
         fields=[field for field in fields if field is not None],
         color=element.color,
     )
-    
+
     if element.image:
         embed.set_thumbnail(url=element.image)
-    
+
     if element.icon:
         embed.title = " "
         embed.set_author(name = element.name + " Info", icon_url = element.icon)
-    
+
     return embed
 
 

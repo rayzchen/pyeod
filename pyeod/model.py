@@ -783,6 +783,7 @@ class Database(SavableMixin):
         self.combos = combos
         self.users = users
         self.polls = polls
+        self.complexity_lock = False
 
         notfound = []
         self.elem_id_lookup = {elem.id: elem for elem in self.elements.values()}
@@ -816,6 +817,7 @@ class Database(SavableMixin):
                 self.found_by_lookup[elem].append(user.id)
 
     def calculate_infos(self) -> None:
+        self.complexity_lock = True
         # Ordered set but using dict
         self.complexities: Dict[int, int] = {elem.id: 0 for elem in self.starters}
         self.min_elem_tree: Dict[int, Tuple[int, ...]] = {
@@ -841,6 +843,7 @@ class Database(SavableMixin):
                     self.elem_id_lookup.pop(elem_id)
                     self.found_by_lookup.pop(elem_id)
                 unseen.clear()
+        self.complexity_lock = False
 
     def get_complexity(self, elem_id: int) -> Union[int, None]:
         combos = self.combo_lookup[elem_id]
@@ -874,12 +877,16 @@ class Database(SavableMixin):
             element.color = Element.get_color(combo)
 
     def update_element_info(self, element: Element, combo: Tuple[int, ...]) -> None:
+        if self.complexity_lock:
+            raise InternalError("Complexity lock", "Complexity calculations in process")
         new_complexity = max(self.complexities[x] for x in combo)
         if new_complexity < self.complexities[element.id]:
             self.complexities[element.id] = new_complexity
             self.min_elem_tree[element.id] = combo
 
     def get_path(self, element: Element) -> List[int]:
+        if self.complexity_lock:
+            raise InternalError("Complexity lock", "Complexity calculations in process")
         path = []
         visited = set()
         stack = [element.id]
@@ -931,6 +938,8 @@ class Database(SavableMixin):
         return None
 
     def set_combo_result(self, combo: Tuple[Element, ...], result: Element) -> None:
+        if self.complexity_lock:
+            raise InternalError("Complexity lock", "Complexity calculations in process")
         sorted_combo = tuple(sorted(elem.id for elem in combo))
         if sorted_combo in self.combos:
             raise InternalError("Combo exists", "That combo already exists")
