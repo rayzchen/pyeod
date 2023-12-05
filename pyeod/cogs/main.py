@@ -65,7 +65,7 @@ class Main(commands.Cog):
         _, stderr = p.communicate()
         if p.returncode != 0:
             await msg.edit(
-                f"⚠️ Command `git pull` exited with code {p.returncode}:\n```{stderr.decode()}```"
+                content=f"⚠️ Command `git pull` exited with code {p.returncode}:\n```{stderr.decode()}```"
             )
             return
 
@@ -76,7 +76,7 @@ class Main(commands.Cog):
             _, stderr = p.communicate()
             if p.returncode != 0:
                 await msg.edit(
-                    f"⚠️ Command `git pull` exited with code {p.returncode}:\n```{stderr.decode()}```"
+                    content=f"⚠️ Command `git pull` exited with code {p.returncode}:\n```{stderr.decode()}```"
                 )
                 return
 
@@ -86,13 +86,13 @@ class Main(commands.Cog):
         stdout, stderr = p.communicate()
         if p.returncode != 0:
             await msg.edit(
-                f"⚠️ Command `git rev-parse HEAD` exited with code {p.returncode}:\n```{stderr.decode()}```"
+                content=f"⚠️ Command `git rev-parse HEAD` exited with code {p.returncode}:\n```{stderr.decode()}```"
             )
             return
-        await msg.edit(
-            f"💽 Updated successfully to commit {stdout.decode()[:7]}. Restarting"
-        )
         open(config.restartfile, "w+").close()
+        await msg.edit(
+            content=f"💽 Updated successfully to commit {stdout.decode()[:7]}. Restarting"
+        )
 
     @tasks.loop(seconds=2)
     async def restart_checker(self):
