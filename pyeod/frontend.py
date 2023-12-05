@@ -237,7 +237,7 @@ async def build_info_embed(
 
 
 class FooterPaginator(pages.Paginator):
-    def __init__(self, page_list, footer_text: str = "") -> None:
+    def __init__(self, page_list, footer_text: str = "", loop: bool = True) -> None:
         buttons = [
             pages.PaginatorButton("prev", "◀", style=ButtonStyle.blurple),
             pages.PaginatorButton("next", "▶", style=ButtonStyle.blurple),
@@ -247,7 +247,7 @@ class FooterPaginator(pages.Paginator):
             show_indicator=False,
             author_check=False,
             use_default_buttons=False,
-            loop_pages=True,
+            loop_pages=loop,
             custom_buttons=buttons,
         )
         self.footer_text = footer_text
