@@ -90,6 +90,7 @@ class Polls(commands.Cog):
         await self.resolve_poll(message, server, news_channel)
 
     @bridge.bridge_command()
+    @bridge.guild_only()
     @bridge.has_permissions(manage_messages=True)
     async def clear_polls(self, ctx: bridge.Context):
         server = InstanceManager.current.get_or_create(ctx.guild.id)

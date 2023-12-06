@@ -9,6 +9,7 @@ class Path(commands.Cog):
         self.bot = bot
 
     @bridge.bridge_command()
+    @bridge.guild_only()
     async def path(self, ctx: bridge.Context, element: str):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if server.db.complexity_lock:

@@ -139,6 +139,7 @@ class Base(commands.Cog):
                 await msg.reply("🔴 Not a valid element!")
 
     @bridge.bridge_command(aliases=["s"])
+    @bridge.guild_only()
     async def suggest(self, ctx: bridge.Context, *, element_name: str):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if ctx.channel.id not in server.channels.play_channels:
@@ -147,6 +148,7 @@ class Base(commands.Cog):
         await self.suggest_element(server, element_name, ctx)
 
     @bridge.bridge_command(aliases=["rc"])
+    @bridge.guild_only()
     async def random_combination(
         self, ctx: bridge.Context, number_of_elements: int = 2
     ):

@@ -81,6 +81,7 @@ class Config(commands.Cog):
         await ctx.respond(f"🤖 Successfully set {channel.name} as the voting channel!")
 
     @bridge.bridge_command()
+    @bridge.guild_only()
     @bridge.has_permissions(manage_channels=True)
     async def edit_element_name(
         self, ctx: bridge.Context, elem_id: int, *, name: str
@@ -100,6 +101,7 @@ class Config(commands.Cog):
         )
 
     @bridge.bridge_command()
+    @bridge.guild_only()
     @bridge.has_permissions(manage_channels=True)
     async def set_vote_req(self, ctx: bridge.Context, vote_req: int):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
@@ -108,6 +110,7 @@ class Config(commands.Cog):
         await ctx.respond(f"🤖 Successfully set the vote requirement to {vote_req}")
 
     @bridge.bridge_command()
+    @bridge.guild_only()
     @bridge.has_permissions(manage_channels=True)
     async def set_max_polls(self, ctx: bridge.Context, max_polls: int):
         server = InstanceManager.current.get_or_create(ctx.guild.id)

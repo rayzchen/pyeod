@@ -17,6 +17,7 @@ class Info(commands.Cog):
         self.bot = bot
 
     @bridge.bridge_command(aliases=["c", "mark", "note"])
+    @bridge.guild_only()
     async def comment(
         self, ctx: bridge.Context, *, marked_element: str, mark: str = None
     ):
@@ -57,6 +58,7 @@ class Info(commands.Cog):
         return True
 
     @bridge.bridge_command()
+    @bridge.guild_only()
     async def color(
         self, ctx: bridge.Context, *, element: str, color: str = None
     ):
@@ -88,6 +90,7 @@ class Info(commands.Cog):
                 return False
 
     @bridge.bridge_command()
+    @bridge.guild_only()
     async def image(
         self, ctx: bridge.Context, *, element: str, image: Attachment = None
     ):
@@ -127,6 +130,7 @@ class Info(commands.Cog):
         )
 
     @bridge.bridge_command()
+    @bridge.guild_only()
     async def icon(self, ctx: bridge.Context, *, element: str, icon: Attachment = None):
         import discord
 
@@ -164,6 +168,7 @@ class Info(commands.Cog):
         )
 
     @bridge.bridge_command(aliases=["acol"])
+    @bridge.guild_only()
     async def add_collaborators(
         self,
         ctx: bridge.Context,
@@ -256,6 +261,7 @@ class Info(commands.Cog):
         )
 
     @bridge.bridge_command(aliases=["rcol"])
+    @bridge.guild_only()
     async def remove_collaborators(
         self,
         ctx: bridge.Context,

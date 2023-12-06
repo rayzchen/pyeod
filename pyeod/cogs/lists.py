@@ -15,6 +15,7 @@ class Lists(commands.Cog):
         self.bot = bot
 
     @bridge.bridge_command()
+    @bridge.guild_only()
     async def inv(self, ctx: bridge.Context, *, user: User = None):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if user is None:

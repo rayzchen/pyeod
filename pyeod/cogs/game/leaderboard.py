@@ -15,6 +15,7 @@ class Leaderboard(commands.Cog):
         self.bot = bot
 
     @bridge.bridge_command(aliases=["leaderboard"])
+    @bridge.guild_only()
     async def lb(self, ctx: bridge.Context, *, user: User = None):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if user is None:
