@@ -198,13 +198,20 @@ async def build_info_embed(
     if element.extra_authors:
         collaborators = ", ".join([f"<@{i.id}>" for i in element.extra_authors])
 
+    path = instance.db.get_path(element)
+    if element.id in user.inv:
+        # In case they didn't use the shortest path
+        progress = "100%"
+    else:
+        progress = f"{len(set(path) & set(user.inv)) / len(path) * 100:.2f}%"
+
     fields = [
         EmbedField("🧙‍♂️ Creator", creator, True),
         EmbedField("👥 Collaborators", collaborators, True)
         if element.extra_authors
         else None,
         EmbedField("📅 Created At", timestamp, True),
-        EmbedField("🌲 Tree Size", str(len(instance.db.get_path(element))), True),
+        EmbedField("🌲 Tree Size", str(len(path)), True),
         EmbedField("🔀 Complexity", str(instance.db.complexities[element.id]), True),
         EmbedField("🔨 Made With", str(len(instance.db.combo_lookup[element.id])), True),
         EmbedField("🧰 Used In", str(len(instance.db.used_in_lookup[element.id])), True),
@@ -216,6 +223,7 @@ async def build_info_embed(
         EmbedField("🖼️ Imager", imager, True) if element.imager else None,
         EmbedField("📍 Iconer", iconer, True) if element.iconer else None,
         EmbedField("📂 Categories", "N/A", False),
+        EmbedField("📊 Progress", progress, False),
     ]
 
     embed = Embed(
