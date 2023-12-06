@@ -24,8 +24,8 @@ class Main(commands.Cog):
         self.restart_checker.start()
 
     @commands.Cog.listener()
-    async def on_command_error(
-        self, ctx: commands.Context, err: commands.errors.CommandError
+    async def on_bridge_command_error(
+        self, ctx: bridge.Context, err: commands.errors.CommandError
     ):
         # Handle different exceptions from parsing arguments here
         if isinstance(err, commands.errors.BadArgument):
@@ -49,11 +49,6 @@ class Main(commands.Cog):
         sys.stderr.write("".join(lines))
         error = format_traceback(err)
         await ctx.reply("⚠️ There was an error processing the command:\n" + error)
-
-    async def on_application_command_error(
-        self, ctx: ApplicationContext, err: DiscordException
-    ) -> None:
-        await self.on_command_error(ctx, err)
 
     @bridge.bridge_command(aliases=["ms"])
     async def ping(self, ctx: bridge.Context):
