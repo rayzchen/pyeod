@@ -160,7 +160,7 @@ class Base(commands.Cog):
         combo = []
         for _ in range(number_of_elements):
             combo.append(server.db.elem_id_lookup[random.choice(user.inv)].name)
-        description = f"Combined:\n**{'** + **'.join(combo)}**\n\nResult:\n"
+        description = f"Combined:\n> \n> **{'** + **'.join(combo)}**\n> \n\nResult:\n> \n> "
         try:
             element = server.combine(user, tuple(combo))
             description += f"🆕 You made **{element.name}**!"
@@ -177,6 +177,7 @@ class Base(commands.Cog):
                 description += (
                     f"🟦 You made **{g.meta['element'].name}**, but you already have it!"
                 )
+        description += "\n> \u200c" # ZWNJ
         embed = Embed(title="Random Combo", description=description)
         await ctx.respond(embed=embed)
 
