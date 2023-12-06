@@ -36,14 +36,14 @@ class Path(commands.Cog):
 
         lines = []
         i = 0
-        for elem in server.db.get_path(elem):
-            combo = server.db.min_elem_tree[elem]
+        for pathelem in server.db.get_path(elem):
+            combo = server.db.min_elem_tree[pathelem]
             if not combo:
                 # Only starter elements should end up here
                 continue
             i += 1
             elements = [server.db.elem_id_lookup[x].name for x in combo]
-            result = server.db.elem_id_lookup[elem].name
+            result = server.db.elem_id_lookup[pathelem].name
             lines.append(str(i) + ". " + " + ".join(elements) + " = " + result)
 
         stream = io.StringIO("\n".join(lines))
