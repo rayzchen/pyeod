@@ -1,6 +1,6 @@
 from discord.ext import commands, tasks, bridge
 from discord.utils import get
-from discord import Message, TextChannel, errors, default_permissions
+from discord import Message, TextChannel, errors
 from pyeod.frontend import InstanceManager, DiscordGameInstance, ElementalBot
 from typing import Optional
 
@@ -90,7 +90,7 @@ class Polls(commands.Cog):
         await self.resolve_poll(message, server, news_channel)
 
     @bridge.bridge_command()
-    @default_permissions(manage_messages=True)
+    @bridge.has_permissions(manage_messages=True)
     async def clear_polls(self, ctx: bridge.Context):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if server.channels.voting_channel is not None:

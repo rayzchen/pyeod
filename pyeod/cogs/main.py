@@ -1,5 +1,5 @@
 from discord.ext import commands, tasks, bridge
-from discord import default_permissions, DiscordException
+from discord import DiscordException
 from discord.commands import ApplicationContext
 from pyeod.utils import format_traceback
 from pyeod.frontend import DiscordGameInstance, InstanceManager, ElementalBot
@@ -60,7 +60,7 @@ class Main(commands.Cog):
         await ctx.respond(f"🏓 Pong! {round(self.bot.latency*1000)}ms")
 
     @bridge.bridge_command()
-    @default_permissions(manage_messages=True)
+    @bridge.has_permissions(manage_messages=True)
     async def update(self, ctx: bridge.Context, revision: str = ""):
         msg = await ctx.respond("💽 Updating...")
         p = subprocess.Popen(["git", "pull"], stderr=subprocess.PIPE)
