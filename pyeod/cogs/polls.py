@@ -1,7 +1,7 @@
-from discord.ext import commands, tasks, bridge
-from discord.utils import get
+from pyeod.frontend import DiscordGameInstance, ElementalBot, InstanceManager
 from discord import Message, TextChannel, errors
-from pyeod.frontend import InstanceManager, DiscordGameInstance, ElementalBot
+from discord.ext import bridge, commands, tasks
+from discord.utils import get
 from typing import Optional
 
 

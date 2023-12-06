@@ -1,16 +1,8 @@
-from typing import Optional, Tuple, List, Union, Dict, Type, TypeVar
-from pyeod.model import (
-    Database,
-    Element,
-    GameInstance,
-    InternalError,
-    User,
-    Poll,
-    ImagePoll,
-    IconPoll,
-)
-from discord import Embed, EmbedField, ButtonStyle, TextChannel
-from discord.ext import pages, bridge
+from pyeod.model import (Database, Element, GameInstance, IconPoll, ImagePoll,
+                         InternalError, Poll, User)
+from discord import ButtonStyle, Embed, EmbedField, TextChannel
+from discord.ext import bridge, pages
+from typing import Dict, List, Type, Tuple, Union, TypeVar, Optional
 import math
 
 

@@ -1,7 +1,7 @@
 from traceback import print_exc
-import importlib
 import sys
 import time
+import importlib
 
 
 def reset_modules():

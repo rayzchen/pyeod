@@ -1,15 +1,15 @@
-from discord.ext import commands, tasks, bridge
+from pyeod import config
+from pyeod.frontend import DiscordGameInstance, ElementalBot, InstanceManager
+from pyeod.model import GameError, InternalError
+from pyeod.utils import format_traceback
 from discord import DiscordException
 from discord.commands import ApplicationContext
-from pyeod.utils import format_traceback
-from pyeod.frontend import DiscordGameInstance, InstanceManager, ElementalBot
-from pyeod.model import GameError, InternalError
-from pyeod import config
-import subprocess
-import traceback
-import sys
-import os
+from discord.ext import bridge, commands, tasks
 import io
+import os
+import sys
+import traceback
+import subprocess
 
 
 class Main(commands.Cog):

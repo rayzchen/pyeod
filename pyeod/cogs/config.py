@@ -1,12 +1,12 @@
-from discord.ext import commands, tasks, bridge
-from discord import Message, TextChannel, default_permissions
-from pyeod.frontend import DiscordGameInstance, InstanceManager, ElementalBot
-from pyeod.packer import save_instance, load_instance
 from pyeod import config
-import threading
-import time
-import glob
+from pyeod.frontend import DiscordGameInstance, ElementalBot, InstanceManager
+from pyeod.packer import load_instance, save_instance
+from discord import Message, TextChannel, default_permissions
+from discord.ext import bridge, commands, tasks
 import os
+import glob
+import time
+import threading
 
 
 class Config(commands.Cog):

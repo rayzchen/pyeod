@@ -1,7 +1,7 @@
-from flask import Flask
 from pyeod import config
-import subprocess
+from flask import Flask
 import sys
+import subprocess
 
 app = Flask(__name__)
 

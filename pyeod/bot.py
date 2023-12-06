@@ -6,12 +6,12 @@ import asyncio
 if sys.platform.startswith("win"):
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-from discord.ext.commands import when_mentioned_or
-from discord.client import _cleanup_loop as cleanup_loop
-from discord import Intents
-from pyeod.frontend import InstanceManager, ElementalBot
-from pyeod.packer import save_instance
 from pyeod import config
+from pyeod.frontend import ElementalBot, InstanceManager
+from pyeod.packer import save_instance
+from discord import Intents
+from discord.client import _cleanup_loop as cleanup_loop
+from discord.ext.commands import when_mentioned_or
 
 if os.path.isfile(".token"):
     print("Loading token")

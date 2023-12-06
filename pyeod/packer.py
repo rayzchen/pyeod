@@ -1,26 +1,14 @@
-from pyeod.model import (
-    GameError,
-    SavableMixin,
-    Element,
-    User,
-    Poll,
-    ElementPoll,
-    Database,
-    GameInstance,
-    MarkPoll,
-    ColorPoll,
-    AddCollabPoll,
-    RemoveCollabPoll,
-    ImagePoll,
-    IconPoll,
-)
-from pyeod.frontend import DiscordGameInstance
 from pyeod import config
-from typing import List, Dict, Union, Type
+from pyeod.frontend import DiscordGameInstance
+from pyeod.model import (AddCollabPoll, ColorPoll, Database, Element,
+                         ElementPoll, GameError, GameInstance, IconPoll,
+                         ImagePoll, MarkPoll, Poll, RemoveCollabPoll,
+                         SavableMixin, User)
 import msgpack
-import functools
+from typing import Dict, List, Type, Union
 import os
 import copy
+import functools
 import threading
 import multiprocessing
 

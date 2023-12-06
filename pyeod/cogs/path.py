@@ -1,7 +1,7 @@
-from discord.ext import commands, bridge
-from discord import File
-from pyeod.frontend import InstanceManager, DiscordGameInstance, ElementalBot
+from pyeod.frontend import DiscordGameInstance, ElementalBot, InstanceManager
 from pyeod.model import InternalError
+from discord import File
+from discord.ext import bridge, commands
 import io
 
 

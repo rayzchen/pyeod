@@ -1,16 +1,10 @@
-from discord.ext import commands, bridge
-from discord import User, NotFound, Attachment
-from pyeod.frontend import DiscordGameInstance, InstanceManager, ElementalBot
-from typing import Optional
-from pyeod.model import (
-    MarkPoll,
-    ColorPoll,
-    AddCollabPoll,
-    RemoveCollabPoll,
-    ImagePoll,
-    IconPoll,
-)
+from pyeod.frontend import DiscordGameInstance, ElementalBot, InstanceManager
+from pyeod.model import (AddCollabPoll, ColorPoll, IconPoll, ImagePoll,
+                         MarkPoll, RemoveCollabPoll)
+from discord import Attachment, NotFound, User
+from discord.ext import bridge, commands
 import aiohttp
+from typing import Optional
 import re
 
 

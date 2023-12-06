@@ -1,7 +1,7 @@
-import traceback
 from pyeod import config
 import os
 import sys
+import traceback
 
 
 def format_traceback(err):

@@ -1,8 +1,8 @@
-from typing import Optional, Dict, Tuple, List, Union
 from abc import ABCMeta, abstractmethod, abstractstaticmethod
-import colorsys
+from typing import Dict, List, Tuple, Union, Optional
 import copy
 import time
+import colorsys
 
 
 class ModelBaseError(Exception):

@@ -1,12 +1,12 @@
-from discord.ext import commands, bridge
-from discord import Message, Embed
-from pyeod.model import GameError
-from pyeod.frontend import DiscordGameInstance, InstanceManager, ElementalBot
-from pyeod.utils import format_list
 from pyeod import frontend
+from pyeod.frontend import DiscordGameInstance, ElementalBot, InstanceManager
+from pyeod.model import GameError
+from pyeod.utils import format_list
+from discord import Embed, Message
+from discord.ext import bridge, commands
 from typing import Union
-import functools
 import random
+import functools
 
 
 class Base(commands.Cog):
