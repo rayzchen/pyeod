@@ -290,7 +290,7 @@ class ElementalBot(bridge.AutoShardedBot):
         self,
         server: DiscordGameInstance,
         poll: Poll,
-        ctx: bridge.BridgeContext,
+        ctx: bridge.Context,
         suggestion_message: str,
     ):
         if server.vote_req == 0:

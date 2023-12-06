@@ -29,7 +29,7 @@ class Hint(commands.Cog):
         return "".join(chars)
 
     @bridge.bridge_command(aliases=["n"])
-    async def next(self, ctx: bridge.BridgeContext):
+    async def next(self, ctx: bridge.Context):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         user = server.login_user(ctx.author.id)
 
@@ -67,7 +67,7 @@ class Hint(commands.Cog):
         await paginator.respond(ctx)
 
     @bridge.bridge_command(aliases=["h"])
-    async def hint(self, ctx: bridge.BridgeContext, *, element: str = ""):
+    async def hint(self, ctx: bridge.Context, *, element: str = ""):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         user = server.login_user(ctx.author.id)
 
@@ -114,7 +114,7 @@ class Hint(commands.Cog):
         await paginator.respond(ctx)
 
     @bridge.bridge_command(aliases=["p", "invhint", "ih"])
-    async def products(self, ctx: bridge.BridgeContext, *, element: str):
+    async def products(self, ctx: bridge.Context, *, element: str):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         element = server.check_element(element)
 

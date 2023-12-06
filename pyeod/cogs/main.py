@@ -56,12 +56,12 @@ class Main(commands.Cog):
         await self.on_command_error(ctx, err)
 
     @bridge.bridge_command(aliases=["ms"])
-    async def ping(self, ctx: bridge.BridgeContext):
+    async def ping(self, ctx: bridge.Context):
         await ctx.respond(f"🏓 Pong! {round(self.bot.latency*1000)}ms")
 
     @bridge.bridge_command()
     @default_permissions(manage_messages=True)
-    async def update(self, ctx: bridge.BridgeContext, revision: str = ""):
+    async def update(self, ctx: bridge.Context, revision: str = ""):
         msg = await ctx.respond("💽 Updating...")
         p = subprocess.Popen(["git", "pull"], stderr=subprocess.PIPE)
         _, stderr = p.communicate()

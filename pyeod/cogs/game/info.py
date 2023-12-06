@@ -18,7 +18,7 @@ class Info(commands.Cog):
 
     @bridge.bridge_command(aliases=["c", "mark", "note"])
     async def comment(
-        self, ctx: bridge.BridgeContext, *, marked_element: str, mark: str = None
+        self, ctx: bridge.Context, *, marked_element: str, mark: str = None
     ):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         user = server.login_user(ctx.author.id)
@@ -58,7 +58,7 @@ class Info(commands.Cog):
 
     @bridge.bridge_command()
     async def color(
-        self, ctx: bridge.BridgeContext, *, element: str, color: str = None
+        self, ctx: bridge.Context, *, element: str, color: str = None
     ):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if not ctx.is_app:
@@ -166,7 +166,7 @@ class Info(commands.Cog):
     @bridge.bridge_command(aliases=["acol"])
     async def add_collaborators(
         self,
-        ctx: bridge.BridgeContext,
+        ctx: bridge.Context,
         *,
         element: str,
         collaborator1: User = None,
@@ -258,7 +258,7 @@ class Info(commands.Cog):
     @bridge.bridge_command(aliases=["rcol"])
     async def remove_collaborators(
         self,
-        ctx: bridge.BridgeContext,
+        ctx: bridge.Context,
         *,
         element: str,
         collaborator1: User = None,

@@ -139,7 +139,7 @@ class Base(commands.Cog):
                 await msg.reply("🔴 Not a valid element!")
 
     @bridge.bridge_command(aliases=["s"])
-    async def suggest(self, ctx: bridge.BridgeContext, *, element_name: str):
+    async def suggest(self, ctx: bridge.Context, *, element_name: str):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if ctx.channel.id not in server.channels.play_channels:
             await ctx.respond("🔴 You can only suggest in play channels!")
@@ -148,7 +148,7 @@ class Base(commands.Cog):
 
     @bridge.bridge_command(aliases=["rc"])
     async def random_combination(
-        self, ctx: bridge.BridgeContext, number_of_elements: int = 2
+        self, ctx: bridge.Context, number_of_elements: int = 2
     ):
         if not (1 < number_of_elements < 21):
             await ctx.respond("🔴 Invalid number of elements!")
@@ -184,7 +184,7 @@ class Base(commands.Cog):
         self,
         server: DiscordGameInstance,
         name: str,
-        ctx: Union[bridge.BridgeContext, Message],
+        ctx: Union[bridge.Context, Message],
     ) -> None:
         user = server.login_user(ctx.author.id)
         if server.channels.voting_channel is None:

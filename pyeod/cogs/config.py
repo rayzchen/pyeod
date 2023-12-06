@@ -43,7 +43,7 @@ class Config(commands.Cog):
     # Slash commands only cus converting to channel is busted
     @commands.slash_command()
     @default_permissions(manage_channels=True)
-    async def add_play_channel(self, ctx: bridge.BridgeContext, channel: TextChannel):
+    async def add_play_channel(self, ctx: bridge.Context, channel: TextChannel):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
         server.channels.play_channels.append(channel.id)
@@ -52,7 +52,7 @@ class Config(commands.Cog):
     @commands.slash_command()
     @default_permissions(manage_channels=True)
     async def remove_play_channel(
-        self, ctx: bridge.BridgeContext, channel: TextChannel
+        self, ctx: bridge.Context, channel: TextChannel
     ):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
@@ -66,7 +66,7 @@ class Config(commands.Cog):
 
     @commands.slash_command()
     @default_permissions(manage_channels=True)
-    async def set_news_channel(self, ctx: bridge.BridgeContext, channel: TextChannel):
+    async def set_news_channel(self, ctx: bridge.Context, channel: TextChannel):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
         server.channels.news_channel = channel.id
@@ -74,7 +74,7 @@ class Config(commands.Cog):
 
     @commands.slash_command()
     @default_permissions(manage_channels=True)
-    async def set_voting_channel(self, ctx: bridge.BridgeContext, channel: TextChannel):
+    async def set_voting_channel(self, ctx: bridge.Context, channel: TextChannel):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
         server.channels.voting_channel = channel.id
@@ -83,7 +83,7 @@ class Config(commands.Cog):
     @bridge.bridge_command()
     @default_permissions(manage_channels=True)
     async def edit_element_name(
-        self, ctx: bridge.BridgeContext, elem_id: int, *, name: str
+        self, ctx: bridge.Context, elem_id: int, *, name: str
     ):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if elem_id not in server.db.elem_id_lookup:
@@ -101,7 +101,7 @@ class Config(commands.Cog):
 
     @bridge.bridge_command()
     @default_permissions(manage_channels=True)
-    async def set_vote_req(self, ctx: bridge.BridgeContext, vote_req: int):
+    async def set_vote_req(self, ctx: bridge.Context, vote_req: int):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
         server.vote_req = vote_req
@@ -109,7 +109,7 @@ class Config(commands.Cog):
 
     @bridge.bridge_command()
     @default_permissions(manage_channels=True)
-    async def set_max_polls(self, ctx: bridge.BridgeContext, max_polls: int):
+    async def set_max_polls(self, ctx: bridge.Context, max_polls: int):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
         server.poll_limit = max_polls
