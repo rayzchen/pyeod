@@ -284,7 +284,7 @@ class ElementPoll(Poll):
         else:
             element = database.elements[self.result.lower()]
         database.set_combo_result(self.combo, element)
-        database.found_by_lookup[element.id].append(self.author.id)
+        database.found_by_lookup[element.id].add(self.author.id)
         self.author.add_element(element)
         if self.author.last_combo == self.combo:
             self.author.last_combo = ()
@@ -803,24 +803,22 @@ class Database(SavableMixin):
             elem: [] for elem in self.elem_id_lookup
         }
         self.used_in_lookup: Dict[int, List[Tuple[int, ...]]] = {
-            elem: [] for elem in self.elem_id_lookup
+            elem: set() for elem in self.elem_id_lookup
         }
         for combo, result in combos.items():
             self.combo_lookup[result.id].append(combo)
             for elem in combo:
-                if combo not in self.used_in_lookup[elem]:
-                    self.used_in_lookup[elem].append(combo)
+                self.used_in_lookup[elem].add(combo)
 
         self.found_by_lookup: Dict[int, List[int]] = {
-            elem: [] for elem in self.elem_id_lookup
+            elem: set() for elem in self.elem_id_lookup
         }
         for user in self.users.values():
             for elem in user.inv:
-                self.found_by_lookup[elem].append(user.id)
+                self.found_by_lookup[elem].add(user.id)
 
     def calculate_infos(self) -> None:
         self.complexity_lock = True
-        # Ordered set but using dict
         self.complexities: Dict[int, int] = {elem.id: 0 for elem in self.starters}
         self.min_elem_tree: Dict[int, Tuple[int, ...]] = {
             elem.id: () for elem in self.starters
@@ -927,8 +925,8 @@ class Database(SavableMixin):
             self.elements[element.name.lower()] = element
             self.elem_id_lookup[element.id] = element
             self.combo_lookup[element.id] = []
-            self.used_in_lookup[element.id] = []
-            self.found_by_lookup[element.id] = []
+            self.used_in_lookup[element.id] = set()
+            self.found_by_lookup[element.id] = set()
 
     def has_element(self, element: str) -> bool:
         return element.lower() in self.elements
@@ -958,8 +956,7 @@ class Database(SavableMixin):
         else:
             self.update_element_info(result, sorted_combo)
         for elem in sorted_combo:
-            if sorted_combo not in self.used_in_lookup[elem]:
-                self.used_in_lookup[elem].append(sorted_combo)
+            self.used_in_lookup[elem].add(sorted_combo)
 
     def convert_to_dict(self, data: dict) -> None:
         # Users MUST be first to be saved or loaded
@@ -1085,7 +1082,7 @@ class GameInstance(SavableMixin):
                 f"You made {result.name}, but you already have it",
                 {"element": result},
             )
-        self.db.found_by_lookup[result.id].append(user.id)
+        self.db.found_by_lookup[result.id].add(user.id)
         user.add_element(result)
         user.last_element = result
         return result
