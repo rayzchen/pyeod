@@ -318,7 +318,7 @@ class ElementalBot(bridge.AutoShardedBot):
             voting_channel = await self.fetch_channel(server.channels.voting_channel)
             msg = await voting_channel.send(embed=server.convert_poll_to_embed(poll))
             server.poll_msg_lookup[msg.id] = poll
-        await ctx.reply(suggestion_message)
+        await ctx.respond(suggestion_message)
         if server.vote_req != 0:  # Adding reactions after just feels snappier
             await msg.add_reaction("\U0001F53C")  # ⬆️ Emoji
             await msg.add_reaction("\U0001F53D")

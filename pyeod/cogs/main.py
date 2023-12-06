@@ -29,18 +29,18 @@ class Main(commands.Cog):
     ):
         # Handle different exceptions from parsing arguments here
         if isinstance(err, commands.errors.BadArgument):
-            await ctx.reply(str(err))
+            await ctx.respond(str(err))
             return
 
         if err.__cause__ is not None:
             err = err.__cause__
         if isinstance(err, GameError):
             if err.type == "Not an element":
-                await ctx.reply(f"🔴 Element **{err.meta['name']}** doesn't exist!")
+                await ctx.respond(f"🔴 Element **{err.meta['name']}** doesn't exist!")
                 return
         elif isinstance(err, InternalError):
             if err.type == "Complexity lock":
-                await ctx.reply(
+                await ctx.respond(
                     f"🔴 Complexity calculations ongoing, cannot access element data"
                 )
                 return
@@ -48,7 +48,7 @@ class Main(commands.Cog):
         lines = traceback.format_exception(type(err), err, err.__traceback__)
         sys.stderr.write("".join(lines))
         error = format_traceback(err)
-        await ctx.reply("⚠️ There was an error processing the command:\n" + error)
+        await ctx.respond("⚠️ There was an error processing the command:\n" + error)
 
     @bridge.bridge_command(aliases=["ms"])
     async def ping(self, ctx: bridge.Context):

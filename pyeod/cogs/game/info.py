@@ -33,7 +33,7 @@ class Info(commands.Cog):
         else:
             split_msg = marked_element.split("|")
             if len(split_msg) < 2:
-                await ctx.reply("🔴 Please separate the element and the mark with a | !")
+                await ctx.respond("🔴 Please separate the element and the mark with a | !")
                 return
             mark = split_msg[1].strip()
         if not server.db.has_element(marked_element):
@@ -245,7 +245,7 @@ class Info(commands.Cog):
                 authors.append(server.login_user(i))
 
         if len(authors) == 0:
-            await ctx.reply(
+            await ctx.respond(
                 "🔴 Please make sure you entered a valid user created element and valid users!"
             )
             return
@@ -328,7 +328,7 @@ class Info(commands.Cog):
                 authors.append(server.login_user(i))
 
         if len(authors) == 0:
-            await ctx.reply(
+            await ctx.respond(
                 "🔴 Please make sure you entered a valid user created element and valid users already in the collaboration!"
             )
             return
