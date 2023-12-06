@@ -26,6 +26,13 @@ def restart():
     return "Bot restarted"
 
 
+@app.route("/update")
+def restart():
+    subprocess.Popen(["git", "pull"])
+    open(config.restartfile, "w+").close()
+    return "Updating bot"
+
+
 def run_webserver():
     proc = subprocess.Popen([sys.executable, "-m", __name__])
     return proc
