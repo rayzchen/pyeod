@@ -97,7 +97,7 @@ def load_instance(file: str) -> GameInstance:
     hook = functools.partial(convert_from_dict, loader)
     with open(file, "rb") as f:
         data = f.read()
-    instance = msgpack.loads(data, strict_map_key=False, object_hook=hook)
+    instance: GameInstance = msgpack.loads(data, strict_map_key=False, object_hook=hook)
     instance.db.check_colors()
     # Free up some unneeded local variables
     del loader, hook, data

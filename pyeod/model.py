@@ -337,7 +337,7 @@ class ElementPoll(Poll):
         data["creation_time"] = self.creation_time
 
     @staticmethod
-    def convert_from_dict(loader, data: dict) -> "ElementPoll":
+    def convert_from_dict(loader, data: dict) -> Union["ElementPoll", None]:
         combo = []
         for elem in data["combo"]:
             if elem in loader.elem_id_lookup:
@@ -525,7 +525,7 @@ class ImagePoll(Poll):
         self.imaged_element = imaged_element
         self.image = image
 
-    def resolve(self, database: "Database") -> int:
+    def resolve(self, database: "Database") -> str:
         self.imaged_element.image = self.image
         self.imaged_element.imager = self.author
         return self.image
@@ -591,7 +591,7 @@ class IconPoll(Poll):
         self.iconed_element = iconed_element
         self.icon = icon
 
-    def resolve(self, database: "Database") -> int:
+    def resolve(self, database: "Database") -> str:
         self.iconed_element.icon = self.icon
         self.iconed_element.iconer = self.author
         return self.icon
@@ -1052,8 +1052,8 @@ class GameInstance(SavableMixin):
         return element
 
     def check_elements(
-        self, element_name_list: List[str], user: Optional[User] = None
-    ) -> Tuple[Element]:
+        self, element_name_list: Tuple[str, ...], user: Optional[User] = None
+    ) -> Tuple[Element, ...]:
         elements = []
         not_in_inv = []
         for i in element_name_list:

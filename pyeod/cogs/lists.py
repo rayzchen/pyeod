@@ -1,5 +1,6 @@
 from discord.ext import commands, bridge
 from discord import User
+from typing import Optional
 from pyeod.frontend import (
     DiscordGameInstance,
     InstanceManager,
@@ -16,7 +17,7 @@ class Lists(commands.Cog):
 
     @bridge.bridge_command()
     @bridge.guild_only()
-    async def inv(self, ctx: bridge.Context, *, user: User = None):
+    async def inv(self, ctx: bridge.Context, *, user: Optional[User] = None):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if user is None:
             user = ctx.author

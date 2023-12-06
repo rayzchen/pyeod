@@ -92,12 +92,12 @@ class Hint(commands.Cog):
                 await ctx.respond("🔴 Could not get any hints!")
                 return
 
-            element = server.db.elem_id_lookup[random.choice(list(choices))]
+            elem = server.db.elem_id_lookup[random.choice(list(choices))]
         else:
-            element = server.check_element(element)
+            elem = server.check_element(element)
 
         lines = []
-        for combo in server.db.combo_lookup[element.id]:
+        for combo in server.db.combo_lookup[elem.id]:
             tick = all(elem in user.inv for elem in combo)
             names = [server.db.elem_id_lookup[elem].name for elem in combo]
             names.sort()
@@ -106,9 +106,9 @@ class Hint(commands.Cog):
 
         limit = get_page_limit(server, ctx.channel.id)
         embeds = generate_embed_list(
-            lines, f"Hints for {element.name} ({len(lines)})", limit
+            lines, f"Hints for {elem.name} ({len(lines)})", limit
         )
-        if element.id in user.inv:
+        if elem.id in user.inv:
             footer = "📫 You have this"
         else:
             footer = "📭 You don't have this"

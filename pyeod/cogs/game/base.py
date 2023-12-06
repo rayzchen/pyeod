@@ -75,9 +75,9 @@ class Base(commands.Cog):
 
         elements = []
         if msg.content.startswith("*"):
-            multiplier = msg.content.split(" ", 1)[0][1:]
-            if multiplier.isdecimal():
-                multiplier = min(int(multiplier), 22)
+            number = msg.content.split(" ", 1)[0][1:]
+            if number.isdecimal():
+                multiplier = min(int(number), 22)
                 if " " in msg.content:
                     elements = [msg.content.split(" ", 1)[1]] * multiplier
                 elif user.last_element is not None:
@@ -112,14 +112,14 @@ class Base(commands.Cog):
             return
 
         try:
-            element = server.combine(user, [i.strip() for i in elements])
+            element = server.combine(user, tuple(i.strip() for i in elements))
             await msg.reply(f"🆕 You made **{element.name}**!")
         except GameError as g:
             if g.type == "Not a combo":
                 # Keep last combo
                 user.last_element = None
                 await msg.reply(
-                    "🟥 Not a combo! Use !s <element_name> to suggest an element"
+                    "🟥 Not a combo! Use **!s <element_name>** to suggest an element"
                 )
             if g.type == "Already have element":
                 # Keep last element
@@ -160,26 +160,24 @@ class Base(commands.Cog):
         combo = []
         for _ in range(number_of_elements):
             combo.append(server.db.elem_id_lookup[random.choice(user.inv)].name)
-        embed = Embed(
-            title=" ", description=f"Combined:\n**{'** + **'.join(combo)}**\n\n"
-        )
-        embed.set_author(name="Random Combo")
+        description = f"Combined:\n**{'** + **'.join(combo)}**\n\nResult:\n"
         try:
-            element = server.combine(user, combo)
-            embed.description += f"🆕 You made **{element.name}**!"
+            element = server.combine(user, tuple(combo))
+            description += f"🆕 You made **{element.name}**!"
         except GameError as g:
             if g.type == "Not a combo":
                 # Keep last combo
                 user.last_element = None
-                embed.description += (
-                    "🟥 Not a combo! Use !s <element_name> to suggest an element"
+                description += (
+                    "🟥 Not a combo! Use **!s <element_name>** to suggest an element"
                 )
             if g.type == "Already have element":
                 # Keep last element
                 user.last_combo = ()
-                embed.description += (
+                description += (
                     f"🟦 You made **{g.meta['element'].name}**, but you already have it!"
                 )
+        embed = Embed(title="Random Combo", description=description)
         await ctx.respond(embed=embed)
 
     async def suggest_element(

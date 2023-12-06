@@ -27,7 +27,7 @@ def restart():
 
 
 @app.route("/update")
-def restart():
+def update():
     subprocess.Popen(["git", "pull"])
     open(config.restartfile, "w+").close()
     return "Updating bot"

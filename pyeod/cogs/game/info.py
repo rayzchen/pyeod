@@ -1,6 +1,7 @@
 from discord.ext import commands, bridge
 from discord import User, NotFound, Attachment
 from pyeod.frontend import DiscordGameInstance, InstanceManager, ElementalBot
+from typing import Optional
 from pyeod.model import (
     MarkPoll,
     ColorPoll,
@@ -10,6 +11,7 @@ from pyeod.model import (
     IconPoll,
 )
 import aiohttp
+import re
 
 
 class Info(commands.Cog):
@@ -19,7 +21,7 @@ class Info(commands.Cog):
     @bridge.bridge_command(aliases=["c", "comment", "note"])
     @bridge.guild_only()
     async def mark(
-        self, ctx: bridge.Context, *, marked_element: str, mark: str = None
+        self, ctx: bridge.Context, *, marked_element: str, mark: str = ""
     ):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         user = server.login_user(ctx.author.id)
@@ -31,7 +33,7 @@ class Info(commands.Cog):
         else:
             split_msg = marked_element.split("|")
             if len(split_msg) < 2:
-                await ctx.reply("🔴 Please separate each parameter with a | !")
+                await ctx.reply("🔴 Please separate the element and the mark with a | !")
                 return
             mark = split_msg[1].strip()
         if not server.db.has_element(marked_element):
@@ -60,20 +62,20 @@ class Info(commands.Cog):
     @bridge.bridge_command()
     @bridge.guild_only()
     async def color(
-        self, ctx: bridge.Context, *, element: str, color: str = None
+        self, ctx: bridge.Context, *, element: str, color: str = ""
     ):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if not ctx.is_app:
             element, color = element.rsplit(" ", 1)
         user = server.login_user(ctx.author.id)
-        element = server.check_element(element)
+        elem = server.check_element(element)
         if not self.check_color(color):
             await ctx.respond("🔴 Invalid hex code!")
             return
-        poll = server.suggest_poll(ColorPoll(user, element, color))
+        poll = server.suggest_poll(ColorPoll(user, elem, color))
 
         await self.bot.add_poll(
-            server, poll, ctx, f"🗳️ Suggested a new color for {element.name}!"
+            server, poll, ctx, f"🗳️ Suggested a new color for {elem.name}!"
         )
 
     async def check_image_link(self, url):
@@ -92,7 +94,7 @@ class Info(commands.Cog):
     @bridge.bridge_command()
     @bridge.guild_only()
     async def image(
-        self, ctx: bridge.Context, *, element: str, image: Attachment = None
+        self, ctx: bridge.Context, *, element: str, image: Optional[Attachment] = None
     ):
         import discord
 
@@ -121,17 +123,17 @@ class Info(commands.Cog):
                 return
 
         user = server.login_user(ctx.author.id)
-        element = server.check_element(element)
+        elem = server.check_element(element)
 
-        poll = server.suggest_poll(ImagePoll(user, element, image_link))
+        poll = server.suggest_poll(ImagePoll(user, elem, image_link))
 
         await self.bot.add_poll(
-            server, poll, ctx, f"🗳️ Suggested a new image for {element.name}!"
+            server, poll, ctx, f"🗳️ Suggested a new image for {elem.name}!"
         )
 
     @bridge.bridge_command()
     @bridge.guild_only()
-    async def icon(self, ctx: bridge.Context, *, element: str, icon: Attachment = None):
+    async def icon(self, ctx: bridge.Context, *, element: str, icon: Optional[Attachment] = None):
         import discord
 
         server = InstanceManager.current.get_or_create(ctx.guild.id)
@@ -159,12 +161,12 @@ class Info(commands.Cog):
                 return
 
         user = server.login_user(ctx.author.id)
-        element = server.check_element(element)
+        elem = server.check_element(element)
 
-        poll = server.suggest_poll(IconPoll(user, element, icon_link))
+        poll = server.suggest_poll(IconPoll(user, elem, icon_link))
 
         await self.bot.add_poll(
-            server, poll, ctx, f"🗳️ Suggested a new icon for {element.name}!"
+            server, poll, ctx, f"🗳️ Suggested a new icon for {elem.name}!"
         )
 
     @bridge.bridge_command(aliases=["acol"])
@@ -174,23 +176,22 @@ class Info(commands.Cog):
         ctx: bridge.Context,
         *,
         element: str,
-        collaborator1: User = None,
-        collaborator2: User = None,
-        collaborator3: User = None,
-        collaborator4: User = None,
-        collaborator5: User = None,
-        collaborator6: User = None,
-        collaborator7: User = None,
-        collaborator8: User = None,
-        collaborator9: User = None,
-        collaborator10: User = None,
+        collaborator1: Optional[User] = None,
+        collaborator2: Optional[User] = None,
+        collaborator3: Optional[User] = None,
+        collaborator4: Optional[User] = None,
+        collaborator5: Optional[User] = None,
+        collaborator6: Optional[User] = None,
+        collaborator7: Optional[User] = None,
+        collaborator8: Optional[User] = None,
+        collaborator9: Optional[User] = None,
+        collaborator10: Optional[User] = None,
     ):  # Dude fuck slash commands this is the only way to do this (i think)
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         user = server.login_user(ctx.author.id)
         extra_authors = []
         if ctx.is_app:
-            element = element.lower()
-            element = server.db.elements[element]
+            elem = server.check_element(element)
             for i in [
                 collaborator1,
                 collaborator2,
@@ -211,8 +212,7 @@ class Info(commands.Cog):
             if len(split_msg) < 2:
                 await ctx.respond("🔴 Please separate each parameter with a | !")
                 return
-            element = split_msg[0].lower().strip()
-            element = server.db.elements[element]
+            elem = server.check_element(split_msg[0].strip())
             for i in (
                 split_msg[1]
                 .strip()
@@ -236,9 +236,9 @@ class Info(commands.Cog):
         authors = []
         for i in extra_authors:
             if (
-                i not in [i.id for i in element.extra_authors]
-                and element.author
-                and i != element.author.id
+                i not in [i.id for i in elem.extra_authors]
+                and elem.author
+                and i != elem.author.id
                 and i not in authors
                 and i != self.bot.user.id
             ):
@@ -249,15 +249,15 @@ class Info(commands.Cog):
                 "🔴 Please make sure you entered a valid user created element and valid users!"
             )
             return
-        if len(authors) + len(element.extra_authors) > 10:
+        if len(authors) + len(elem.extra_authors) > 10:
             await ctx.respond("🔴 You can only add 10 collaborators!")
             return
-        poll = server.suggest_poll(AddCollabPoll(user, element, authors))
+        poll = server.suggest_poll(AddCollabPoll(user, elem, tuple(authors)))
         await self.bot.add_poll(
             server,
             poll,
             ctx,
-            f"🗳️ Suggested to add those users as collaborators to {element.name}!",
+            f"🗳️ Suggested to add those users as collaborators to {elem.name}!",
         )
 
     @bridge.bridge_command(aliases=["rcol"])
@@ -267,23 +267,22 @@ class Info(commands.Cog):
         ctx: bridge.Context,
         *,
         element: str,
-        collaborator1: User = None,
-        collaborator2: User = None,
-        collaborator3: User = None,
-        collaborator4: User = None,
-        collaborator5: User = None,
-        collaborator6: User = None,
-        collaborator7: User = None,
-        collaborator8: User = None,
-        collaborator9: User = None,
-        collaborator10: User = None,
+        collaborator1: Optional[User] = None,
+        collaborator2: Optional[User] = None,
+        collaborator3: Optional[User] = None,
+        collaborator4: Optional[User] = None,
+        collaborator5: Optional[User] = None,
+        collaborator6: Optional[User] = None,
+        collaborator7: Optional[User] = None,
+        collaborator8: Optional[User] = None,
+        collaborator9: Optional[User] = None,
+        collaborator10: Optional[User] = None,
     ):  # Dude fuck slash commands this is the only way to do this (i think)
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         user = server.login_user(ctx.author.id)
         extra_authors = []
         if ctx.is_app:
-            element = element.lower()
-            element = server.db.elements[element]
+            elem = server.check_element(element)
             for i in [
                 collaborator1,
                 collaborator2,
@@ -304,17 +303,8 @@ class Info(commands.Cog):
             if len(split_msg) < 2:
                 await ctx.respond("🔴 Please separate each parameter with a | !")
                 return
-            element = split_msg[0].lower().strip()
-            element = server.db.elements[element]
-            for i in (
-                split_msg[1]
-                .strip()
-                .replace(",", " ")
-                .replace("|", " ")
-                .replace("  ", " ")
-                .replace("  ", " ")
-                .split(" ")
-            ):
+            elem = server.check_element(split_msg[0].strip())
+            for i in split_msg[1].strip().replace(",", " ").replace("|", " ").split(" "):
                 if not i:
                     continue
                 id = int(i.replace("<@", "").replace(">", ""))
@@ -329,9 +319,9 @@ class Info(commands.Cog):
         authors = []
         for i in extra_authors:
             if (
-                i in [i.id for i in element.extra_authors]
-                and element.author
-                and i != element.author.id
+                i in [i.id for i in elem.extra_authors]
+                and elem.author
+                and i != elem.author.id
                 and i not in authors
                 and i != self.bot.user.id
             ):
@@ -342,12 +332,12 @@ class Info(commands.Cog):
                 "🔴 Please make sure you entered a valid user created element and valid users already in the collaboration!"
             )
             return
-        poll = server.suggest_poll(RemoveCollabPoll(user, element, authors))
+        poll = server.suggest_poll(RemoveCollabPoll(user, elem, tuple(authors)))
         await self.bot.add_poll(
             server,
             poll,
             ctx,
-            f"🗳️ Suggested to remove those users as collaborators to {element.name}!",
+            f"🗳️ Suggested to remove those users as collaborators to {elem.name}!",
         )
 
 
