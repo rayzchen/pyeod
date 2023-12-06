@@ -211,8 +211,7 @@ async def build_info_embed(
         EmbedField(
             "🔍 Found By", str(len(instance.db.found_by_lookup[element.id])), True
         ),
-        EmbedField("📜 Comment", element.mark, True) if element.mark else None,
-        EmbedField("🗣️ Commenter", marker, True) if element.marker else None,
+        EmbedField("🗣️ Marker", marker, True) if element.marker else None,
         EmbedField("🎨 Colorer", colorer, True) if element.colorer else None,
         EmbedField("🖼️ Imager", imager, True) if element.imager else None,
         EmbedField("📍 Iconer", iconer, True) if element.iconer else None,

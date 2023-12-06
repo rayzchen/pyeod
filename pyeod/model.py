@@ -387,23 +387,23 @@ class MarkPoll(Poll):
         msg = ""
         if self.accepted:
             msg += ":scroll: "  # Scroll emoji, not unicode cus for some reason it doesn't work
-            msg += "Comment"
+            msg += "Mark"
             msg += f" - **{self.marked_element.name}** (Lasted **{self.get_time()}** • "
             msg += f"By <@{self.author.id}>)"
         else:
             msg += "❌ Poll Rejected - "
-            msg += f"Comment"
+            msg += f"Mark"
             msg += f" - **{self.marked_element.name}** (Lasted **{self.get_time()}** • "
             msg += f"By <@{self.author.id}>) "
         return msg
 
     def get_title(self) -> str:
-        return "Comment"
+        return "Mark"
 
     def get_description(self) -> str:
         text = f"**{self.marked_element.name}**\n"
         text += (
-            f"Old Comment: \n{self.marked_element.mark}\n\nNew Comment:\n{self.mark}"
+            f"Old Mark: \n{self.marked_element.mark}\n\nNew Mark:\n{self.mark}"
         )
         text += f"\n\nSuggested by <@{self.author.id}>"
         return text

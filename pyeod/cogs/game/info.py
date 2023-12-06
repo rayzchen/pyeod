@@ -18,7 +18,7 @@ class Info(commands.Cog):
 
     @bridge.bridge_command(aliases=["c", "mark", "note"])
     @bridge.guild_only()
-    async def comment(
+    async def mark(
         self, ctx: bridge.Context, *, marked_element: str, mark: str = None
     ):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
