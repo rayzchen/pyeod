@@ -16,7 +16,7 @@ class Info(commands.Cog):
     def __init__(self, bot: ElementalBot):
         self.bot = bot
 
-    @bridge.bridge_command(aliases=["c", "mark", "note"])
+    @bridge.bridge_command(aliases=["c", "comment", "note"])
     @bridge.guild_only()
     async def mark(
         self, ctx: bridge.Context, *, marked_element: str, mark: str = None
