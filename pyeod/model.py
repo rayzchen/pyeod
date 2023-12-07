@@ -137,28 +137,21 @@ class Element(SavableMixin):
 
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "Element":
-        # TODO: Convert all convert_from_dict to using .get
-        # TODO: more robust and allows for defaults
-        author = loader.users[data["author"]]
-        marker = loader.users[data.get("marker")]
-        colorer = loader.users[data.get("colorer")]
-        imager = loader.users[data.get("imager")]
-        iconer = loader.users[data.get("iconer")]
         extra_authors = [loader.users[i] for i in data.get("extra_authors", [])]
         element = Element(
-            data["name"].strip(),
-            author,
-            data["created"],
-            data["id"],
+            data["name"].strip(),  # Must be present
+            loader.users[data.get("author")],
+            data.get("created", 0),
+            data["id"],  # Must be present
             data.get("mark", ""),
-            marker,
+            loader.users[data.get("marker")],
             data.get("color", 0x0),
-            colorer,
+            loader.users[data.get("colorer")],
             extra_authors,
             data.get("image", ""),
-            imager,
+            loader.users[data.get("imager")],
             data.get("icon", ""),
-            iconer,
+            loader.users[data.get("iconer")],
         )
         loader.elem_id_lookup[element.id] = element
         return element
@@ -169,15 +162,15 @@ class User(SavableMixin):
 
     def __init__(
         self,
-        inv: List[int],
-        active_polls: int,
         id: int,
+        inv: List[int],
+        active_polls: int = 0,
         last_combo: Tuple[Element, ...] = (),
         last_element: Optional[Element] = None,
     ) -> None:
+        self.id = id
         self.inv = inv
         self.active_polls = active_polls
-        self.id = id
         self.last_combo = last_combo
         self.last_element = last_element
 
@@ -187,16 +180,16 @@ class User(SavableMixin):
             self.inv.append(element.id)
 
     def convert_to_dict(self, data: dict) -> None:
+        data["id"] = self.id
         data["inv"] = self.inv
         data["active_polls"] = self.active_polls
-        data["id"] = self.id
 
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "User":
         user = User(
-            data["inv"],
-            data["active_polls"],
-            data["id"],
+            data["id"],  # Must be present
+            data.get("inv", []),
+            data.get("active_polls", 0),
         )
         loader.users[user.id] = user
         return user
@@ -338,7 +331,7 @@ class ElementPoll(Poll):
     @staticmethod
     def convert_from_dict(loader, data: dict) -> Union["ElementPoll", None]:
         combo = []
-        for elem in data["combo"]:
+        for elem in data["combo"]:  # Must be present
             if elem in loader.elem_id_lookup:
                 combo.append(loader.elem_id_lookup[elem])
             else:
@@ -355,10 +348,11 @@ class ElementPoll(Poll):
             loader.users[data["author"]],
             tuple(loader.elem_id_lookup[elem] for elem in data["combo"]),
             data["result"],
-            data["exists"],
+            # Doesn't strictly need to be stored so not necessary to be present
+            data.get("exists", False),
         )
-        poll.votes = data["votes"]
-        poll.creation_time = data["creation_time"]
+        poll.votes = data.get("votes", 0)
+        poll.creation_time = data.get("creation_time", round(time.time()))
         return poll
 
 
@@ -417,10 +411,10 @@ class MarkPoll(Poll):
         poll = MarkPoll(
             loader.users[data["author"]],
             loader.elem_id_lookup[data["marked_element"]],
-            data["mark"],
+            data.get("mark", ""),
         )
-        poll.votes = data["votes"]
-        poll.creation_time = data["creation_time"]
+        poll.votes = data.get("votes", 0)
+        poll.creation_time = data.get("creation_time", round(time.time()))
         return poll
 
 
@@ -502,10 +496,10 @@ class ColorPoll(Poll):
         poll = ColorPoll(
             loader.users[data["author"]],
             loader.elem_id_lookup[data["colored_element"]],
-            data["color"],
+            data.get("color", 0),
         )
-        poll.votes = data["votes"]
-        poll.creation_time = data["creation_time"]
+        poll.votes = data.get("votes", 0)
+        poll.creation_time = data.get("creation_time", round(time.time()))
         return poll
 
 
@@ -568,10 +562,10 @@ class ImagePoll(Poll):
         poll = ImagePoll(
             loader.users[data["author"]],
             loader.elem_id_lookup[data["imaged_element"]],
-            data["image"],
+            data.get("image", ""),
         )
-        poll.votes = data["votes"]
-        poll.creation_time = data["creation_time"]
+        poll.votes = data.get("votes", 0)
+        poll.creation_time = data.get("creation_time", round(time.time()))
         return poll
 
 
@@ -634,10 +628,10 @@ class IconPoll(Poll):
         poll = IconPoll(
             loader.users[data["author"]],
             loader.elem_id_lookup[data["iconed_element"]],
-            data["icon"],
+            data.get("icon", ""),
         )
-        poll.votes = data["votes"]
-        poll.creation_time = data["creation_time"]
+        poll.votes = data.get("votes", 0)
+        poll.creation_time = data.get("creation_time", round(time.time()))
         return poll
 
 
@@ -699,8 +693,8 @@ class AddCollabPoll(Poll):
             loader.elem_id_lookup[data["element"]],
             tuple(loader.users[i] for i in data["extra_authors"]),
         )
-        poll.votes = data["votes"]
-        poll.creation_time = data["creation_time"]
+        poll.votes = data.get("votes", 0)
+        poll.creation_time = data.get("creation_time", round(time.time()))
         return poll
 
 
@@ -763,8 +757,8 @@ class RemoveCollabPoll(Poll):
             loader.elem_id_lookup[data["element"]],
             tuple(loader.users[i] for i in data["extra_authors"]),
         )
-        poll.votes = data["votes"]
-        poll.creation_time = data["creation_time"]
+        poll.votes = data.get("votes", 0)
+        poll.creation_time = data.get("creation_time", round(time.time()))
         return poll
 
 
@@ -1031,7 +1025,7 @@ class GameInstance(SavableMixin):
     def login_user(self, user_id: int) -> User:
         if user_id not in self.db.users:
             inv = [elem.id for elem in self.db.starters]
-            self.db.users[user_id] = User(inv, 0, user_id)
+            self.db.users[user_id] = User(user_id, inv)
         return self.db.users[user_id]
 
     def check_element(self, element_name: str, user: Optional[User] = None) -> Element:
@@ -1152,7 +1146,11 @@ class GameInstance(SavableMixin):
 
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "GameInstance":
-        return GameInstance(data["db"], data["vote_req"], data["poll_limit"])
+        return GameInstance(
+            data["db"],
+            data.get("vote_req", 4),
+            data.get("poll_limit", 20)
+        )
 
 
 def generate_test_game():

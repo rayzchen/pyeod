@@ -71,15 +71,19 @@ class DiscordGameInstance(GameInstance):
         lookup = {}
         for id, poll_idx in data.get("poll_msg_lookup", {}).items():
             lookup[id] = data["db"].polls[poll_idx]
+        if "channels" in data:
+            channel_list = ChannelList(
+                data["channels"].get("news"),
+                data["channels"].get("voting"),
+                data["channels"].get("play"),
+            )
+        else:
+            channel_list = ChannelList()
         return DiscordGameInstance(
             data["db"],
-            data["vote_req"],
-            data["poll_limit"],
-            ChannelList(
-                data["channels"]["news"],
-                data["channels"]["voting"],
-                data["channels"]["play"],
-            ),
+            data.get("vote_req", 4),
+            data.get("poll_limit", 20),
+            channel_list,
             lookup,
         )
 
