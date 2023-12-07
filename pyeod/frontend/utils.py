@@ -84,7 +84,7 @@ async def build_info_embed(
         progress = f"{len(set(path) & set(user.inv)) / len(path) * 100:.2f}%"
 
     fields = [
-        EmbedField("🧙‍♂️ Creator", creator, True),
+        EmbedField("🧙 Creator", creator, True),
         EmbedField("👥 Collaborators", collaborators, True)
         if element.extra_authors
         else None,
