@@ -1,7 +1,17 @@
 __all__ = ["ChannelList", "DiscordGameInstance", "InstanceManager"]
 
-from typing import Optional, List, Dict, Tuple, TypeVar, Union
-from pyeod.model import GameInstance, Database, Poll, Element
+from pyeod import config
+from pyeod.model import (
+    ColorPoll,
+    Database,
+    Element,
+    GameInstance,
+    IconPoll,
+    ImagePoll,
+    Poll,
+)
+from discord import Embed
+from typing import Dict, List, Tuple, Union, TypeVar, Optional
 
 
 class ChannelList:
@@ -73,11 +83,17 @@ class DiscordGameInstance(GameInstance):
         )
 
     def convert_poll_to_embed(self, poll: Poll):
-        embed = Embed(title=poll.get_title(), description=poll.get_description())
+        embed = Embed(
+            title=poll.get_title(),
+            description=poll.get_description(),
+            color=config.embed_color,
+        )
         if isinstance(poll, ImagePoll):
             embed.set_image(url=poll.image)
         if isinstance(poll, IconPoll):
             embed.set_image(url=poll.icon)
+        if isinstance(poll, ColorPoll):
+            embed.color = poll.color
         # Ray: You can change your vote, if you suggested this poll, downvote it to delete it
         # Ray: Shorter footer is neater?
         # Cheesy: How do new users know how to delete polls tho?
@@ -130,4 +146,3 @@ class InstanceManager:
         else:
             instance = self.get_instance(id)
         return instance
-

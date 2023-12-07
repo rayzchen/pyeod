@@ -1,6 +1,11 @@
-from pyeod.frontend import (DiscordGameInstance, ElementalBot, FooterPaginator,
-                            InstanceManager, generate_embed_list,
-                            get_page_limit)
+from pyeod.frontend import (
+    DiscordGameInstance,
+    ElementalBot,
+    FooterPaginator,
+    InstanceManager,
+    generate_embed_list,
+    get_page_limit,
+)
 from discord.ext import bridge, commands
 import random
 
@@ -53,7 +58,7 @@ class Hint(commands.Cog):
 
         limit = get_page_limit(server, ctx.channel.id)
         embeds = generate_embed_list(
-            lines, f"Hints for {element.name} ({len(lines)})", limit
+            lines, f"Hints for {element.name} ({len(lines)})", limit, element.color
         )
         if element.id in user.inv:
             footer = "📫 You have this"
@@ -101,7 +106,7 @@ class Hint(commands.Cog):
 
         limit = get_page_limit(server, ctx.channel.id)
         embeds = generate_embed_list(
-            lines, f"Hints for {elem.name} ({len(lines)})", limit
+            lines, f"Hints for {elem.name} ({len(lines)})", limit, elem.color
         )
         if elem.id in user.inv:
             footer = "📫 You have this"
@@ -114,11 +119,11 @@ class Hint(commands.Cog):
     @bridge.guild_only()
     async def products(self, ctx: bridge.Context, *, element: str):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
-        element = server.check_element(element)
+        elem = server.check_element(element)
 
         user = server.login_user(ctx.author.id)
         lines = []
-        for combo in server.db.used_in_lookup[element.id]:
+        for combo in server.db.used_in_lookup[elem.id]:
             result = server.db.combos[combo]
             tick = result.id in user.inv
             lines.append(self.get_emoji(tick) + " " + result.name)
@@ -134,9 +139,9 @@ class Hint(commands.Cog):
 
         limit = get_page_limit(server, ctx.channel.id)
         embeds = generate_embed_list(
-            lines, f"Products of {element.name} ({len(lines)})", limit
+            lines, f"Products of {elem.name} ({len(lines)})", limit, elem.color
         )
-        if element.id in user.inv:
+        if elem.id in user.inv:
             footer = "📫 You have this"
         else:
             footer = "📭 You don't have this"

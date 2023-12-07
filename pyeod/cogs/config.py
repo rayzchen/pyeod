@@ -57,9 +57,7 @@ class Config(commands.Cog):
 
     @commands.slash_command()
     @default_permissions(manage_channels=True)
-    async def remove_play_channel(
-        self, ctx: bridge.Context, channel: TextChannel
-    ):
+    async def remove_play_channel(self, ctx: bridge.Context, channel: TextChannel):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
         try:
@@ -89,9 +87,7 @@ class Config(commands.Cog):
     @bridge.bridge_command()
     @bridge.guild_only()
     @bridge.has_permissions(manage_channels=True)
-    async def edit_element_name(
-        self, ctx: bridge.Context, elem_id: int, *, name: str
-    ):
+    async def edit_element_name(self, ctx: bridge.Context, elem_id: int, *, name: str):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if elem_id not in server.db.elem_id_lookup:
             await ctx.respond(f"🔴 No element with id #{elem_id}!")

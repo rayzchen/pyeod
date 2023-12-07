@@ -1,5 +1,10 @@
-from pyeod import frontend
-from pyeod.frontend import DiscordGameInstance, ElementalBot, InstanceManager
+from pyeod.frontend import (
+    DiscordGameInstance,
+    ElementalBot,
+    InstanceManager,
+    build_info_embed,
+    parse_element_list,
+)
 from pyeod.model import GameError
 from pyeod.utils import format_list
 from discord import Embed, Message
@@ -20,7 +25,8 @@ class Base(commands.Cog):
             try:
                 await func(self, msg)
             except Exception as e:
-                self.bot.dispatch("command_error", msg, e)
+                context = bridge.BridgeExtContext(message=msg, bot=self.bot, view=None)
+                self.bot.dispatch("bridge_command_error", context, e)
 
         return inner
 
@@ -65,7 +71,7 @@ class Base(commands.Cog):
             element = server.check_element(element_name)
         user = server.login_user(msg.author.id)
 
-        embed = await frontend.build_info_embed(server, element, user)
+        embed = await build_info_embed(server, element, user)
         await msg.reply(embed=embed)
 
     async def combine_elements(self, server: DiscordGameInstance, msg: Message) -> None:
@@ -90,7 +96,7 @@ class Base(commands.Cog):
                     return
 
         if not elements:
-            elements = frontend.parse_element_list(msg.content)
+            elements = parse_element_list(msg.content)
 
         if (
             msg.content.startswith("*")
@@ -160,7 +166,9 @@ class Base(commands.Cog):
         combo = []
         for _ in range(number_of_elements):
             combo.append(server.db.elem_id_lookup[random.choice(user.inv)].name)
-        description = f"Combined:\n> \n> **{'** + **'.join(combo)}**\n> \n\nResult:\n> \n> "
+        description = (
+            f"Combined:\n> \n> **{'** + **'.join(combo)}**\n> \n\nResult:\n> \n> "
+        )
         try:
             element = server.combine(user, tuple(combo))
             description += f"🆕 You made **{element.name}**!"
@@ -177,8 +185,10 @@ class Base(commands.Cog):
                 description += (
                     f"🟦 You made **{g.meta['element'].name}**, but you already have it!"
                 )
-        description += "\n> \u200c" # ZWNJ
-        embed = Embed(title="Random Combo", description=description)
+        description += "\n> \u200c"  # ZWNJ
+        embed = Embed(
+            title="Random Combo", description=description, color=config.embed_color
+        )
         await ctx.respond(embed=embed)
 
     async def suggest_element(

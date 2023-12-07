@@ -1,6 +1,11 @@
-from pyeod.frontend import (DiscordGameInstance, ElementalBot, FooterPaginator,
-                            InstanceManager, generate_embed_list,
-                            get_page_limit)
+from pyeod.frontend import (
+    DiscordGameInstance,
+    ElementalBot,
+    FooterPaginator,
+    InstanceManager,
+    generate_embed_list,
+    get_page_limit,
+)
 from discord import User
 from discord.ext import bridge, commands
 from typing import Optional

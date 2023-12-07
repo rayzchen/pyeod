@@ -1,6 +1,12 @@
 from pyeod.frontend import DiscordGameInstance, ElementalBot, InstanceManager
-from pyeod.model import (AddCollabPoll, ColorPoll, IconPoll, ImagePoll,
-                         MarkPoll, RemoveCollabPoll)
+from pyeod.model import (
+    AddCollabPoll,
+    ColorPoll,
+    IconPoll,
+    ImagePoll,
+    MarkPoll,
+    RemoveCollabPoll,
+)
 from discord import Attachment, NotFound, User
 from discord.ext import bridge, commands
 import aiohttp
@@ -14,9 +20,7 @@ class Info(commands.Cog):
 
     @bridge.bridge_command(aliases=["c", "comment", "note"])
     @bridge.guild_only()
-    async def mark(
-        self, ctx: bridge.Context, *, marked_element: str, mark: str = ""
-    ):
+    async def mark(self, ctx: bridge.Context, *, marked_element: str, mark: str = ""):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         user = server.login_user(ctx.author.id)
         if ctx.is_app:
@@ -27,7 +31,9 @@ class Info(commands.Cog):
         else:
             split_msg = marked_element.split("|")
             if len(split_msg) < 2:
-                await ctx.respond("🔴 Please separate the element and the mark with a | !")
+                await ctx.respond(
+                    "🔴 Please separate the element and the mark with a | !"
+                )
                 return
             mark = split_msg[1].strip()
         if not server.db.has_element(marked_element):
@@ -55,9 +61,7 @@ class Info(commands.Cog):
 
     @bridge.bridge_command()
     @bridge.guild_only()
-    async def color(
-        self, ctx: bridge.Context, *, element: str, color: str = ""
-    ):
+    async def color(self, ctx: bridge.Context, *, element: str, color: str = ""):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if not ctx.is_app:
             element, color = element.rsplit(" ", 1)
@@ -127,7 +131,9 @@ class Info(commands.Cog):
 
     @bridge.bridge_command()
     @bridge.guild_only()
-    async def icon(self, ctx: bridge.Context, *, element: str, icon: Optional[Attachment] = None):
+    async def icon(
+        self, ctx: bridge.Context, *, element: str, icon: Optional[Attachment] = None
+    ):
         import discord
 
         server = InstanceManager.current.get_or_create(ctx.guild.id)
@@ -298,7 +304,9 @@ class Info(commands.Cog):
                 await ctx.respond("🔴 Please separate each parameter with a | !")
                 return
             elem = server.check_element(split_msg[0].strip())
-            for i in split_msg[1].strip().replace(",", " ").replace("|", " ").split(" "):
+            for i in (
+                split_msg[1].strip().replace(",", " ").replace("|", " ").split(" ")
+            ):
                 if not i:
                     continue
                 id = int(i.replace("<@", "").replace(">", ""))

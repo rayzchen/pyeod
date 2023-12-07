@@ -8,3 +8,5 @@ restartfile = os.path.join(control, "restart")
 
 # Debug server used to test new commands
 main_server = 0
+
+embed_color = 0x3499EB

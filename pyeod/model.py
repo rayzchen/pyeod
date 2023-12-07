@@ -402,9 +402,7 @@ class MarkPoll(Poll):
 
     def get_description(self) -> str:
         text = f"**{self.marked_element.name}**\n"
-        text += (
-            f"Old Mark: \n{self.marked_element.mark}\n\nNew Mark:\n{self.mark}"
-        )
+        text += f"Old Mark: \n{self.marked_element.mark}\n\nNew Mark:\n{self.mark}"
         text += f"\n\nSuggested by <@{self.author.id}>"
         return text
 
@@ -443,7 +441,7 @@ class ColorPoll(Poll):
         super(ColorPoll, self).__init__(author)
         self.colored_element = colored_element
         if isinstance(color, str):
-            self.color = self.get_int(color)
+            self.color = ColorPoll.get_int(color)
         else:
             self.color = color
 
@@ -475,16 +473,18 @@ class ColorPoll(Poll):
 
     def get_description(self) -> str:
         text = f"**{self.colored_element.name}**\n"
-        text += f"Old Color: \n{self.get_hex(self.colored_element.color)}\n"
-        text += f"\nNew Color:\n{self.get_hex(self.color)}"
+        text += f"Old Color: \n{ColorPoll.get_hex(self.colored_element.color)}\n"
+        text += f"\nNew Color:\n{ColorPoll.get_hex(self.color)}"
         text += f"\n\nSuggested by <@{self.author.id}>"
         return text
 
-    def get_hex(self, color: int) -> str:
+    @staticmethod
+    def get_hex(color: int) -> str:
         rgb = [(color & 0xFF0000) >> 16, (color & 0x00FF00) >> 8, color & 0x0000FF]
         return "#" + "".join(hex(x)[2:].rjust(2, "0") for x in rgb)
 
-    def get_int(self, color: str) -> int:
+    @staticmethod
+    def get_int(color: str) -> int:
         rgb_str = [color[1:3], color[3:5], color[5:]]
         rgb = [0, 0, 0]
         for i in range(3):
@@ -996,10 +996,10 @@ class Database(SavableMixin):
         )
 
 
-AIR = Element("Air", id=1)
-EARTH = Element("Earth", id=2)
-FIRE = Element("Fire", id=3)
-WATER = Element("Water", id=4)
+AIR = Element("Air", id=1, color=0x99E5DC)
+EARTH = Element("Earth", id=2, color=0x806043)
+FIRE = Element("Fire", id=3, color=0xFF7000)
+WATER = Element("Water", id=4, color=0x239AFF)
 DEFAULT_STARTER_ELEMENTS = (AIR, EARTH, FIRE, WATER)
 
 

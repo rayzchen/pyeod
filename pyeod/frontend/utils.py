@@ -1,10 +1,16 @@
-__all__ = ["parse_element_list", "build_info_embed", "generate_embed_list", "get_page_limit"]
+__all__ = [
+    "parse_element_list",
+    "build_info_embed",
+    "generate_embed_list",
+    "get_page_limit",
+]
 
 
-from typing import List
+from pyeod import config
 from pyeod.frontend.model import DiscordGameInstance
-from pyeod.model import GameInstance, Element, User
-from discord import Embed
+from pyeod.model import ColorPoll, Element, GameInstance, User
+from discord import Embed, EmbedField
+from typing import List
 import math
 
 
@@ -85,6 +91,7 @@ async def build_info_embed(
             "🔍 Found By", str(len(instance.db.found_by_lookup[element.id])), True
         ),
         EmbedField("🗣️ Marker", marker, True) if element.marker else None,
+        EmbedField("🖌️ Color", ColorPoll.get_hex(element.color), True),
         EmbedField("🎨 Colorer", colorer, True) if element.colorer else None,
         EmbedField("🖼️ Imager", imager, True) if element.imager else None,
         EmbedField("📍 Iconer", iconer, True) if element.iconer else None,
@@ -109,9 +116,11 @@ async def build_info_embed(
     return embed
 
 
-def generate_embed_list(lines: List[str], title: str, limit: int) -> List[Embed]:
+def generate_embed_list(
+    lines: List[str], title: str, limit: int, color: int = config.embed_color
+) -> List[Embed]:
     if not lines:
-        embeds = [Embed(title=title)]
+        embeds = [Embed(title=title, color=color)]
         return embeds
 
     embeds = []
@@ -120,6 +129,7 @@ def generate_embed_list(lines: List[str], title: str, limit: int) -> List[Embed]
             Embed(
                 title=title,
                 description="\n".join(lines[i * limit : i * limit + limit]),
+                color=color,
             )
         )
     return embeds
@@ -129,4 +139,3 @@ def get_page_limit(instance: DiscordGameInstance, channel_id: int) -> int:
     if channel_id in instance.channels.play_channels:
         return 30
     return 10
-
