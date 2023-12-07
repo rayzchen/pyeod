@@ -60,6 +60,7 @@ def convert_from_dict(
 
 def multiprocess_save(instance: GameInstance, filename: str) -> None:
     data = msgpack.dumps(instance, default=convert_to_dict)
+    os.makedirs(os.path.join(config.package, "db"), exist_ok=True)
     with open(os.path.join(config.package, "db", filename), "wb+") as f:
         f.write(data)
 
