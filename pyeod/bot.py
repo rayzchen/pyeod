@@ -35,7 +35,7 @@ opts = {
 }
 
 if "DEBUG_SERVER" in os.environ:
-    opts["debug_guilds"] = config.main_server
+    opts["debug_guilds"] = config.MAIN_SERVER
 
 
 def run():

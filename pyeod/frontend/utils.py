@@ -8,7 +8,7 @@ __all__ = [
 
 from pyeod import config
 from pyeod.frontend.model import DiscordGameInstance
-from pyeod.model import ColorPoll, Element, GameInstance, User
+from pyeod.model import ColorPoll, Element, GameInstance, User, InternalError
 from discord import Embed, EmbedField
 from typing import List
 import math
@@ -52,6 +52,13 @@ async def build_info_embed(
     else:
         timestamp = f"<t:{element.created}>"
 
+    path = instance.db.get_path(element)
+    tree_size = len(path)
+    complexity = instance.db.complexities[element.id]
+    made_with = len(instance.db.combo_lookup[element.id])
+    used_in = len(instance.db.used_in_lookup[element.id])
+    found_by = len(instance.db.found_by_lookup[element.id])
+
     if element.mark and element.marker is not None:
         marker = f"<@{element.marker.id}>"
         description += element.mark
@@ -70,7 +77,6 @@ async def build_info_embed(
     if element.extra_authors:
         collaborators = ", ".join([f"<@{i.id}>" for i in element.extra_authors])
 
-    path = instance.db.get_path(element)
     if element.id in user.inv:
         # In case they didn't use the shortest path
         progress = "100%"
@@ -83,20 +89,18 @@ async def build_info_embed(
         if element.extra_authors
         else None,
         EmbedField("📅 Created At", timestamp, True),
-        EmbedField("🌲 Tree Size", str(len(path)), True),
-        EmbedField("🔀 Complexity", str(instance.db.complexities[element.id]), True),
-        EmbedField("🔨 Made With", str(len(instance.db.combo_lookup[element.id])), True),
-        EmbedField("🧰 Used In", str(len(instance.db.used_in_lookup[element.id])), True),
-        EmbedField(
-            "🔍 Found By", str(len(instance.db.found_by_lookup[element.id])), True
-        ),
+        EmbedField("🌲 Tree Size", str(tree_size), True),
+        EmbedField("🔀 Complexity", str(complexity), True),
+        EmbedField("🔨 Made With", str(made_with), True),
+        EmbedField("🧰 Used In", str(used_in), True),
+        EmbedField("🔍 Found By", str(found_by), True),
         EmbedField("🗣️ Marker", marker, True) if element.marker else None,
         EmbedField("🖌️ Color", ColorPoll.get_hex(element.color), True),
         EmbedField("🎨 Colorer", colorer, True) if element.colorer else None,
         EmbedField("🖼️ Imager", imager, True) if element.imager else None,
         EmbedField("📍 Iconer", iconer, True) if element.iconer else None,
+        EmbedField("📊 Progress", progress, True),
         EmbedField("📂 Categories", "N/A", False),
-        EmbedField("📊 Progress", progress, False),
     ]
 
     embed = Embed(
@@ -117,7 +121,7 @@ async def build_info_embed(
 
 
 def generate_embed_list(
-    lines: List[str], title: str, limit: int, color: int = config.embed_color
+    lines: List[str], title: str, limit: int, color: int = config.EMBED_COLOR
 ) -> List[Embed]:
     if not lines:
         embeds = [Embed(title=title, color=color)]

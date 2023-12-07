@@ -9,6 +9,7 @@ from pyeod.model import (
     IconPoll,
     ImagePoll,
     Poll,
+    InternalError,
 )
 from discord import Embed
 from typing import Dict, List, Tuple, Union, TypeVar, Optional
@@ -86,7 +87,7 @@ class DiscordGameInstance(GameInstance):
         embed = Embed(
             title=poll.get_title(),
             description=poll.get_description(),
-            color=config.embed_color,
+            color=config.EMBED_COLOR,
         )
         if isinstance(poll, ImagePoll):
             embed.set_image(url=poll.image)

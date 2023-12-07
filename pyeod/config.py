@@ -7,6 +7,6 @@ stopfile = os.path.join(control, "stop")
 restartfile = os.path.join(control, "restart")
 
 # Debug server used to test new commands
-main_server = 0
+MAIN_SERVER = 0
 
-embed_color = 0x3499EB
+EMBED_COLOR = 0x3499EB

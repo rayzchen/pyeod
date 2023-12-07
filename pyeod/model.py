@@ -1,4 +1,4 @@
-from abc import ABCMeta, abstractmethod, abstractstaticmethod
+from abc import ABCMeta, abstractmethod
 from typing import Dict, List, Tuple, Union, Optional
 import copy
 import time
@@ -7,11 +7,12 @@ import colorsys
 
 class ModelBaseError(Exception):
     def __init__(
-        self, type: str, message: str = "No Message Provided", meta: dict = {}
+        self, type: str, message: str = "No Message Provided", meta: dict = None
     ) -> None:
         self.type = type
         self.message = message
-        self.meta = meta  # Used to transfer useful error info
+        # Used to transfer useful error info
+        self.meta = meta if meta is not None else {}
 
 
 class InternalError(ModelBaseError):
@@ -136,7 +137,8 @@ class Element(SavableMixin):
 
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "Element":
-        # TODO: Convert all convert_from_dict to using .get as it's more robust and allows for defaults
+        # TODO: Convert all convert_from_dict to using .get
+        # TODO: more robust and allows for defaults
         author = loader.users[data["author"]]
         marker = loader.users[data.get("marker")]
         colorer = loader.users[data.get("colorer")]
@@ -296,32 +298,29 @@ class ElementPoll(Poll):
         if self.accepted:
             msg += "🆕 "
             if self.exists:
-                msg += f"Combination"
+                msg += "Combination"
             else:
-                msg += f"Element"
+                msg += "Element"
             msg += f" - **{self.result}** (Lasted **{self.get_time()}** • "
             msg += f"By <@{self.author.id}>) - "
             if self.exists:
-                msg += f"Combination "
-                msg += f"**\#{len(instance.db.combos) + 1}**"
+                msg += "Combination "
+                msg += f"**\\#{len(instance.db.combos) + 1}**"
             else:
-                msg += f"Element "
-                msg += f"**\#{instance.db.elements[self.result.lower()].id}**"
+                msg += "Element "
+                msg += f"**\\#{instance.db.elements[self.result.lower()].id}**"
         else:
             msg += "❌ Poll Rejected - "
             if self.exists:
-                msg += f"Combination"
+                msg += "Combination"
             else:
-                msg += f"Element"
+                msg += "Element"
             msg += f" - **{self.result}** (Lasted **{self.get_time()}** • "
             msg += f"By <@{self.author.id}>) "
         return msg
 
     def get_title(self) -> str:
-        if self.exists:
-            return "Combination"
-        else:
-            return "Element"
+        return "Combination" if self.exists else "Element"
 
     def get_description(self) -> str:
         text = " + ".join([i.name for i in self.combo]) + " = " + self.result
@@ -392,7 +391,7 @@ class MarkPoll(Poll):
             msg += f"By <@{self.author.id}>)"
         else:
             msg += "❌ Poll Rejected - "
-            msg += f"Mark"
+            msg += "Mark"
             msg += f" - **{self.marked_element.name}** (Lasted **{self.get_time()}** • "
             msg += f"By <@{self.author.id}>) "
         return msg
@@ -461,7 +460,7 @@ class ColorPoll(Poll):
             msg += f"By <@{self.author.id}>)"
         else:
             msg += "❌ Poll Rejected - "
-            msg += f"Color"
+            msg += "Color"
             msg += (
                 f" - **{self.colored_element.name}** (Lasted **{self.get_time()}** • "
             )
@@ -539,7 +538,7 @@ class ImagePoll(Poll):
             msg += f"By <@{self.author.id}>)"
         else:
             msg += "❌ Poll Rejected - "
-            msg += f"Image"
+            msg += "Image"
             msg += f" - **{self.imaged_element.name}** (Lasted **{self.get_time()}** • "
             msg += f"By <@{self.author.id}>) "
         return msg
@@ -605,7 +604,7 @@ class IconPoll(Poll):
             msg += f"By <@{self.author.id}>)"
         else:
             msg += "❌ Poll Rejected - "
-            msg += f"Icon"
+            msg += "Icon"
             msg += f" - **{self.iconed_element.name}** (Lasted **{self.get_time()}** • "
             msg += f"By <@{self.author.id}>) "
         return msg
@@ -672,7 +671,7 @@ class AddCollabPoll(Poll):
             msg += f"By <@{self.author.id}>)"
         else:
             msg += "❌ Poll Rejected - "
-            msg += f"Collab"
+            msg += "Collab"
             msg += f" - **{self.element.name}** (Lasted **{self.get_time()}** • "
             msg += f"By <@{self.author.id}>) "
         return msg
@@ -736,7 +735,7 @@ class RemoveCollabPoll(Poll):
             msg += f"By <@{self.author.id}>)"
         else:
             msg += "❌ Poll Rejected - "
-            msg += f"Remove Collaborators"
+            msg += "Remove Collaborators"
             msg += f" - **{self.element.name}** (Lasted **{self.get_time()}** • "
             msg += f"By <@{self.author.id}>) "
         return msg
@@ -817,12 +816,16 @@ class Database(SavableMixin):
             for elem in user.inv:
                 self.found_by_lookup[elem].add(user.id)
 
+        self.complexities = {}
+        self.min_elem_tree = {}
+
     def calculate_infos(self) -> None:
         self.complexity_lock = True
-        self.complexities: Dict[int, int] = {elem.id: 0 for elem in self.starters}
-        self.min_elem_tree: Dict[int, Tuple[int, ...]] = {
-            elem.id: () for elem in self.starters
-        }
+
+        for elem in self.starters:
+            self.complexities[elem.id] = 0
+            self.min_elem_tree[elem.id] = ()
+
         unseen = set(self.elem_id_lookup)
         for elem in self.starters:
             unseen.remove(elem.id)
@@ -861,8 +864,7 @@ class Database(SavableMixin):
             self.complexities[elem_id] = min_complexity
             self.min_elem_tree[elem_id] = min_combo
             return min_complexity
-        else:
-            return None
+        return None
 
     def check_colors(self):
         for element in self.elements.values():
@@ -1110,7 +1112,7 @@ class GameInstance(SavableMixin):
                 poll.accepted = True
                 try:
                     poll.resolve(self.db)
-                except InternalError as e:
+                except InternalError:
                     # Sometimes occurs when poll is accepted twice
                     pass
                 deleted_polls.append(poll)
@@ -1130,19 +1132,18 @@ class GameInstance(SavableMixin):
             poll.accepted = True
             try:
                 poll.resolve(self.db)
-            except InternalError as e:
+            except InternalError:
                 # Sometimes occurs when poll is accepted twice
                 pass
             poll.author.active_polls -= 1
             self.db.polls.remove(poll)
             return True
-        elif poll.votes <= -self.vote_req:
+        if poll.votes <= -self.vote_req:
             # Poll was denied
             poll.author.active_polls -= 1
             self.db.polls.remove(poll)
             return True
-        else:
-            return False
+        return False
 
     def convert_to_dict(self, data: dict) -> None:
         data["db"] = self.db
@@ -1154,7 +1155,7 @@ class GameInstance(SavableMixin):
         return GameInstance(data["db"], data["vote_req"], data["poll_limit"])
 
 
-if __name__ == "__main__":
+def generate_test_game():
     game = GameInstance()
     user = game.login_user(0)
     combo = ("fire", "fire")
@@ -1167,4 +1168,7 @@ if __name__ == "__main__":
             )
     game.db.polls[0].votes += 4
     game.check_polls()
-    print(user.inv)
+    return game
+
+if __name__ == "__main__":
+    print(generate_test_game().login_user(0).inv)

@@ -187,7 +187,7 @@ class Base(commands.Cog):
                 )
         description += "\n> \u200c"  # ZWNJ
         embed = Embed(
-            title="Random Combo", description=description, color=config.embed_color
+            title="Random Combo", description=description, color=config.EMBED_COLOR
         )
         await ctx.respond(embed=embed)
 

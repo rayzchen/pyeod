@@ -6,15 +6,14 @@ from pyeod.model import (
     Database,
     Element,
     ElementPoll,
-    GameError,
     GameInstance,
     IconPoll,
     ImagePoll,
     MarkPoll,
-    Poll,
     RemoveCollabPoll,
     SavableMixin,
     User,
+    generate_test_game,
 )
 import msgpack
 from typing import Dict, List, Type, Union
@@ -112,21 +111,10 @@ def load_instance(file: str) -> GameInstance:
     return instance
 
 
-if __name__ == "__main__":
+def test_function():
     import simplejson
 
-    game = GameInstance()
-    user = game.login_user(0)
-    combo = ("fire", "fire")
-    try:
-        game.combine(user, combo)
-    except GameError as g:
-        if g.type == "Not a combo":
-            game.suggest_element(
-                user, tuple(game.check_element(name) for name in combo), "inferno"
-            )
-    game.db.polls[0].votes += 4
-    game.check_polls()
+    game = generate_test_game()
 
     dump = simplejson.dumps(game, default=convert_to_dict)
     loader = InstanceLoader()
@@ -136,3 +124,7 @@ if __name__ == "__main__":
     dump2 = simplejson.dumps(loaded_game, default=convert_to_dict)
     print(dump)
     print(dump2)
+
+
+if __name__ == "__main__":
+    test_function()

@@ -17,9 +17,8 @@ def format_traceback(err):
 def format_list(items, final_sep="or"):
     if len(items) == 0:
         return ""
-    elif len(items) == 1:
+    if len(items) == 1:
         return str(items[0])
-    elif len(items) == 2:
+    if len(items) == 2:
         return f"{items[0]} {final_sep} {items[1]}"
-    else:
-        return f"{', '.join(map(str, items[:-1]))}, {final_sep} {items[-1]}"
+    return f"{', '.join(map(str, items[:-1]))}, {final_sep} {items[-1]}"

@@ -1,0 +1,16 @@
+[tool.pylint]
+disable = [
+    "wrong-import-order",
+    "wrong-import-position",
+    "redefined-builtin",
+    "super-with-arguments",
+    "fixme",
+
+    "missing-function-docstring",
+    "missing-module-docstring",
+    "missing-class-docstring",
+
+    "consider-using-with",
+    "unspecified-encoding",
+    "import-outside-toplevel",
+]
