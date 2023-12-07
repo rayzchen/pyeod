@@ -123,24 +123,28 @@ class Hint(commands.Cog):
 
         user = server.login_user(ctx.author.id)
         lines = []
-        for combo in server.db.used_in_lookup[elem.id]:
+        sorter = lambda combo: server.db.combos[combo].id
+        for combo in sorted(server.db.used_in_lookup[elem.id], key=sorter):
             result = server.db.combos[combo]
             tick = result.id in user.inv
-            lines.append(self.get_emoji(tick) + " " + result.name)
+            line = self.get_emoji(tick) + " " + result.name
+            if line not in lines:
+                # In case multiple combos use this element for the same result
+                lines.append(self.get_emoji(tick) + " " + result.name)
 
+        unobtained_emoji = self.get_emoji(False)
         unobtained_lines = []
         for line in lines:
-            if line.startswith(self.get_emoji(False)):
+            if line.startswith(unobtained_emoji):
                 unobtained_lines.append(line)
-        # Move to end
+        # Move to end preserving order
         for line in unobtained_lines:
             lines.remove(line)
             lines.append(line)
 
         limit = get_page_limit(server, ctx.channel.id)
-        embeds = generate_embed_list(
-            lines, f"Products of {elem.name} ({len(lines)})", limit, elem.color
-        )
+        title = f"Products of {elem.name} ({len(lines)})"
+        embeds = generate_embed_list(lines, title, limit, elem.color)
         if elem.id in user.inv:
             footer = "📫 You have this"
         else:
