@@ -1,6 +1,7 @@
 from pyeod import config
 import os
 import sys
+import site
 import traceback
 
 
@@ -9,8 +10,10 @@ def format_traceback(err):
     error = f"```py\n{_traceback}\n```"
     workdir = os.path.abspath("/<workdir>")
     packagedir = os.path.abspath("/<python>")
+    sitepackagedir = os.path.abspath("/<site-packages>")
     error = error.replace(config.package_location, workdir)
     error = error.replace(sys.prefix, packagedir)
+    error = error.replace(site.getusersitepackages(), sitepackagedir)
     return error
 
 
