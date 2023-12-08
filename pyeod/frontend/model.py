@@ -8,8 +8,8 @@ from pyeod.model import (
     GameInstance,
     IconPoll,
     ImagePoll,
-    Poll,
     InternalError,
+    Poll,
 )
 from discord import Embed
 from typing import Dict, List, Tuple, Union, TypeVar, Optional

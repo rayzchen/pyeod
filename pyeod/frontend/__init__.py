@@ -1,3 +1,11 @@
+__all__ = ["FooterPaginator", "ElementalBot"]
+
+from pyeod.frontend.model import __all__ as _model_all
+from pyeod.frontend.utils import __all__ as _utils_all
+
+__all__.extend(_model_all)
+__all__.extend(_utils_all)
+
 from pyeod.frontend.model import *
 from pyeod.frontend.utils import *
 from pyeod.model import InternalError, Poll
