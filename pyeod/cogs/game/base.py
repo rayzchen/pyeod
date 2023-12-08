@@ -136,13 +136,18 @@ class Base(commands.Cog):
             elif g.type == "Not in inv":
                 user.last_element = None
                 user.last_combo = ()
-                await msg.reply(
-                    f"🔴 You don't have {format_list([f'**{i.name}**' for i in g.meta['elements']])}!"
-                )
-            if g.type == "Not an element":
+                element_list = [f"**{elem.name}**" for elem in g.meta["elements"]]
+                await msg.reply(f"🔴 You don't have {format_list(element_list)}!")
+            if g.type == "Do not exist":
                 user.last_element = None
                 user.last_combo = ()
-                await msg.reply("🔴 Not a valid element!")
+                element_list = [f"**{elem}**" for elem in g.meta["elements"]]
+                if len(element_list) == 1:
+                    await msg.reply(f"🔴 Element {element_list[0]} doesn't exist!")
+                else:
+                    await msg.reply(
+                        f"🔴 Elements {format_list(element_list, 'and')} don't exist!"
+                    )
 
     @bridge.bridge_command(aliases=["s"])
     @bridge.guild_only()

@@ -1048,20 +1048,30 @@ class GameInstance(SavableMixin):
         self, element_name_list: Tuple[str, ...], user: Optional[User] = None
     ) -> Tuple[Element, ...]:
         elements = []
-        not_in_inv = []
+        unobtained = set()
+        nonexistent = set()
         for i in element_name_list:
             try:
                 elements.append(self.check_element(i, user))
             except GameError as g:
                 if g.type == "Not in inv":
-                    not_in_inv.append(g.meta["element"])
+                    unobtained.add(g.meta["element"])
+                elif g.type == "Not an element":
+                    nonexistent.add(g.meta["name"])
                 else:
                     raise g
-        if not_in_inv:
+        if unobtained:
+            element_list = sorted(unobtained, key=lambda elem: elem.id)
             raise GameError(
                 "Not in inv",
                 "The user does not have the element requested",
-                {"elements": not_in_inv, "user": user},
+                {"elements": element_list, "user": user},
+            )
+        if nonexistent:
+            raise GameError(
+                "Do not exist",
+                "The elements requested do not exist",
+                {"elements": sorted(nonexistent), "user": user},
             )
         return tuple(elements)
 
@@ -1147,9 +1157,7 @@ class GameInstance(SavableMixin):
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "GameInstance":
         return GameInstance(
-            data["db"],
-            data.get("vote_req", 4),
-            data.get("poll_limit", 20)
+            data["db"], data.get("vote_req", 4), data.get("poll_limit", 20)
         )
 
 
@@ -1167,6 +1175,7 @@ def generate_test_game():
     game.db.polls[0].votes += 4
     game.check_polls()
     return game
+
 
 if __name__ == "__main__":
     print(generate_test_game().login_user(0).inv)
