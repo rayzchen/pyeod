@@ -21,11 +21,12 @@ class Config(commands.Cog):
 
     def load_all_instances(self):
         tic = time.perf_counter()
-        for file in glob.glob(os.path.join(config.package, "db", "*.eod")):
-            print(os.path.basename(file))
-            instance = load_instance(file)
-            guild_id = int(os.path.basename(file)[:-4])
-            InstanceManager.current.add_instance(guild_id, instance)
+        with InstanceManager.current.prevent_creation():
+            for file in glob.glob(os.path.join(config.package, "db", "*.eod")):
+                print(os.path.basename(file))
+                instance = load_instance(file)
+                guild_id = int(os.path.basename(file)[:-4])
+                InstanceManager.current.add_instance(guild_id, instance)
         print(f"Loaded instance databases in {time.perf_counter() - tic} seconds")
 
     @commands.Cog.listener()

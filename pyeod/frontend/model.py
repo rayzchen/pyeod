@@ -13,6 +13,7 @@ from pyeod.model import (
 )
 from discord import Embed
 from typing import Dict, List, Tuple, Union, TypeVar, Optional
+from contextlib import contextmanager
 
 
 class ChannelList:
@@ -120,6 +121,16 @@ class InstanceManager:
             self.instances = instances
         else:
             self.instances = {}
+        self.creation_lock = False
+
+    @property
+    def prevent_creation(self):
+        @contextmanager
+        def decorator():
+            self.creation_lock = True
+            yield self
+            self.creation_lock = False
+        return decorator
 
     def __contains__(self, id: int) -> bool:
         return self.has_instance(id)
@@ -146,6 +157,10 @@ class InstanceManager:
 
     def get_or_create(self, id: int) -> DiscordGameInstance:
         if not self.has_instance(id):
+            if self.creation_lock:
+                raise InternalError(
+                    "Creation lock", "Instance loading ongoing, cannot create new instance"
+                )
             instance = DiscordGameInstance()
             self.add_instance(id, instance)
         else:

@@ -78,8 +78,6 @@ class Element(SavableMixin):
         self.image = image
         self.icon = icon
         self.iconer = iconer
-        if imager == []:
-            print(imager)
         self.imager = imager
         if extra_authors is not None:
             self.extra_authors = extra_authors
@@ -116,7 +114,6 @@ class Element(SavableMixin):
         rgb = [0, 0, 0]
         for i in range(3):
             rgb[i] = int(rgb_float[i] * 255)
-        print(rgb)
         return (rgb[0] << 16) | (rgb[1] << 8) | (rgb[2])
 
     def convert_to_dict(self, data: dict) -> None:

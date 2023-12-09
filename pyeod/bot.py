@@ -67,6 +67,7 @@ def run():
             processes.append(process)
         for process in processes:
             process.join()
+        print("Successfully saved all instances")
     if os.path.isfile(config.stopfile):
         os.remove(config.stopfile)
         return False
