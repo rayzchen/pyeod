@@ -2,6 +2,7 @@ __all__ = [
     "parse_element_list",
     "build_info_embed",
     "generate_embed_list",
+    "prepare_file",
     "get_page_limit",
 ]
 
@@ -9,8 +10,11 @@ __all__ = [
 from pyeod import config
 from pyeod.frontend.model import DiscordGameInstance
 from pyeod.model import ColorPoll, Element, GameInstance, InternalError, User
-from discord import Embed, EmbedField
+from discord import Embed, EmbedField, File
+from io import BytesIO, StringIO
 from typing import List
+import os
+import gzip
 import math
 
 
@@ -137,6 +141,16 @@ def generate_embed_list(
             )
         )
     return embeds
+
+
+def prepare_file(fp: StringIO, filename: str):
+    fp.seek(0, os.SEEK_END)
+    if fp.tell() > 25 * 1024:
+        fp.seek(0, os.SEEK_SET)
+        fp = BytesIO(gzip.compress(fp.read().encode("utf-8"), 9))
+        filename += ".gz"
+    fp.seek(0, os.SEEK_SET)
+    return File(fp=fp, filename=filename)
 
 
 def get_page_limit(instance: DiscordGameInstance, channel_id: int) -> int:

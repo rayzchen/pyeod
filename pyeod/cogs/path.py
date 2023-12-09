@@ -1,6 +1,10 @@
-from pyeod.frontend import DiscordGameInstance, ElementalBot, InstanceManager
+from pyeod.frontend import (
+    DiscordGameInstance,
+    ElementalBot,
+    InstanceManager,
+    prepare_file,
+)
 from pyeod.model import InternalError
-from discord import File
 from discord.ext import bridge, commands
 import io
 
@@ -49,7 +53,7 @@ class Path(commands.Cog):
         stream = io.StringIO("\n".join(lines))
         user = await self.bot.fetch_user(ctx.author.id)
         await user.send(
-            f"Path for **{elem.name}**:", file=File(fp=stream, filename="path.txt")
+            f"Path for **{elem.name}**:", file=prepare_file(stream, "path.txt")
         )
         await ctx.respond("💬 Sent path in DM!")
 

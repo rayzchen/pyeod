@@ -130,6 +130,7 @@ class InstanceManager:
             self.creation_lock = True
             yield self
             self.creation_lock = False
+
         return decorator
 
     def __contains__(self, id: int) -> bool:
@@ -159,7 +160,8 @@ class InstanceManager:
         if not self.has_instance(id):
             if self.creation_lock:
                 raise InternalError(
-                    "Creation lock", "Instance loading ongoing, cannot create new instance"
+                    "Creation lock",
+                    "Instance loading ongoing, cannot create new instance",
                 )
             instance = DiscordGameInstance()
             self.add_instance(id, instance)
