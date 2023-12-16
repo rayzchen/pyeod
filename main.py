@@ -1,3 +1,5 @@
+#!/usr/bin/env pypy3
+
 from traceback import print_exc
 import sys
 import time
