@@ -47,6 +47,27 @@ class Config(commands.Cog):
             return
         InstanceManager.current.get_or_create(msg.guild.id)
 
+    @bridge.bridge_command()
+    @bridge.guild_only()
+    @default_permissions(manage_channels=True)
+    async def view_channels(self, ctx: bridge.Context):
+        def convert_channel(channel):
+            if channel is None:
+                return "None"
+            return "<#" + str(channel) + ">"
+
+        server = InstanceManager.current.get_or_create(ctx.guild.id)
+        lines = ["🤖 All registered channels:", ""]
+        lines.append("Voting channel: " + convert_channel(server.channels.voting_channel))
+        lines.append("News channel: " + convert_channel(server.channels.news_channel))
+
+        lines.append("\nPlay channels:")
+        for channel in server.channels.play_channels:
+            lines.append(convert_channel(channel))
+        if not len(server.channels.play_channels):
+            lines.append("None added")
+        await ctx.respond("\n".join(lines))
+
     # Slash commands only cus converting to channel is busted
     @commands.slash_command()
     @default_permissions(manage_channels=True)
