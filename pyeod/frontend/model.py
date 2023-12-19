@@ -156,6 +156,13 @@ class InstanceManager:
             )
         return self.instances[id]
 
+    def remove_instance(self, id: int) -> None:
+        if id not in self.instances:
+            raise InternalError(
+                "Instance not found", "The requested GameInstance not found"
+            )
+        self.instances.pop(id)
+
     def get_or_create(self, id: int) -> DiscordGameInstance:
         if not self.has_instance(id):
             if self.creation_lock:

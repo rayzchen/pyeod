@@ -1,8 +1,9 @@
 from pyeod import config
 from pyeod.frontend import DiscordGameInstance, ElementalBot, InstanceManager
 from pyeod.packer import load_instance, save_instance
-from discord import Message, TextChannel, default_permissions
+from discord import Message, TextChannel, default_permissions, Attachment, File
 from discord.ext import bridge, commands, tasks
+import io
 import os
 import glob
 import time
@@ -46,6 +47,39 @@ class Config(commands.Cog):
         if InstanceManager.current:  # Messages can be caught before bot is ready
             return
         InstanceManager.current.get_or_create(msg.guild.id)
+
+    @bridge.bridge_command(guild_ids=[config.MAIN_SERVER])
+    @bridge.guild_only()
+    async def import_instance(self, ctx: bridge.Context, guild_id: int, file: Attachment):
+        if ctx.author.id not in config.SERVER_CONTROL_USERS:
+            await ctx.respond("🔴 You don't have permission to do that!")
+            return
+
+        path = os.path.join(config.package, "db", str(guild_id) + ".eod")
+        if guild_id not in InstanceManager.current.instances:
+            msg = await ctx.respond("🤖 Server not found, uploading fresh database")
+            old_data = None
+            with open(path, "wb+") as f:
+                f.write(await file.read())
+        else:
+            msg = await ctx.respond("🤖 Server found, backing up original database")
+            with open(path, "rb") as f:
+                old_data = f.read()
+            with open(path, "wb") as f:
+                f.write(await file.read())
+
+        with InstanceManager.current.prevent_creation():
+            instance = load_instance(path)
+            if guild_id in InstanceManager.current.instances:
+                InstanceManager.current.remove_instance(guild_id)
+            InstanceManager.current.add_instance(guild_id, instance)
+
+        await ctx.respond("🤖 Loaded new instance")
+
+        if old_data is not None:
+            stream = io.BytesIO(old_data)
+            file = File(stream, filename=str(guild_id) + ".eod")
+            await ctx.respond("🤖 Old instance backup:", file=file)
 
     @bridge.bridge_command()
     @bridge.guild_only()

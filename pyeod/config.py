@@ -8,5 +8,9 @@ restartfile = os.path.join(control, "restart")
 
 # Debug server used to test new commands
 MAIN_SERVER = 0
-
+SERVER_CONTROL_USERS = [
+    663139761128603651,  # rayzchen
+    666999744572293170,  # cheesybrik
+    274518100500676608,  # steyerofoam
+]
 EMBED_COLOR = 0x3499EB
