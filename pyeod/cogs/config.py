@@ -74,20 +74,21 @@ class Config(commands.Cog):
     async def add_play_channel(self, ctx: bridge.Context, channel: TextChannel):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
-        server.channels.play_channels.append(channel.id)
-        await ctx.respond(f"🤖 Successfully added {channel.name} as a play channel!")
+        if channel.id not in server.channels.play_channels:
+            server.channels.play_channels.append(channel.id)
+        await ctx.respond(f"🤖 Successfully added <#{channel.id}> as a play channel!")
 
     @commands.slash_command()
     @default_permissions(manage_channels=True)
     async def remove_play_channel(self, ctx: bridge.Context, channel: TextChannel):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
-        try:
+        if channel.id in server.channels.play_channels:
             server.channels.play_channels.remove(channel.id)
             await ctx.respond(
-                f"🤖 Successfully removed {channel.name} as a play channel!"
+                f"🤖 Successfully removed <#{channel.id}> as a play channel!"
             )
-        except ValueError:
+        else:
             await ctx.respond(f"🔴 That is not a play channel!")
 
     @commands.slash_command()
@@ -96,7 +97,7 @@ class Config(commands.Cog):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
         server.channels.news_channel = channel.id
-        await ctx.respond(f"🤖 Successfully set {channel.name} as the news channel!")
+        await ctx.respond(f"🤖 Successfully set <#{channel.id}> as the news channel!")
 
     @commands.slash_command()
     @default_permissions(manage_channels=True)
@@ -104,7 +105,7 @@ class Config(commands.Cog):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
         server.channels.voting_channel = channel.id
-        await ctx.respond(f"🤖 Successfully set {channel.name} as the voting channel!")
+        await ctx.respond(f"🤖 Successfully set <#{channel.id}> as the voting channel!")
 
     @bridge.bridge_command()
     @bridge.guild_only()
