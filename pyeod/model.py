@@ -252,6 +252,7 @@ class ElementPoll(Poll):
         "combo",
         "result",
         "exists",
+        "id_override",
     )
 
     def __init__(
@@ -261,16 +262,25 @@ class ElementPoll(Poll):
         self.combo = combo
         self.result = capitalize(result)
         self.exists = exists
+        self.id_override = None
 
     def resolve(self, database: "Database") -> Element:  # Return Element back
         if self.result.lower() not in database.elements:
-            database.max_id += 1
+            if self.id_override is not None:
+                if self.id_override in database.elem_id_lookup:
+                    raise InternalError("Override ID in use", "Cannot use overridden ID")
+                if self.id_override > database.max_id:
+                    database.max_id = self.id_override
+                selected_id = self.id_override
+            else:
+                database.max_id += 1
+                selected_id = database.max_id
             color = Element.get_color(self.combo)
             element = Element(
                 self.result,
                 self.author,
                 round(time.time()),
-                database.max_id,
+                selected_id,
                 color=color,
             )
         else:
