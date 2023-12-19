@@ -58,7 +58,9 @@ class Config(commands.Cog):
 
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         lines = ["🤖 All registered channels:", ""]
-        lines.append("Voting channel: " + convert_channel(server.channels.voting_channel))
+        lines.append(
+            "Voting channel: " + convert_channel(server.channels.voting_channel)
+        )
         lines.append("News channel: " + convert_channel(server.channels.news_channel))
 
         lines.append("\nPlay channels:")
@@ -68,8 +70,8 @@ class Config(commands.Cog):
             lines.append("None added")
         await ctx.respond("\n".join(lines))
 
-    # Slash commands only cus converting to channel is busted
-    @commands.slash_command()
+    @bridge.bridge_command()
+    @bridge.guild_only()
     @default_permissions(manage_channels=True)
     async def add_play_channel(self, ctx: bridge.Context, channel: TextChannel):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
@@ -78,7 +80,8 @@ class Config(commands.Cog):
             server.channels.play_channels.append(channel.id)
         await ctx.respond(f"🤖 Successfully added <#{channel.id}> as a play channel!")
 
-    @commands.slash_command()
+    @bridge.bridge_command()
+    @bridge.guild_only()
     @default_permissions(manage_channels=True)
     async def remove_play_channel(self, ctx: bridge.Context, channel: TextChannel):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
@@ -91,7 +94,8 @@ class Config(commands.Cog):
         else:
             await ctx.respond(f"🔴 That is not a play channel!")
 
-    @commands.slash_command()
+    @bridge.bridge_command()
+    @bridge.guild_only()
     @default_permissions(manage_channels=True)
     async def set_news_channel(self, ctx: bridge.Context, channel: TextChannel):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
@@ -99,7 +103,8 @@ class Config(commands.Cog):
         server.channels.news_channel = channel.id
         await ctx.respond(f"🤖 Successfully set <#{channel.id}> as the news channel!")
 
-    @commands.slash_command()
+    @bridge.bridge_command()
+    @bridge.guild_only()
     @default_permissions(manage_channels=True)
     async def set_voting_channel(self, ctx: bridge.Context, channel: TextChannel):
         server = InstanceManager.current.get_or_create(ctx.guild.id)

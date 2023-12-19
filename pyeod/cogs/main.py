@@ -29,7 +29,7 @@ class Main(commands.Cog):
     ):
         # Handle different exceptions from parsing arguments here
         if isinstance(err, commands.errors.BadArgument):
-            await ctx.respond(str(err))
+            await ctx.respond("🔴 " + str(err))
             return
 
         if err.__cause__ is not None:
