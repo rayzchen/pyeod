@@ -9,7 +9,7 @@ __all__.extend(_utils_all)
 from pyeod.frontend.model import *
 from pyeod.frontend.utils import *
 from pyeod.model import InternalError, Poll
-from discord import ButtonStyle, Embed
+from discord import ButtonStyle, Embed, Message
 from discord.ext import bridge, pages
 
 
@@ -45,7 +45,7 @@ class ElementalBot(bridge.AutoShardedBot):
         self,
         server: DiscordGameInstance,
         poll: Poll,
-        ctx: bridge.Context,
+        msg: Message,
         suggestion_message: str,
     ):
         if server.vote_req == 0:
@@ -64,9 +64,11 @@ class ElementalBot(bridge.AutoShardedBot):
                     "Please set the voting channel before adding polls",
                 )
             voting_channel = await self.fetch_channel(server.channels.voting_channel)
-            msg = await voting_channel.send(embed=server.convert_poll_to_embed(poll))
-            server.poll_msg_lookup[msg.id] = poll
-        await ctx.respond(suggestion_message)
+            poll_msg = await voting_channel.send(
+                embed=server.convert_poll_to_embed(poll)
+            )
+            server.poll_msg_lookup[poll_msg.id] = poll
+        await msg.reply(suggestion_message)
         if server.vote_req != 0:  # Adding reactions after just feels snappier
-            await msg.add_reaction("\U0001F53C")  # ⬆️ Emoji
-            await msg.add_reaction("\U0001F53D")
+            await poll_msg.add_reaction("\U0001F53C")  # ⬆️ Emoji
+            await poll_msg.add_reaction("\U0001F53D")

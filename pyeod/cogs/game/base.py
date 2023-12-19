@@ -9,6 +9,7 @@ from pyeod.model import GameError
 from pyeod.utils import format_list
 from discord import Embed, Message
 from discord.ext import bridge, commands
+from discord.commands import option as option_decorator
 from typing import Union
 import random
 import functools
@@ -151,11 +152,20 @@ class Base(commands.Cog):
 
     @bridge.bridge_command(aliases=["s"])
     @bridge.guild_only()
-    async def suggest(self, ctx: bridge.Context, *, element_name: str):
+    @option_decorator("element_name", required=True)
+    async def suggest(self, ctx: bridge.Context, *, element_name: str = ""):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
+        print(ctx.channel.id, server.channels.play_channels)
         if ctx.channel.id not in server.channels.play_channels:
             await ctx.respond("🔴 You can only suggest in play channels!")
             return
+        if element_name == "":
+            if ctx.message.content.startswith("="):
+                element_name = ctx.message.content[1:].strip()
+            if element_name == "":
+                await ctx.respond("🔴 Please specify an element name!")
+                return
+        # Only required methods of ctx is .author, .channel and .reply
         await self.suggest_element(server, element_name, ctx)
 
     @bridge.bridge_command(aliases=["rc"])
@@ -200,29 +210,31 @@ class Base(commands.Cog):
         self,
         server: DiscordGameInstance,
         name: str,
-        ctx: Union[bridge.Context, Message],
+        msg: Message,
     ) -> None:
-        user = server.login_user(ctx.author.id)
+        user = server.login_user(msg.author.id)
         if server.channels.voting_channel is None:
-            await ctx.respond("🤖 Server not configured, please set voting channel")
+            await msg.reply("🤖 Server not configured, please set voting channel")
+            return
         if server.channels.news_channel is None:
-            await ctx.respond("🤖 Server not configured, please set news channel")
-        if ctx.channel.id not in server.channels.play_channels:
-            await ctx.respond("🔴 You can only suggest in play channels!")
+            await msg.reply("🤖 Server not configured, please set news channel")
+            return
+        if msg.channel.id not in server.channels.play_channels:
+            await msg.reply("🔴 You can only suggest in play channels!")
             return
 
         if user.last_combo == ():
-            await ctx.reply("🔴 Combine something first!")
+            await msg.reply("🔴 Combine something first!")
             return
         elif user.last_element is not None:
-            await ctx.reply("🔴 That combo already exists!")
+            await msg.reply("🔴 That combo already exists!")
         else:
             combo = user.last_combo
             poll = server.suggest_element(user, combo, name.strip())
             await self.bot.add_poll(
                 server,
                 poll,
-                ctx,
+                msg,
                 f"🗳️ Suggested **{'** + **'.join([i.name for i in combo])}** = **{poll.result}**!",
             )
 
