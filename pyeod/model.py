@@ -896,9 +896,10 @@ class Database(SavableMixin):
         while stack:
             node = stack[-1]
             if node not in visited:
+                # Insufficient to only check min_elem_tree[node][-1]
                 if (
                     not self.min_elem_tree[node]
-                    or self.min_elem_tree[node][-1] in visited
+                    or all(x in visited for x in self.min_elem_tree[node])
                 ):
                     stack.pop()
                     visited.add(node)
