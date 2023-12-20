@@ -32,11 +32,11 @@ class Path(commands.Cog):
         else:
             elem = server.check_element(element)
 
-        logged_in = server.login_user(ctx.author.id)
-        if elem.id not in logged_in.inv:
-            await ctx.respond(f"🔴 You don't have **{elem.name}**!")
-            return
-        await ctx.defer()
+        if not ctx.author.guild_permissions.manage_guild:
+            logged_in = server.login_user(ctx.author.id)
+            if elem.id not in logged_in.inv:
+                await ctx.respond(f"🔴 You don't have **{elem.name}**!")
+                return
 
         lines = []
         i = 0
@@ -52,6 +52,7 @@ class Path(commands.Cog):
 
         stream = io.StringIO("\n".join(lines))
         user = await self.bot.fetch_user(ctx.author.id)
+        await ctx.defer()
         await user.send(
             f"Path for **{elem.name}**:", file=prepare_file(stream, "path.txt")
         )
