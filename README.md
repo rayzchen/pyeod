@@ -1,6 +1,6 @@
 # PyEoD
 Python Elemental on Discord is an implementation of [CaryKH's elemental 3](https://www.youtube.com/watch?v=J10KDPg_Im0) in Python for a discord bot. We are open source and are actively developing the bot. We encourage contributions and you can look below for the rules on contributing.
-[The bot invite link](https://discord.com/api/oauth2/authorize?client_id=1064270891464269854&permissions=277025705024&scope=bot%20applications.commands)
+[The bot invite link](https://discord.com/api/oauth2/authorize?client_id=1140757791288598609&permissions=277025705024&scope=bot%20applications.commands)
 Please feel free to suggest new features, ideas, or bugs. All are welcome to submit issues to the github.
 # Developing for PyEoD
 ## Code
