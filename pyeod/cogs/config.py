@@ -1,7 +1,7 @@
 from pyeod import config
 from pyeod.frontend import DiscordGameInstance, ElementalBot, InstanceManager
 from pyeod.packer import load_instance, save_instance
-from discord import Message, TextChannel, default_permissions, Attachment, File
+from discord import Attachment, Embed, File, Message, TextChannel, default_permissions
 from discord.ext import bridge, commands, tasks
 import io
 import os
@@ -42,15 +42,17 @@ class Config(commands.Cog):
         for id, instance in InstanceManager.current.instances.items():
             save_instance(instance, str(id) + ".eod")
 
-    @commands.Cog.listener("on_message")
-    async def check_for_new_servers(self, msg: Message):
-        if InstanceManager.current:  # Messages can be caught before bot is ready
-            return
-        InstanceManager.current.get_or_create(msg.guild.id)
+    # @commands.Cog.listener("on_message")
+    # async def check_for_new_servers(self, msg: Message):
+    #     if InstanceManager.current:  # Messages can be caught before bot is ready
+    #         return
+    #     InstanceManager.current.get_or_create(msg.guild.id)
 
     @bridge.bridge_command(guild_ids=[config.MAIN_SERVER])
     @bridge.guild_only()
-    async def import_instance(self, ctx: bridge.Context, guild_id: int, file: Attachment):
+    async def import_instance(
+        self, ctx: bridge.Context, guild_id: int, file: Attachment
+    ):
         if ctx.author.id not in config.SERVER_CONTROL_USERS:
             await ctx.respond("🔴 You don't have permission to do that!")
             return
@@ -91,18 +93,23 @@ class Config(commands.Cog):
             return "<#" + str(channel) + ">"
 
         server = InstanceManager.current.get_or_create(ctx.guild.id)
-        lines = ["🤖 All registered channels:", ""]
-        lines.append(
-            "Voting channel: " + convert_channel(server.channels.voting_channel)
-        )
-        lines.append("News channel: " + convert_channel(server.channels.news_channel))
+        lines = [
+            "Voting channel: " + convert_channel(server.channels.voting_channel),
+            "News channel: " + convert_channel(server.channels.news_channel),
+            "\nPlay channels:",
+        ]
 
-        lines.append("\nPlay channels:")
         for channel in server.channels.play_channels:
             lines.append(convert_channel(channel))
         if not len(server.channels.play_channels):
             lines.append("None added")
-        await ctx.respond("\n".join(lines))
+
+        embed = Embed(
+            color=config.EMBED_COLOR,
+            title="Registered channels",
+            description="\n".join(lines),
+        )
+        await ctx.respond(embed=embed)
 
     @bridge.bridge_command()
     @bridge.guild_only()
