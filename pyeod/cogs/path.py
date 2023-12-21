@@ -15,7 +15,7 @@ class Path(commands.Cog):
 
     @bridge.bridge_command()
     @bridge.guild_only()
-    async def path(self, ctx: bridge.Context, element: str) -> None:
+    async def path(self, ctx: bridge.Context, *, element: str) -> None:
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if server.db.complexity_lock:
             raise InternalError("Complexity lock", "Complexity calculations in process")

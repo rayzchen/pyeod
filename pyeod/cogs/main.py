@@ -56,7 +56,7 @@ class Main(commands.Cog):
 
     @bridge.bridge_command()
     @bridge.has_permissions(manage_messages=True)
-    async def update(self, ctx: bridge.Context, revision: str = ""):
+    async def update(self, ctx: bridge.Context, *, revision: str = ""):
         msg = await ctx.respond("💽 Updating...")
         p = subprocess.Popen(["git", "pull"], stderr=subprocess.PIPE)
         _, stderr = p.communicate()

@@ -29,7 +29,7 @@ class Info(commands.Cog):
                 return
             marked_element = marked_element.lower()
         else:
-            split_msg = marked_element.split("|")
+            split_msg = marked_element.split("|", 1)
             if len(split_msg) < 2:
                 await ctx.respond(
                     "🔴 Please separate the element and the mark with a | !"
@@ -64,13 +64,13 @@ class Info(commands.Cog):
     async def color(self, ctx: bridge.Context, *, element: str, color: str = ""):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if not ctx.is_app:
-            element, color = element.rsplit(" ", 1)
+            element, color = element.rsplit("|", 1)
         user = server.login_user(ctx.author.id)
-        elem = server.check_element(element)
-        if not self.check_color(color):
+        elem = server.check_element(element.strip())
+        if not self.check_color(color.strip()):
             await ctx.respond("🔴 Invalid hex code!")
             return
-        poll = server.suggest_poll(ColorPoll(user, elem, color))
+        poll = server.suggest_poll(ColorPoll(user, elem, color.strip()))
 
         await self.bot.add_poll(
             server, poll, ctx, f"🗳️ Suggested a new color for {elem.name}!"
@@ -99,8 +99,8 @@ class Info(commands.Cog):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if not ctx.is_app:
             if not ctx.message.attachments:
-                element, image_link = element.rsplit(" | ", 1)
-                if not await self.check_image_link(image_link):
+                element, image_link = element.rsplit("|", 1)
+                if not await self.check_image_link(image_link.strip()):
                     await ctx.respond("🔴 Invalid image link!")
                     return
             else:
@@ -123,7 +123,7 @@ class Info(commands.Cog):
         user = server.login_user(ctx.author.id)
         elem = server.check_element(element)
 
-        poll = server.suggest_poll(ImagePoll(user, elem, image_link))
+        poll = server.suggest_poll(ImagePoll(user, elem, image_link.strip()))
 
         await self.bot.add_poll(
             server, poll, ctx, f"🗳️ Suggested a new image for {elem.name}!"
@@ -139,8 +139,8 @@ class Info(commands.Cog):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if not ctx.is_app:
             if not ctx.message.attachments:
-                element, icon_link = element.rsplit(" | ", 1)
-                if not await self.check_image_link(icon_link):
+                element, icon_link = element.rsplit("|", 1)
+                if not await self.check_image_link(icon_link.strip()):
                     await ctx.respond("🔴 Invalid image link!")
                     return
             else:
@@ -163,7 +163,7 @@ class Info(commands.Cog):
         user = server.login_user(ctx.author.id)
         elem = server.check_element(element)
 
-        poll = server.suggest_poll(IconPoll(user, elem, icon_link))
+        poll = server.suggest_poll(IconPoll(user, elem, icon_link.strip()))
 
         await self.bot.add_poll(
             server, poll, ctx, f"🗳️ Suggested a new icon for {elem.name}!"
