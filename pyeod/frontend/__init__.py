@@ -9,15 +9,23 @@ __all__.extend(_utils_all)
 from pyeod.frontend.model import *
 from pyeod.frontend.utils import *
 from pyeod.model import InternalError, Poll
-from discord import ButtonStyle, Embed, Message
+from discord import ButtonStyle, Embed, Emoji, Message
 from discord.ext import bridge, pages
 
 
 class FooterPaginator(pages.Paginator):
     def __init__(self, page_list, footer_text: str = "", loop: bool = True) -> None:
         buttons = [
-            pages.PaginatorButton("prev", "◀", style=ButtonStyle.blurple),
-            pages.PaginatorButton("next", "▶", style=ButtonStyle.blurple),
+            pages.PaginatorButton(
+                "prev",
+                emoji="<:leftarrow:1182293710684295178>",
+                style=ButtonStyle.blurple,
+            ),
+            pages.PaginatorButton(
+                "next",
+                emoji="<:rightarrow:1182293601540132945>",
+                style=ButtonStyle.blurple,
+            ),
         ]
         super(FooterPaginator, self).__init__(
             page_list,
