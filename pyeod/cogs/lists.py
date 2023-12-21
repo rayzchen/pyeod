@@ -6,7 +6,8 @@ from pyeod.frontend import (
     generate_embed_list,
     get_page_limit,
 )
-from discord import User
+from pyeod import config
+from discord import User, Embed, EmbedField
 from discord.ext import bridge, commands
 from typing import Optional
 
@@ -35,6 +36,33 @@ class Lists(commands.Cog):
         paginator = FooterPaginator(embeds)
         await paginator.respond(ctx)
 
+    @bridge.bridge_command()
+    @bridge.guild_only()
+    async def stats(self, ctx: bridge.Context):
+        server = InstanceManager.current.get_or_create(ctx.guild.id)
+        elements = len(server.db.elements)
+        combinations = len(server.db.combos)
+        users = len(server.db.users)
+
+        found = 0
+        for user in server.db.users.values():
+            found += len(user.inv)
+
+        embed = Embed(
+            color=config.EMBED_COLOR,
+            title="Stats",
+            fields=[
+                EmbedField("🔢 Element Count", f"{elements:,}", True),
+                EmbedField("🔄 Combination Count", f"{combinations:,}", True),
+                EmbedField("🧑‍🤝‍🧑 User Count", f"{users:,}", True),
+                EmbedField("🔍 Elements Found", f"{found:,}", True),
+                EmbedField("📁 Elements Categorized", "N/A", True),
+                EmbedField("👨‍💻 Commands Used", "N/A", True),
+                EmbedField("🗳️ Votes Cast", "N/A", True),
+                EmbedField("❌ Polls Rejected", "N/A", True),
+            ]
+        )
+        await ctx.respond(embed=embed)
 
 def setup(client):
     client.add_cog(Lists(client))
