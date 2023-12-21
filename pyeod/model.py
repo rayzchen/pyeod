@@ -268,7 +268,9 @@ class ElementPoll(Poll):
         if self.result.lower() not in database.elements:
             if self.id_override is not None:
                 if self.id_override in database.elem_id_lookup:
-                    raise InternalError("Override ID in use", "Cannot use overridden ID")
+                    raise InternalError(
+                        "Override ID in use", "Cannot use overridden ID"
+                    )
                 if self.id_override > database.max_id:
                     database.max_id = self.id_override
                 selected_id = self.id_override
@@ -897,9 +899,8 @@ class Database(SavableMixin):
             node = stack[-1]
             if node not in visited:
                 # Insufficient to only check min_elem_tree[node][-1]
-                if (
-                    not self.min_elem_tree[node]
-                    or all(x in visited for x in self.min_elem_tree[node])
+                if not self.min_elem_tree[node] or all(
+                    x in visited for x in self.min_elem_tree[node]
                 ):
                     stack.pop()
                     visited.add(node)
