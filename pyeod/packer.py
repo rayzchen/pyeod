@@ -13,7 +13,6 @@ from pyeod.model import (
     RemoveCollabPoll,
     SavableMixin,
     User,
-    generate_test_game,
 )
 import msgpack
 from typing import Dict, List, Type, Union
@@ -113,6 +112,7 @@ def load_instance(file: str) -> GameInstance:
 
 def test_function():
     import simplejson
+    from pyeod.model.instance import generate_test_game
 
     game = generate_test_game()
 

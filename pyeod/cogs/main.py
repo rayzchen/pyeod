@@ -1,6 +1,6 @@
 from pyeod import config
 from pyeod.frontend import DiscordGameInstance, ElementalBot, InstanceManager
-from pyeod.model import GameError, InternalError
+from pyeod.errors import GameError, InternalError
 from pyeod.utils import format_traceback
 from discord import DiscordException
 from discord.commands import ApplicationContext

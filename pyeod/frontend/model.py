@@ -1,6 +1,7 @@
 __all__ = ["ChannelList", "DiscordGameInstance", "InstanceManager"]
 
 from pyeod import config
+from pyeod.errors import InternalError
 from pyeod.model import (
     ColorPoll,
     Database,
@@ -8,7 +9,6 @@ from pyeod.model import (
     GameInstance,
     IconPoll,
     ImagePoll,
-    InternalError,
     Poll,
 )
 from discord import Embed

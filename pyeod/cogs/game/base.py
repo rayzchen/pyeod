@@ -5,7 +5,7 @@ from pyeod.frontend import (
     build_info_embed,
     parse_element_list,
 )
-from pyeod.model import GameError
+from pyeod.errors import GameError
 from pyeod.utils import format_list
 from discord import Embed, Message
 from discord.commands import option as option_decorator

@@ -4,7 +4,7 @@ from pyeod.frontend import (
     InstanceManager,
     prepare_file,
 )
-from pyeod.model import InternalError
+from pyeod.errors import InternalError
 from discord.ext import bridge, commands
 import io
 

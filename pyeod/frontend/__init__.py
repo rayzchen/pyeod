@@ -8,7 +8,8 @@ __all__.extend(_utils_all)
 
 from pyeod.frontend.model import *
 from pyeod.frontend.utils import *
-from pyeod.model import InternalError, Poll
+from pyeod.errors import InternalError
+from pyeod.model import Poll
 from discord import ButtonStyle, Embed, Emoji, Message
 from discord.ext import bridge, pages
 
