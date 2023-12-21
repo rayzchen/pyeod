@@ -6,9 +6,9 @@ from pyeod.frontend.utils import __all__ as _utils_all
 __all__.extend(_model_all)
 __all__.extend(_utils_all)
 
+from pyeod.errors import InternalError
 from pyeod.frontend.model import *
 from pyeod.frontend.utils import *
-from pyeod.errors import InternalError
 from pyeod.model import Poll
 from discord import ButtonStyle, Embed, Emoji, Message
 from discord.ext import bridge, pages

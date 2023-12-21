@@ -111,8 +111,8 @@ def load_instance(file: str) -> GameInstance:
 
 
 def test_function():
-    import simplejson
     from pyeod.model.instance import generate_test_game
+    import simplejson
 
     game = generate_test_game()
 

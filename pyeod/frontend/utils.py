@@ -8,8 +8,8 @@ __all__ = [
 
 
 from pyeod import config
-from pyeod.frontend.model import DiscordGameInstance
 from pyeod.errors import InternalError
+from pyeod.frontend.model import DiscordGameInstance
 from pyeod.model import ColorPoll, Element, GameInstance, User
 from discord import Embed, EmbedField, File
 from io import BytesIO, StringIO

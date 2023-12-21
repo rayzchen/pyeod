@@ -1,10 +1,10 @@
+from pyeod.errors import InternalError
 from pyeod.frontend import (
     DiscordGameInstance,
     ElementalBot,
     InstanceManager,
     prepare_file,
 )
-from pyeod.errors import InternalError
 from discord.ext import bridge, commands
 import io
 
