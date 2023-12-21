@@ -136,10 +136,10 @@ class Element(SavableMixin):
     def convert_from_dict(loader, data: dict) -> "Element":
         extra_authors = [loader.users[i] for i in data.get("extra_authors", [])]
         element = Element(
-            data["name"].strip(),  # Must be present
+            data.get("name").strip(),  # Must be present
             loader.users[data.get("author")],
             data.get("created", 0),
-            data["id"],  # Must be present
+            data.get("id"),  # Must be present
             data.get("mark", ""),
             loader.users[data.get("marker")],
             data.get("color", 0x0),
@@ -184,7 +184,7 @@ class User(SavableMixin):
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "User":
         user = User(
-            data["id"],  # Must be present
+            data.get("id"),  # Must be present
             data.get("inv", []),
             data.get("active_polls", 0),
         )
@@ -340,23 +340,23 @@ class ElementPoll(Poll):
     @staticmethod
     def convert_from_dict(loader, data: dict) -> Union["ElementPoll", None]:
         combo = []
-        for elem in data["combo"]:  # Must be present
+        for elem in data.get("combo"):  # Must be present
             if elem in loader.elem_id_lookup:
                 combo.append(loader.elem_id_lookup[elem])
             else:
                 # Perhaps saved broken poll
                 print(
                     "Warning: dropping combo",
-                    data["combo"],
+                    data.get("combo"),
                     "for element",
-                    data["result"],
+                    data.get("result"),
                     "in poll",
                 )
                 return None
         poll = ElementPoll(
-            loader.users[data["author"]],
-            tuple(loader.elem_id_lookup[elem] for elem in data["combo"]),
-            data["result"],
+            loader.users[data.get("author")],
+            tuple(loader.elem_id_lookup[elem] for elem in data.get("combo")),
+            data.get("result"),
             # Doesn't strictly need to be stored so not necessary to be present
             data.get("exists", False),
         )
@@ -418,8 +418,8 @@ class MarkPoll(Poll):
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "MarkPoll":
         poll = MarkPoll(
-            loader.users[data["author"]],
-            loader.elem_id_lookup[data["marked_element"]],
+            loader.users[data.get("author")],
+            loader.elem_id_lookup[data.get("marked_element")],
             data.get("mark", ""),
         )
         poll.votes = data.get("votes", 0)
@@ -503,8 +503,8 @@ class ColorPoll(Poll):
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "ColorPoll":
         poll = ColorPoll(
-            loader.users[data["author"]],
-            loader.elem_id_lookup[data["colored_element"]],
+            loader.users[data.get("author")],
+            loader.elem_id_lookup[data.get("colored_element")],
             data.get("color", 0),
         )
         poll.votes = data.get("votes", 0)
@@ -569,8 +569,8 @@ class ImagePoll(Poll):
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "ImagePoll":
         poll = ImagePoll(
-            loader.users[data["author"]],
-            loader.elem_id_lookup[data["imaged_element"]],
+            loader.users[data.get("author")],
+            loader.elem_id_lookup[data.get("imaged_element")],
             data.get("image", ""),
         )
         poll.votes = data.get("votes", 0)
@@ -635,8 +635,8 @@ class IconPoll(Poll):
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "IconPoll":
         poll = IconPoll(
-            loader.users[data["author"]],
-            loader.elem_id_lookup[data["iconed_element"]],
+            loader.users[data.get("author")],
+            loader.elem_id_lookup[data.get("iconed_element")],
             data.get("icon", ""),
         )
         poll.votes = data.get("votes", 0)
@@ -698,9 +698,9 @@ class AddCollabPoll(Poll):
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "AddCollabPoll":
         poll = AddCollabPoll(
-            loader.users[data["author"]],
-            loader.elem_id_lookup[data["element"]],
-            tuple(loader.users[i] for i in data["extra_authors"]),
+            loader.users[data.get("author")],
+            loader.elem_id_lookup[data.get("element")],
+            tuple(loader.users[i] for i in data.get("extra_authors")),
         )
         poll.votes = data.get("votes", 0)
         poll.creation_time = data.get("creation_time", round(time.time()))
@@ -762,9 +762,9 @@ class RemoveCollabPoll(Poll):
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "RemoveCollabPoll":
         poll = RemoveCollabPoll(
-            loader.users[data["author"]],
-            loader.elem_id_lookup[data["element"]],
-            tuple(loader.users[i] for i in data["extra_authors"]),
+            loader.users[data.get("author")],
+            loader.elem_id_lookup[data.get("element")],
+            tuple(loader.users[i] for i in data.get("extra_authors")),
         )
         poll.votes = data.get("votes", 0)
         poll.creation_time = data.get("creation_time", round(time.time()))
@@ -976,24 +976,24 @@ class Database(SavableMixin):
 
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "Database":
-        starters = tuple(loader.elem_id_lookup[elem] for elem in data["starters"])
+        starters = tuple(loader.elem_id_lookup[elem] for elem in data.get("starters"))
         combos = {}
-        for combo_ids in data["combos"]:
+        for combo_ids in data.get("combos"):
             key = tuple(int(id) for id in combo_ids.split(","))
-            if data["combos"][combo_ids] in loader.elem_id_lookup:
-                combos[key] = loader.elem_id_lookup[data["combos"][combo_ids]]
+            if data.get("combos")[combo_ids] in loader.elem_id_lookup:
+                combos[key] = loader.elem_id_lookup[data.get("combos")[combo_ids]]
             else:
                 print(
                     "Warning: dropping combo",
                     key,
                     "for element",
-                    data["combos"][combo_ids],
+                    data.get("combos")[combo_ids],
                 )
-        users = {int(id): user for id, user in data["users"].items()}
+        users = {int(id): user for id, user in data.get("users").items()}
 
-        polls = [poll for poll in data["polls"] if poll is not None]
+        polls = [poll for poll in data.get("polls") if poll is not None]
         return Database(
-            {elem.name.lower(): elem for elem in data["elements"]},
+            {elem.name.lower(): elem for elem in data.get("elements")},
             starters,
             combos,
             users,
@@ -1166,7 +1166,7 @@ class GameInstance(SavableMixin):
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "GameInstance":
         return GameInstance(
-            data["db"], data.get("vote_req", 4), data.get("poll_limit", 20)
+            data.get("db"), data.get("vote_req", 4), data.get("poll_limit", 20)
         )
 
 
