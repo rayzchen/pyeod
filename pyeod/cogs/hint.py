@@ -5,8 +5,10 @@ from pyeod.frontend import (
     InstanceManager,
     generate_embed_list,
     get_page_limit,
+    autocomplete_elements,
 )
 from discord.ext import bridge, commands
+from discord.commands import option as option_decorator
 import random
 
 
@@ -68,6 +70,7 @@ class Hint(commands.Cog):
 
     @bridge.bridge_command(aliases=["h"])
     @bridge.guild_only()
+    @option_decorator("element", autocomplete=autocomplete_elements)
     async def hint(self, ctx: bridge.Context, *, element: str = ""):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         user = server.login_user(ctx.author.id)
@@ -116,6 +119,7 @@ class Hint(commands.Cog):
 
     @bridge.bridge_command(aliases=["p", "invhint", "ih"])
     @bridge.guild_only()
+    @option_decorator("element", autocomplete=autocomplete_elements)
     async def products(self, ctx: bridge.Context, *, element: str):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         elem = server.check_element(element)

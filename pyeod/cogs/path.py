@@ -4,8 +4,10 @@ from pyeod.frontend import (
     ElementalBot,
     InstanceManager,
     prepare_file,
+    autocomplete_elements
 )
 from discord.ext import bridge, commands
+from discord.commands import option as option_decorator
 import io
 
 
@@ -15,6 +17,7 @@ class Path(commands.Cog):
 
     @bridge.bridge_command()
     @bridge.guild_only()
+    @option_decorator("element", autocomplete=autocomplete_elements)
     async def path(self, ctx: bridge.Context, *, element: str) -> None:
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if server.db.complexity_lock:

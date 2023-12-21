@@ -1,4 +1,4 @@
-from pyeod.frontend import DiscordGameInstance, ElementalBot, InstanceManager
+from pyeod.frontend import DiscordGameInstance, ElementalBot, InstanceManager, autocomplete_elements
 from pyeod.model import (
     AddCollabPoll,
     ColorPoll,
@@ -9,6 +9,7 @@ from pyeod.model import (
 )
 from discord import Attachment, NotFound, User
 from discord.ext import bridge, commands
+from discord.commands import option as option_decorator
 import aiohttp
 from typing import Optional
 import re
@@ -20,6 +21,7 @@ class Info(commands.Cog):
 
     @bridge.bridge_command(aliases=["c", "comment", "note"])
     @bridge.guild_only()
+    @option_decorator("marked_element", autocomplete=autocomplete_elements)
     async def mark(self, ctx: bridge.Context, *, marked_element: str, mark: str = ""):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         user = server.login_user(ctx.author.id)
@@ -61,6 +63,7 @@ class Info(commands.Cog):
 
     @bridge.bridge_command()
     @bridge.guild_only()
+    @option_decorator("element", autocomplete=autocomplete_elements)
     async def color(self, ctx: bridge.Context, *, element: str, color: str = ""):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if not ctx.is_app:
@@ -91,6 +94,7 @@ class Info(commands.Cog):
 
     @bridge.bridge_command()
     @bridge.guild_only()
+    @option_decorator("element", autocomplete=autocomplete_elements)
     async def image(
         self, ctx: bridge.Context, *, element: str, image: Optional[Attachment] = None
     ):
@@ -131,6 +135,7 @@ class Info(commands.Cog):
 
     @bridge.bridge_command()
     @bridge.guild_only()
+    @option_decorator("element", autocomplete=autocomplete_elements)
     async def icon(
         self, ctx: bridge.Context, *, element: str, icon: Optional[Attachment] = None
     ):
@@ -171,6 +176,7 @@ class Info(commands.Cog):
 
     @bridge.bridge_command(aliases=["acol"])
     @bridge.guild_only()
+    @option_decorator("element", autocomplete=autocomplete_elements)
     async def add_collaborators(
         self,
         ctx: bridge.Context,
@@ -262,6 +268,7 @@ class Info(commands.Cog):
 
     @bridge.bridge_command(aliases=["rcol"])
     @bridge.guild_only()
+    @option_decorator("element", autocomplete=autocomplete_elements)
     async def remove_collaborators(
         self,
         ctx: bridge.Context,

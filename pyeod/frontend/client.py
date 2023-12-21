@@ -1,10 +1,10 @@
-__all__ = ["FooterPaginator", "ElementalBot"]
+__all__ = ["FooterPaginator", "ElementalBot", "autocomplete_elements"]
 
 
 from pyeod.model import Poll
 from pyeod.errors import InternalError
-from pyeod.frontend.model import DiscordGameInstance
-from discord import ButtonStyle, Embed, Message
+from pyeod.frontend.model import DiscordGameInstance, InstanceManager
+from discord import ButtonStyle, Embed, Message, AutocompleteContext
 from discord.ext import bridge, pages
 
 
@@ -75,3 +75,12 @@ class ElementalBot(bridge.AutoShardedBot):
         if server.vote_req != 0:  # Adding reactions after just feels snappier
             await poll_msg.add_reaction("\U0001F53C")  # ⬆️ Emoji
             await poll_msg.add_reaction("\U0001F53D")
+
+
+def autocomplete_elements(ctx: AutocompleteContext):
+    server = InstanceManager.current.get_or_create(ctx.interaction.guild.id)
+    names = []
+    for element in server.db.elements:
+        if ctx.value.lower() in element:
+            names.append(server.db.elements[element].name)
+    return names
