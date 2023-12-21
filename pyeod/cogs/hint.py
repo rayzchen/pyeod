@@ -35,18 +35,17 @@ class Hint(commands.Cog):
         user = server.login_user(ctx.author.id)
 
         sorted_inv = sorted(user.inv)
-
-        for index, i in enumerate(sorted_inv):
-            try:
-                if i + 1 != sorted_inv[index + 1]:
-                    element = server.db.elem_id_lookup[i + 1]
-                    break
-            except IndexError:
-                if i + 1 not in server.db.elem_id_lookup:
-                    await ctx.respond("🔴 Could not get next element!")
-                    return
-                element = server.db.elem_id_lookup[i + 1]
+        last_element = sorted_inv[0]
+        for i in range(1, len(sorted_inv)):
+            if last_element + 1 != sorted_inv[i] and last_element + 1 in server.db.elem_id_lookup:
                 break
+            last_element = sorted_inv[i]
+        else:
+            # User has all elements
+            if last_element + 1 not in server.db.elem_id_lookup:
+                await ctx.respond("🔴 Could not get next element!")
+                return
+        element = server.db.elem_id_lookup[last_element + 1]
 
         lines = []
         for combo in server.db.combo_lookup[element.id]:
