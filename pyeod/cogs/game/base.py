@@ -155,7 +155,6 @@ class Base(commands.Cog):
     @option_decorator("element_name", required=True)
     async def suggest(self, ctx: bridge.Context, *, element_name: str = ""):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
-        print(ctx.channel.id, server.channels.play_channels)
         if ctx.channel.id not in server.channels.play_channels:
             await ctx.respond("🔴 You can only suggest in play channels!")
             return
@@ -231,11 +230,14 @@ class Base(commands.Cog):
         else:
             combo = user.last_combo
             poll = server.suggest_element(user, combo, name.strip())
+
+            emoji = "🌟" if poll.exists else "✨"
+            elements = "** + **".join([i.name for i in combo])
             await self.bot.add_poll(
                 server,
                 poll,
                 msg,
-                f"🗳️ Suggested **{'** + **'.join([i.name for i in combo])}** = **{poll.result}**!",
+                f"🗳️ Suggested **{elements}** = **{poll.result}**! {emoji}",
             )
 
 
