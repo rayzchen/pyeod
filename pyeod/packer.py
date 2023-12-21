@@ -100,10 +100,11 @@ def load_instance(file: str) -> GameInstance:
         data = f.read()
 
     # Assuming the outer dict has <16 elements and the type key is <32 chars
-    indicator_check = data[2:32]
+    indicator_check = data[1:33]
     mapping_type = None
     for cls in SavableMixinMapping.__subclasses__():
-        if indicator_check.startswith(cls.indicator.encode("utf-8")):
+        packed_key = msgpack.packb(cls.indicator)
+        if indicator_check.startswith(packed_key):
             mapping_type = cls
             break
     if mapping_type is None:
