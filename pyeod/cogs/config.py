@@ -3,6 +3,7 @@ from pyeod.frontend import DiscordGameInstance, ElementalBot, InstanceManager
 from pyeod.packer import load_instance, save_instance
 from discord import Attachment, Embed, File, Message, TextChannel, default_permissions
 from discord.ext import bridge, commands, tasks
+from typing import Optional
 import io
 import os
 import glob
@@ -82,6 +83,28 @@ class Config(commands.Cog):
             stream = io.BytesIO(old_data)
             file = File(stream, filename=str(guild_id) + ".eod")
             await ctx.respond("🤖 Old instance backup:", file=file)
+
+    @bridge.bridge_command(guild_ids=[config.MAIN_SERVER])
+    @bridge.guild_only()
+    async def download_instance(
+        self, ctx: bridge.Context, guild_id: Optional[int] = None
+    ):
+        if ctx.author.id not in config.SERVER_CONTROL_USERS:
+            await ctx.respond("🔴 You don't have permission to do that!")
+            return
+
+        if guild_id is None:
+            guild_id = ctx.guild.id
+
+        if guild_id not in InstanceManager.current.instances:
+            await ctx.respond("🔴 Server not found!")
+            return
+        path = os.path.join(config.package, "db", str(guild_id) + ".eod")
+        with open(path, "rb") as f:
+            data = f.read()
+        stream = io.BytesIO(data)
+        file = File(stream, filename=str(guild_id) + ".eod")
+        await ctx.respond(f"🤖 Instance download for {guild_id}:", file=file)
 
     @bridge.bridge_command()
     @bridge.guild_only()
