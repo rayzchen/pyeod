@@ -39,7 +39,13 @@ class Hint(commands.Cog):
         sorted_inv = sorted(user.inv)
         last_element = sorted_inv[0]
         for i in range(1, len(sorted_inv)):
-            if last_element + 1 != sorted_inv[i] and last_element + 1 in server.db.elem_id_lookup:
+            found = False
+            for j in range(last_element + 1, sorted_inv[i]):
+                if j in server.db.elem_id_lookup:
+                    last_element = j - 1
+                    found = True
+                    break
+            if found:
                 break
             last_element = sorted_inv[i]
         else:
