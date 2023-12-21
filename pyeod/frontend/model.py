@@ -60,12 +60,13 @@ class DiscordGameInstance(GameInstance):
             "voting": self.channels.voting_channel,
             "play": self.channels.play_channels,
         }
-        data["poll_msg_lookup"] = {}
+        lookup = {}
         for id, poll in self.poll_msg_lookup.items():
             # In case poll is deleted while saving, shouldn't cause too much issue
             # TODO: asyncio lock for accessing db?
             if poll in self.db.polls:
-                data["poll_msg_lookup"][id] = self.db.polls.index(poll)
+                lookup[id] = self.db.polls.index(poll)
+        data["poll_msg_lookup"] = lookup
 
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "DiscordGameInstance":

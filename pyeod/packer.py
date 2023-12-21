@@ -10,8 +10,10 @@ from pyeod.model import (
     IconPoll,
     ImagePoll,
     MarkPoll,
+    PlainSavableMixinMapping,
     RemoveCollabPoll,
     SavableMixin,
+    SavableMixinMapping,
     User,
 )
 import msgpack
@@ -48,23 +50,25 @@ class InstanceLoader:
 warned_types = []
 
 
-def convert_to_dict(obj: SavableMixin) -> dict:
+def convert_to_dict(obj: SavableMixin, mapping_type: Type[SavableMixinMapping] = PlainSavableMixinMapping) -> dict:
     if type(obj) not in types and type(obj).__name__ not in warned_types:
         warned_types.append(type(obj).__name__)
         print(f"Warning: type {type(obj).__name__} saved but not in type_dict")
 
-    data = {"__type__": type(obj).__name__}
+    data = mapping_type()
+    data["__type__"] = type(obj).__name__
     obj.convert_to_dict(data)
-    return data
+    return data.mapping
 
 
 def convert_from_dict(
-    loader: InstanceLoader, data: Dict[str, str]
+    loader: InstanceLoader, mapping_type: Type[SavableMixinMapping], data: Dict[str, str]
 ) -> Union[SavableMixin, dict]:
-    if "__type__" not in data:
+    if mapping_type.indicator not in data:
         return data
 
-    type = type_dict[data["__type__"]]
+    data = mapping_type(data)
+    type = type_dict[data.get(mapping_type.indicator)]
     return type.convert_from_dict(loader, data)
 
 
@@ -92,16 +96,28 @@ def save_instance(instance: GameInstance, filename: str) -> multiprocessing.Proc
 
 
 def load_instance(file: str) -> GameInstance:
-    loader = InstanceLoader()
-    hook = functools.partial(convert_from_dict, loader)
     with open(file, "rb") as f:
         data = f.read()
+
+    # Assuming the outer dict has <16 elements and the type key is <32 chars
+    indicator_check = data[2:32]
+    mapping_type = None
+    for cls in SavableMixinMapping.__subclasses__():
+        if indicator_check.startswith(cls.indicator.encode("utf-8")):
+            mapping_type = cls
+            break
+    if mapping_type is None:
+        print("Warning: could not find suitable mapping type to use, defaulting to PlainSavableMixinMapping")
+        mapping_type = PlainSavableMixinMapping
+
+    loader = InstanceLoader()
+    hook = functools.partial(convert_from_dict, loader, mapping_type)
     instance: GameInstance = msgpack.loads(data, strict_map_key=False, object_hook=hook)
-    instance.db.check_colors()
     # Free up some unneeded local variables
     del loader, hook, data
 
     def wrapper():
+        instance.db.check_colors()
         instance.db.calculate_infos()
         print("Finished calculating complexity tree for", os.path.basename(file))
 

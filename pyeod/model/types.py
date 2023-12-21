@@ -413,10 +413,11 @@ class Database(SavableMixin):
         data["users"] = self.users
         data["elements"] = list(self.elements.values())
         data["starters"] = [elem.id for elem in self.starters]
-        data["combos"] = {}
+        combos = {}
         for combo in self.combos:
             combo_ids = ",".join(str(elem) for elem in combo)
-            data["combos"][combo_ids] = self.combos[combo].id
+            combos[combo_ids] = self.combos[combo].id
+        data["combos"] = combos
         data["polls"] = self.polls
 
     @staticmethod
