@@ -64,11 +64,13 @@ async def build_info_embed(
     used_in = len(instance.db.used_in_lookup[element.id])
     found_by = len(instance.db.found_by_lookup[element.id])
 
-    if element.mark and element.marker is not None:
-        marker = f"<@{element.marker.id}>"
+    if element.mark:
         description += element.mark
     else:
         description += "None"
+
+    if element.marker is not None:
+        marker = f"<@{element.marker.id}>"
 
     if element.colorer:
         colorer = f"<@{element.colorer.id}>"
