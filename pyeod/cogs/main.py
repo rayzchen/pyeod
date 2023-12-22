@@ -3,6 +3,7 @@ from pyeod.errors import GameError, InternalError
 from pyeod.frontend import DiscordGameInstance, ElementalBot, InstanceManager
 from pyeod.utils import format_traceback
 from discord import DiscordException
+from discord.errors import ApplicationCommandInvokeError
 from discord.commands import ApplicationContext
 from discord.ext import bridge, commands, tasks
 import io
@@ -32,7 +33,7 @@ class Main(commands.Cog):
             await ctx.respond("🔴 " + str(err))
             return
 
-        if err.__cause__ is not None:
+        if isinstance(err, ApplicationCommandInvokeError):
             err = err.__cause__
         if isinstance(err, GameError):
             if err.type == "Not an element":
