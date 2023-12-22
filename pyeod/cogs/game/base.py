@@ -109,8 +109,9 @@ class Base(commands.Cog):
         if (
             msg.content.startswith("*")
             and len(elements) == 1
-            and not multiplier.isdecimal()
+            and not number.isdecimal()
         ):
+            # multiplier found, no other element delimiters found
             await msg.reply(f"🔴 Invalid multiplier: **{multiplier}**")
 
         if msg.content.startswith("+"):
