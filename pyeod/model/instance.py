@@ -150,11 +150,7 @@ class GameInstance(SavableMixin):
         if poll.votes >= self.vote_req:
             # Poll was accepted
             poll.accepted = True
-            try:
-                poll.resolve(self.db)
-            except InternalError:
-                # Sometimes occurs when poll is accepted twice
-                pass
+            poll.resolve(self.db)
             poll.author.active_polls -= 1
             self.db.polls.remove(poll)
             return True
@@ -186,7 +182,7 @@ def generate_test_game():
     except GameError as g:
         if g.type == "Not a combo":
             game.suggest_element(
-                user, tuple(game.check_element(name) for name in combo), "inferno"
+                user, tuple(game.check_element(name) for name in combo), "Inferno"
             )
     game.db.polls[0].votes += 4
     game.check_polls()
