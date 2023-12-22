@@ -252,10 +252,18 @@ class Database(SavableMixin):
         self.used_in_lookup: Dict[int, List[Tuple[int, ...]]] = {
             elem: set() for elem in self.elem_id_lookup
         }
-        for combo, result in combos.items():
+        missing_combos = []
+        for combo, result in self.combos.items():
+            if len(notfound):
+                if result.id in notfound or any(x in notfound for x in combo):
+                    missing_combos.append((combo, result))
+                    continue
             self.combo_lookup[result.id].append(combo)
             for elem in combo:
                 self.used_in_lookup[elem].add(combo)
+        for combo, result in missing_combos:
+            print("Warning: dropping combo", combo, "result", result)
+            self.combos.pop(combo)
 
         self.found_by_lookup: Dict[int, List[int]] = {
             elem: set() for elem in self.elem_id_lookup
