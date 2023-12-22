@@ -112,7 +112,7 @@ class Base(commands.Cog):
             and not number.isdecimal()
         ):
             # multiplier found, no other element delimiters found
-            await msg.reply(f"🔴 Invalid multiplier: **{multiplier}**")
+            await msg.reply(f"🔴 Invalid multiplier: **{number}**")
 
         if msg.content.startswith("+"):
             if user.last_element is None:
