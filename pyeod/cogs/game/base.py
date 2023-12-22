@@ -130,24 +130,19 @@ class Base(commands.Cog):
             element = server.combine(user, tuple(i.strip() for i in elements))
             await msg.reply(f"🆕 You made **{element.name}**!")
         except GameError as g:
-            if g.type == "Not a combo":
-                # Keep last combo
-                user.last_element = None
-                await msg.reply(
-                    "🟥 Not a combo! Use **!s <element_name>** to suggest an element"
-                )
             if g.type == "Already have element":
                 # Keep last element
                 user.last_combo = ()
                 await msg.reply(
                     f"🟦 You made **{g.meta['element'].name}**, but you already have it!"
                 )
-            elif g.type == "Not in inv":
+            elif g.type == "Not a combo":
+                # Keep last combo
                 user.last_element = None
-                user.last_combo = ()
-                element_list = [f"**{elem.name}**" for elem in g.meta["elements"]]
-                await msg.reply(f"🔴 You don't have {format_list(element_list)}!")
-            if g.type == "Do not exist":
+                await msg.reply(
+                    "🟥 Not a combo! Use **!s <element_name>** to suggest an element"
+                )
+            elif g.type == "Do not exist":
                 user.last_element = None
                 user.last_combo = ()
                 element_list = [f"**{elem}**" for elem in g.meta["elements"]]
@@ -157,6 +152,11 @@ class Base(commands.Cog):
                     await msg.reply(
                         f"🔴 Elements {format_list(element_list, 'and')} don't exist!"
                     )
+            elif g.type == "Not in inv":
+                user.last_element = None
+                user.last_combo = ()
+                element_list = [f"**{elem.name}**" for elem in g.meta["elements"]]
+                await msg.reply(f"🔴 You don't have {format_list(element_list)}!")
 
     @bridge.bridge_command(aliases=["s"])
     @bridge.guild_only()
