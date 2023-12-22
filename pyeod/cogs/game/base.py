@@ -7,6 +7,7 @@ from pyeod.frontend import (
     parse_element_list,
 )
 from pyeod.utils import format_list
+from pyeod import config
 from discord import Embed, Message
 from discord.commands import option as option_decorator
 from discord.ext import bridge, commands
@@ -180,7 +181,7 @@ class Base(commands.Cog):
     async def random_combination(
         self, ctx: bridge.Context, number_of_elements: int = 2
     ):
-        if not (1 < number_of_elements < 21):
+        if not (1 < number_of_elements <= 21):
             await ctx.respond("🔴 Invalid number of elements!")
             return
         server = InstanceManager.current.get_or_create(ctx.guild.id)
