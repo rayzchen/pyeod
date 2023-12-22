@@ -62,7 +62,7 @@ class Polls(commands.Cog):
             # Do not include the bot's own reaction
             poll.votes += upvote_count - 1
             poll.votes -= downvote_count - 1
-        if server.check_single_poll(poll):
+        if await server.check_single_poll(poll):
             # Delete messages before we send to news
             await message.delete()
             server.poll_msg_lookup.pop(message.id)
@@ -94,17 +94,18 @@ class Polls(commands.Cog):
     @bridge.has_permissions(manage_messages=True)
     async def clear_polls(self, ctx: bridge.Context):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
-        if server.channels.voting_channel is not None:
-            channel = await self.bot.fetch_channel(server.channels.voting_channel)
-            for msg_id in server.poll_msg_lookup:
-                try:
-                    message = await channel.fetch_message(msg_id)
-                    await message.delete()
-                except errors.NotFound:
-                    pass
-        server.db.polls.clear()
-        for user in server.db.users.values():
-            user.active_polls = 0
+        async with server.db.poll_lock.writer:
+            if server.channels.voting_channel is not None:
+                channel = await self.bot.fetch_channel(server.channels.voting_channel)
+                for msg_id in server.poll_msg_lookup:
+                    try:
+                        message = await channel.fetch_message(msg_id)
+                        await message.delete()
+                    except errors.NotFound:
+                        pass
+            server.db.polls.clear()
+            for user in server.db.users.values():
+                user.active_polls = 0
         # TODO: delete polls and notify in news
         await ctx.respond("🧹 Cleared polls!")
 

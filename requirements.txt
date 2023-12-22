@@ -1,6 +1,7 @@
 git+https://github.com/Pycord-Development/pycord
 flask
 msgpack
+aiorwlock
 
 mypy
 isort

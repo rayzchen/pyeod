@@ -27,8 +27,9 @@ class Lists(commands.Cog):
             await ctx.respond("🔴 User not found!")
             return
 
-        logged_in = server.login_user(user.id)
-        elements = [server.db.elem_id_lookup[elem].name for elem in logged_in.inv]
+        logged_in = await server.login_user(user.id)
+        async with server.db.element_lock.reader:
+            elements = [server.db.elem_id_lookup[elem].name for elem in logged_in.inv]
         title = user.display_name + f"'s Inventory ({len(logged_in.inv)})"
 
         limit = get_page_limit(server, ctx.channel.id)

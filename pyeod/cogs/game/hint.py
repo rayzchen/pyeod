@@ -34,34 +34,35 @@ class Hint(commands.Cog):
     @bridge.guild_only()
     async def next(self, ctx: bridge.Context):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
-        user = server.login_user(ctx.author.id)
+        user = await server.login_user(ctx.author.id)
 
-        sorted_inv = sorted(user.inv)
-        last_element = sorted_inv[0]
-        for i in range(1, len(sorted_inv)):
-            found = False
-            for j in range(last_element + 1, sorted_inv[i]):
-                if j in server.db.elem_id_lookup:
-                    last_element = j - 1
-                    found = True
+        async with server.db.element_lock.reader:
+            sorted_inv = sorted(user.inv)
+            last_element = sorted_inv[0]
+            for i in range(1, len(sorted_inv)):
+                found = False
+                for j in range(last_element + 1, sorted_inv[i]):
+                    if j in server.db.elem_id_lookup:
+                        last_element = j - 1
+                        found = True
+                        break
+                if found:
                     break
-            if found:
-                break
-            last_element = sorted_inv[i]
-        else:
-            # User has all elements
-            if last_element + 1 not in server.db.elem_id_lookup:
-                await ctx.respond("🔴 Could not get next element!")
-                return
-        element = server.db.elem_id_lookup[last_element + 1]
+                last_element = sorted_inv[i]
+            else:
+                # User has all elements
+                if last_element + 1 not in server.db.elem_id_lookup:
+                    await ctx.respond("🔴 Could not get next element!")
+                    return
+            element = server.db.elem_id_lookup[last_element + 1]
 
-        lines = []
-        for combo in server.db.combo_lookup[element.id]:
-            tick = all(elem in user.inv for elem in combo)
-            names = [server.db.elem_id_lookup[elem].name for elem in combo]
-            names.sort()
-            names[-1] = self.obfuscate(names[-1])
-            lines.append(self.get_emoji(tick) + " " + " + ".join(names))
+            lines = []
+            for combo in server.db.combo_lookup[element.id]:
+                tick = all(elem in user.inv for elem in combo)
+                names = [server.db.elem_id_lookup[elem].name for elem in combo]
+                names.sort()
+                names[-1] = self.obfuscate(names[-1])
+                lines.append(self.get_emoji(tick) + " " + " + ".join(names))
 
         limit = get_page_limit(server, ctx.channel.id)
         embeds = generate_embed_list(
@@ -79,38 +80,39 @@ class Hint(commands.Cog):
     @option_decorator("element", autocomplete=autocomplete_elements)
     async def hint(self, ctx: bridge.Context, *, element: str = ""):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
-        user = server.login_user(ctx.author.id)
+        user = await server.login_user(ctx.author.id)
 
-        if not element:
-            inv_set = set(user.inv)
-            max_id = max(inv_set)
-            choices = set()
-            for i in range(1, max_id + 1):
-                if i not in inv_set:
-                    if i in server.db.elem_id_lookup and i - 1 in inv_set:
-                        if all(x in inv_set for x in server.db.combo_lookup[i][0]):
-                            choices.add(i)
-            if not len(choices):
-                for i in range(max_id + 1, max_id + 21):
-                    if i in server.db.elem_id_lookup:
-                        if all(x in inv_set for x in server.db.combo_lookup[i][0]):
-                            choices.add(i)
-            if not len(choices):
-                # User has every single element
-                await ctx.respond("🔴 Could not get any hints!")
-                return
+        async with server.db.element_lock.reader:
+            if not element:
+                inv_set = set(user.inv)
+                max_id = max(inv_set)
+                choices = set()
+                for i in range(1, max_id + 1):
+                    if i not in inv_set:
+                        if i in server.db.elem_id_lookup and i - 1 in inv_set:
+                            if all(x in inv_set for x in server.db.combo_lookup[i][0]):
+                                choices.add(i)
+                if not len(choices):
+                    for i in range(max_id + 1, max_id + 21):
+                        if i in server.db.elem_id_lookup:
+                            if all(x in inv_set for x in server.db.combo_lookup[i][0]):
+                                choices.add(i)
+                if not len(choices):
+                    # User has every single element
+                    await ctx.respond("🔴 Could not get any hints!")
+                    return
 
-            elem = server.db.elem_id_lookup[random.choice(list(choices))]
-        else:
-            elem = server.check_element(element)
+                elem = server.db.elem_id_lookup[random.choice(list(choices))]
+            else:
+                elem = await server.check_element(element)
 
-        lines = []
-        for combo in server.db.combo_lookup[elem.id]:
-            tick = all(elem in user.inv for elem in combo)
-            names = [server.db.elem_id_lookup[elem].name for elem in combo]
-            names.sort()
-            names[-1] = self.obfuscate(names[-1])
-            lines.append(self.get_emoji(tick) + " " + " + ".join(names))
+            lines = []
+            for combo in server.db.combo_lookup[elem.id]:
+                tick = all(elem in user.inv for elem in combo)
+                names = [server.db.elem_id_lookup[elem].name for elem in combo]
+                names.sort()
+                names[-1] = self.obfuscate(names[-1])
+                lines.append(self.get_emoji(tick) + " " + " + ".join(names))
 
         limit = get_page_limit(server, ctx.channel.id)
         embeds = generate_embed_list(
@@ -130,16 +132,17 @@ class Hint(commands.Cog):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         elem = server.check_element(element)
 
-        user = server.login_user(ctx.author.id)
-        lines = []
-        sorter = lambda combo: server.db.combos[combo].id
-        for combo in sorted(server.db.used_in_lookup[elem.id], key=sorter):
-            result = server.db.combos[combo]
-            tick = result.id in user.inv
-            line = self.get_emoji(tick) + " " + result.name
-            if line not in lines:
-                # In case multiple combos use this element for the same result
-                lines.append(self.get_emoji(tick) + " " + result.name)
+        user = await server.login_user(ctx.author.id)
+        async with server.db.element_lock.reader:
+            lines = []
+            sorter = lambda combo: server.db.combos[combo].id
+            for combo in sorted(server.db.used_in_lookup[elem.id], key=sorter):
+                result = server.db.combos[combo]
+                tick = result.id in user.inv
+                line = self.get_emoji(tick) + " " + result.name
+                if line not in lines:
+                    # In case multiple combos use this element for the same result
+                    lines.append(self.get_emoji(tick) + " " + result.name)
 
         unobtained_emoji = self.get_emoji(False)
         unobtained_lines = []

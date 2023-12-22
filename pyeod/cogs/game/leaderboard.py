@@ -23,24 +23,25 @@ class Leaderboard(commands.Cog):
             user = ctx.author
         # Don't add new user to db
         if user.id in server.db.users:
-            logged_in = server.login_user(user.id)
+            logged_in = await server.login_user(user.id)
         else:
             logged_in = None
 
-        lines = []
-        user_index = -1
-        user_inv = 0
-        i = 0
-        for user_id, user in sorted(
-            server.db.users.items(), key=lambda pair: len(pair[1].inv), reverse=True
-        ):
-            i += 1
-            if logged_in is not None and user_id == logged_in.id:
-                user_index = i
-                user_inv = len(user.inv)
-                lines.append(f"{i}\. <@{user_id}> *You* - {len(user.inv):,}")
-            else:
-                lines.append(f"{i}\. <@{user_id}> - {len(user.inv):,}")
+        async with server.db.user_lock.reader:
+            lines = []
+            user_index = -1
+            user_inv = 0
+            i = 0
+            for user_id, user in sorted(
+                server.db.users.items(), key=lambda pair: len(pair[1].inv), reverse=True
+            ):
+                i += 1
+                if logged_in is not None and user_id == logged_in.id:
+                    user_index = i
+                    user_inv = len(user.inv)
+                    lines.append(f"{i}\. <@{user_id}> *You* - {len(user.inv):,}")
+                else:
+                    lines.append(f"{i}\. <@{user_id}> - {len(user.inv):,}")
 
         limit = get_page_limit(server, ctx.channel.id)
         pages = generate_embed_list(lines, "Top Most Found", limit)

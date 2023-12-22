@@ -20,6 +20,7 @@ import msgpack
 from typing import Dict, List, Type, Union
 import os
 import copy
+import asyncio
 import functools
 import threading
 import multiprocessing
@@ -117,12 +118,15 @@ def load_instance(file: str) -> GameInstance:
     # Free up some unneeded local variables
     del loader, hook, data
 
-    def wrapper():
-        instance.db.check_colors()
-        instance.db.calculate_infos()
-        print("Finished calculating complexity tree for", os.path.basename(file))
+    def wrapper(loop):
+        task1 = asyncio.run_coroutine_threadsafe(instance.db.check_colors(), loop=loop)
+        task2 = asyncio.run_coroutine_threadsafe(instance.db.calculate_infos(), loop=loop)
+        task1.result()
+        task2.result()
+        print("Finished calculating complexity for", os.path.basename(file))
 
-    t = threading.Thread(target=wrapper, daemon=True)
+    loop = asyncio.get_event_loop()
+    t = threading.Thread(target=wrapper, args=(loop,), daemon=True)
     t.start()
     return instance
 

@@ -77,8 +77,8 @@ class Base(commands.Cog):
             element_name = msg.content[1:].strip()
             if not element_name:
                 return
-            element = server.check_element(element_name)
-        user = server.login_user(msg.author.id)
+            element = await server.check_element(element_name)
+        user = await server.login_user(msg.author.id)
 
         embed = await build_info_embed(server, element, user)
         await msg.reply(embed=embed)
@@ -86,7 +86,7 @@ class Base(commands.Cog):
     async def combine_elements(self, server: DiscordGameInstance, msg: Message) -> None:
         if msg.channel.id not in server.channels.play_channels:
             return
-        user = server.login_user(msg.author.id)
+        user = await server.login_user(msg.author.id)
 
         elements = []
         if msg.content.startswith("*"):
@@ -128,7 +128,7 @@ class Base(commands.Cog):
             return
 
         try:
-            element = server.combine(user, tuple(i.strip() for i in elements))
+            element = await server.combine(user, tuple(i.strip() for i in elements))
             await msg.reply(f"🆕 You made **{element.name}**!")
         except GameError as g:
             if g.type == "Already have element":
@@ -179,15 +179,16 @@ class Base(commands.Cog):
             await ctx.respond("🔴 Invalid number of elements!")
             return
         server = InstanceManager.current.get_or_create(ctx.guild.id)
-        user = server.login_user(ctx.author.id)
+        user = await server.login_user(ctx.author.id)
         combo = []
-        for _ in range(number_of_elements):
-            combo.append(server.db.elem_id_lookup[random.choice(user.inv)].name)
+        async with server.db.element_lock.reader:
+            for _ in range(number_of_elements):
+                combo.append(server.db.elem_id_lookup[random.choice(user.inv)].name)
         description = (
             f"Combined:\n> \n> **{'** + **'.join(combo)}**\n> \n\nResult:\n> \n> "
         )
         try:
-            element = server.combine(user, tuple(combo))
+            element = await server.combine(user, tuple(combo))
             description += f"🆕 You made **{element.name}**!"
         except GameError as g:
             if g.type == "Not a combo":
@@ -215,7 +216,7 @@ class Base(commands.Cog):
         msg: Message,
         autocapitalize: bool
     ) -> None:
-        user = server.login_user(msg.author.id)
+        user = await server.login_user(msg.author.id)
         if server.channels.voting_channel is None:
             await msg.reply("🤖 Server not configured, please set voting channel")
             return
@@ -237,7 +238,7 @@ class Base(commands.Cog):
                 name = capitalize(name.strip())
             else:
                 name = name.strip()
-            poll = server.suggest_element(user, combo, name)
+            poll = await server.suggest_element(user, combo, name)
 
             emoji = "🌟" if poll.exists else "✨"
             elements = "** + **".join([i.name for i in combo])

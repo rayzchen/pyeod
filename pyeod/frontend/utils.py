@@ -40,8 +40,9 @@ def parse_element_list(content: str) -> List[str]:
 async def build_info_embed(
     instance: GameInstance, element: Element, user: User
 ) -> Embed:
-    if instance.db.complexity_lock:
+    if instance.db.complexity_lock.reader.locked:
         raise InternalError("Complexity lock", "Complexity calculations in process")
+
     description = f"Element **#{element.id}**\n"
     if element.id in user.inv:
         description += "📫 **You have this.**"
@@ -61,12 +62,14 @@ async def build_info_embed(
     else:
         timestamp = f"<t:{element.created}>"
 
-    path = instance.db.get_path(element)
+    path = await instance.db.get_path(element)
     tree_size = len(path)
-    complexity = instance.db.complexities[element.id]
-    made_with = len(instance.db.combo_lookup[element.id])
-    used_in = len(instance.db.used_in_lookup[element.id])
-    found_by = len(instance.db.found_by_lookup[element.id])
+
+    async with instance.db.element_lock.reader:
+        complexity = instance.db.complexities[element.id]
+        made_with = len(instance.db.combo_lookup[element.id])
+        used_in = len(instance.db.used_in_lookup[element.id])
+        found_by = len(instance.db.found_by_lookup[element.id])
 
     if element.mark:
         description += element.mark
@@ -151,12 +154,10 @@ def generate_embed_list(
 
 
 def prepare_file(fp: StringIO, filename: str):
-    fp.seek(0, os.SEEK_END)
-    if fp.tell() > 25 * 1024:
-        fp.seek(0, os.SEEK_SET)
-        fp = BytesIO(gzip.compress(fp.read().encode("utf-8"), 9))
+    encoded = fp.getvalue().encode("utf-8")
+    if len(encoded) > 25 * 1024 * 1024:
+        fp = BytesIO(gzip.compress(encoded, 9))
         filename += ".gz"
-    fp.seek(0, os.SEEK_SET)
     return File(fp=fp, filename=filename)
 
 

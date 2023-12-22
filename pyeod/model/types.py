@@ -12,6 +12,7 @@ from abc import abstractmethod
 from typing import Dict, List, Tuple, Union, Optional
 import time
 import colorsys
+from aiorwlock import RWLock
 
 
 class Element(SavableMixin):
@@ -232,7 +233,11 @@ class Database(SavableMixin):
         self.combos = combos
         self.users = users
         self.polls = polls
-        self.complexity_lock = False
+
+        self.complexity_lock = RWLock()
+        self.element_lock = RWLock()  # covers both elements and combos
+        self.user_lock = RWLock()
+        self.poll_lock = RWLock()
 
         notfound = []
         self.elem_id_lookup = {elem.id: elem for elem in self.elements.values()}
@@ -275,36 +280,41 @@ class Database(SavableMixin):
         self.complexities = {}
         self.min_elem_tree = {}
 
-    def calculate_infos(self) -> None:
-        self.complexity_lock = True
+    async def calculate_infos(self) -> None:
+        async with self.complexity_lock.writer:
+            async with self.element_lock.reader:
+                for elem in self.starters:
+                    self.complexities[elem.id] = 0
+                    self.min_elem_tree[elem.id] = ()
 
-        for elem in self.starters:
-            self.complexities[elem.id] = 0
-            self.min_elem_tree[elem.id] = ()
-
-        unseen = set(self.elem_id_lookup)
-        for elem in self.starters:
-            unseen.remove(elem.id)
-        while len(unseen) != 0:
-            for elem_id in unseen:
-                complexity = self.get_complexity(elem_id)
-                if complexity is not None:
-                    unseen.remove(elem_id)
-                    break
-            else:
-                print("Warning: Dropping elements:", unseen)
-                for elem_id in unseen:
-                    assert elem_id not in self.complexities
-                    element = self.elem_id_lookup[elem_id]
-                    self.elements.pop(element.name.lower())
-                    self.combo_lookup.pop(elem_id)
-                    self.used_in_lookup.pop(elem_id)
-                    self.elem_id_lookup.pop(elem_id)
-                    self.found_by_lookup.pop(elem_id)
-                unseen.clear()
-        self.complexity_lock = False
+                unseen = set(self.elem_id_lookup)
+                for elem in self.starters:
+                    unseen.remove(elem.id)
+                while len(unseen) != 0:
+                    for elem_id in unseen:
+                        complexity = self.get_complexity(elem_id)
+                        if complexity is not None:
+                            unseen.remove(elem_id)
+                            break
+                    else:
+                        print("Warning: Dropping elements:", unseen)
+                        with self.element_lock.writer:
+                            for elem_id in unseen:
+                                assert elem_id not in self.complexities
+                                element = self.elem_id_lookup[elem_id]
+                                self.elements.pop(element.name.lower())
+                                self.combo_lookup.pop(elem_id)
+                                self.used_in_lookup.pop(elem_id)
+                                self.elem_id_lookup.pop(elem_id)
+                                self.found_by_lookup.pop(elem_id)
+                        break
 
     def get_complexity(self, elem_id: int) -> Union[int, None]:
+        """
+        Get complexity of element by ID, and add to the minimum element tree.
+        ``self.complexity_lock.writer`` must be held.
+
+        """
         combos = self.combo_lookup[elem_id]
         min_complexity = None
         for combo in combos:
@@ -322,52 +332,55 @@ class Database(SavableMixin):
             return min_complexity
         return None
 
-    def check_colors(self):
-        for element in self.elements.values():
-            if element.colorer is not None:
-                continue
-            if 0 < element.color < 0xFFFFFF:
-                continue
-            if not self.combo_lookup[element.id]:
-                continue
+    async def check_colors(self):
+        async with self.element_lock.writer:
+            for element in self.elements.values():
+                if element.colorer is not None:
+                    continue
+                if 0 < element.color < 0xFFFFFF:
+                    continue
+                if not self.combo_lookup[element.id]:
+                    continue
 
-            combo = [self.elem_id_lookup[x] for x in self.combo_lookup[element.id][0]]
-            element.color = Element.get_color(combo)
+                combo = [self.elem_id_lookup[x] for x in self.combo_lookup[element.id][0]]
+                element.color = Element.get_color(combo)
 
-    def update_element_info(self, element: Element, combo: Tuple[int, ...]) -> None:
-        if self.complexity_lock:
+    async def update_element_info(self, element: Element, combo: Tuple[int, ...]) -> None:
+        if self.complexity_lock.writer.locked:
             raise InternalError("Complexity lock", "Complexity calculations in process")
-        new_complexity = max(self.complexities[x] for x in combo)
-        if new_complexity < self.complexities[element.id]:
-            self.complexities[element.id] = new_complexity
-            self.min_elem_tree[element.id] = combo
+        async with self.complexity_lock.writer:
+            new_complexity = max(self.complexities[x] for x in combo)
+            if new_complexity < self.complexities[element.id]:
+                self.complexities[element.id] = new_complexity
+                self.min_elem_tree[element.id] = combo
 
-    def get_path(self, element: Element) -> List[int]:
-        if self.complexity_lock:
+    async def get_path(self, element: Element) -> List[int]:
+        if self.complexity_lock.reader.locked:
             raise InternalError("Complexity lock", "Complexity calculations in process")
-        path = []
-        visited = set()
-        stack = [element.id]
-        while stack:
-            node = stack[-1]
-            if node not in visited:
-                # Insufficient to only check min_elem_tree[node][-1]
-                if not self.min_elem_tree[node] or all(
-                    x in visited for x in self.min_elem_tree[node]
-                ):
-                    stack.pop()
-                    visited.add(node)
-                    path.append(node)
+        async with self.complexity_lock.reader:
+            path = []
+            visited = set()
+            stack = [element.id]
+            while stack:
+                node = stack[-1]
+                if node not in visited:
+                    # Insufficient to only check min_elem_tree[node][-1]
+                    if not self.min_elem_tree[node] or all(
+                        x in visited for x in self.min_elem_tree[node]
+                    ):
+                        stack.pop()
+                        visited.add(node)
+                        path.append(node)
+                    else:
+                        for child in reversed(self.min_elem_tree[node]):
+                            if child not in visited:
+                                stack.append(child)
                 else:
-                    for child in reversed(self.min_elem_tree[node]):
-                        if child not in visited:
-                            stack.append(child)
-            else:
-                stack.pop()
+                    stack.pop()
         return path
 
     @staticmethod
-    def new_db(starter_elements: Tuple[Element, ...]) -> "Database":
+    async def new_db(starter_elements: Tuple[Element, ...]) -> "Database":
         database = Database(
             elements={i.name.lower(): i for i in starter_elements},
             starters=starter_elements,
@@ -375,46 +388,50 @@ class Database(SavableMixin):
             users={},
             polls=[],
         )
-        database.calculate_infos()
+        await database.calculate_infos()
         return database
 
-    def add_element(self, element: Element):
-        if element.name.lower() not in self.elements:
-            self.elements[element.name.lower()] = element
-            self.elem_id_lookup[element.id] = element
-            self.combo_lookup[element.id] = []
-            self.used_in_lookup[element.id] = set()
-            self.found_by_lookup[element.id] = set()
+    async def add_element(self, element: Element):
+        async with self.element_lock.writer:
+            if element.name.lower() not in self.elements:
+                self.elements[element.name.lower()] = element
+                self.elem_id_lookup[element.id] = element
+                self.combo_lookup[element.id] = []
+                self.used_in_lookup[element.id] = set()
+                self.found_by_lookup[element.id] = set()
 
-    def has_element(self, element: str) -> bool:
-        return element.lower() in self.elements
+    async def has_element(self, element: str) -> bool:
+        async with self.element_lock.reader:
+            return element.lower() in self.elements
 
-    def get_combo_result(self, combo: Tuple[Element, ...]) -> Union[Element, None]:
-        sorted_combo = tuple(sorted(elem.id for elem in combo))
-        if sorted_combo in self.combos:
-            return self.combos[sorted_combo]
-        return None
+    async def get_combo_result(self, combo: Tuple[Element, ...]) -> Union[Element, None]:
+        async with self.element_lock.reader:
+            sorted_combo = tuple(sorted(elem.id for elem in combo))
+            if sorted_combo in self.combos:
+                return self.combos[sorted_combo]
+            return None
 
-    def set_combo_result(self, combo: Tuple[Element, ...], result: Element) -> None:
-        if self.complexity_lock:
+    async def set_combo_result(self, combo: Tuple[Element, ...], result: Element) -> None:
+        if self.complexity_lock.writer.locked:
             raise InternalError("Complexity lock", "Complexity calculations in process")
-        sorted_combo = tuple(sorted(elem.id for elem in combo))
-        if sorted_combo in self.combos:
-            raise InternalError("Combo exists", "That combo already exists")
-        if result.name.lower() not in self.elements:
-            self.add_element(result)
-        self.combos[sorted_combo] = result
-        self.combo_lookup[result.id].append(sorted_combo)
-        if result.id not in self.complexities:
-            if self.get_complexity(result.id) is None:
-                raise InternalError(
-                    "Failed getting complexity",
-                    "No combo found with existing complexity",
-                )
-        else:
-            self.update_element_info(result, sorted_combo)
-        for elem in sorted_combo:
-            self.used_in_lookup[elem].add(sorted_combo)
+        with self.element_lock.writer:
+            sorted_combo = tuple(sorted(elem.id for elem in combo))
+            if sorted_combo in self.combos:
+                raise InternalError("Combo exists", "That combo already exists")
+            if result.name.lower() not in self.elements:
+                await self.add_element(result)
+            self.combos[sorted_combo] = result
+            self.combo_lookup[result.id].append(sorted_combo)
+            if result.id not in self.complexities:
+                if self.get_complexity(result.id) is None:
+                    raise InternalError(
+                        "Failed getting complexity",
+                        "No combo found with existing complexity",
+                    )
+            else:
+                await self.update_element_info(result, sorted_combo)
+            for elem in sorted_combo:
+                self.used_in_lookup[elem].add(sorted_combo)
 
     def convert_to_dict(self, data: dict) -> None:
         # Users MUST be first to be saved or loaded

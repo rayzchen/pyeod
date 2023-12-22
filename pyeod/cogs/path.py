@@ -20,7 +20,7 @@ class Path(commands.Cog):
     @option_decorator("element", autocomplete=autocomplete_elements)
     async def path(self, ctx: bridge.Context, *, element: str) -> None:
         server = InstanceManager.current.get_or_create(ctx.guild.id)
-        if server.db.complexity_lock:
+        if server.db.complexity_lock.reader.locked:
             raise InternalError("Complexity lock", "Complexity calculations in process")
         if element.startswith("#"):
             id_str = element[1:].strip()
@@ -28,12 +28,13 @@ class Path(commands.Cog):
                 await ctx.respond(f"🔴 Element ID **{id_str}** doesn't exist!")
                 return
             elem_id = int(id_str)
-            if elem_id not in server.db.elem_id_lookup:
-                await ctx.respond(f"🔴 Element ID **{elem_id}** doesn't exist!")
-                return
-            elem = server.db.elem_id_lookup[elem_id]
+            async with server.db.element_lock.reader:
+                if elem_id not in server.db.elem_id_lookup:
+                    await ctx.respond(f"🔴 Element ID **{elem_id}** doesn't exist!")
+                    return
+                elem = server.db.elem_id_lookup[elem_id]
         else:
-            elem = server.check_element(element)
+            elem = await server.check_element(element)
 
         if not ctx.author.guild_permissions.manage_guild:
             logged_in = server.login_user(ctx.author.id)
@@ -41,17 +42,18 @@ class Path(commands.Cog):
                 await ctx.respond(f"🔴 You don't have **{elem.name}**!")
                 return
 
-        lines = []
-        i = 0
-        for pathelem in server.db.get_path(elem):
-            combo = server.db.min_elem_tree[pathelem]
-            if not combo:
-                # Only starter elements should end up here
-                continue
-            i += 1
-            elements = [server.db.elem_id_lookup[x].name for x in combo]
-            result = server.db.elem_id_lookup[pathelem].name
-            lines.append(str(i) + ". " + " + ".join(elements) + " = " + result)
+        async with server.db.element_lock.reader:
+            lines = []
+            i = 0
+            for pathelem in await server.db.get_path(elem):
+                combo = server.db.min_elem_tree[pathelem]
+                if not combo:
+                    # Only starter elements should end up here
+                    continue
+                i += 1
+                elements = [server.db.elem_id_lookup[x].name for x in combo]
+                result = server.db.elem_id_lookup[pathelem].name
+                lines.append(str(i) + ". " + " + ".join(elements) + " = " + result)
 
         stream = io.StringIO("\n".join(lines))
         user = await self.bot.fetch_user(ctx.author.id)

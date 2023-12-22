@@ -10,7 +10,7 @@ __all__ = [
 
 
 from pyeod.errors import InternalError
-from pyeod.model.types import Element, Poll, User
+from pyeod.model.types import Element, Poll, User, Database
 from typing import Tuple, Union
 import time
 
@@ -36,62 +36,64 @@ class ElementPoll(Poll):
         self.exists = exists
         self.id_override = None
 
-    def resolve(self, database: "Database") -> Element:  # Return Element back
-        if self.result.lower() not in database.elements:
-            if self.id_override is not None:
-                if self.id_override in database.elem_id_lookup:
-                    raise InternalError(
-                        "Override ID in use", "Cannot use overridden ID"
-                    )
-                if self.id_override > database.max_id:
-                    database.max_id = self.id_override
-                selected_id = self.id_override
+    async def resolve(self, database: Database) -> Element:  # Return Element back
+        async with database.element_lock.writer:
+            if self.result.lower() not in database.elements:
+                if self.id_override is not None:
+                    if self.id_override in database.elem_id_lookup:
+                        raise InternalError(
+                            "Override ID in use", "Cannot use overridden ID"
+                        )
+                    if self.id_override > database.max_id:
+                        database.max_id = self.id_override
+                    selected_id = self.id_override
+                else:
+                    database.max_id += 1
+                    selected_id = database.max_id
+                color = Element.get_color(self.combo)
+                element = Element(
+                    self.result,
+                    self.author,
+                    round(time.time()),
+                    selected_id,
+                    color=color,
+                )
             else:
-                database.max_id += 1
-                selected_id = database.max_id
-            color = Element.get_color(self.combo)
-            element = Element(
-                self.result,
-                self.author,
-                round(time.time()),
-                selected_id,
-                color=color,
-            )
-        else:
-            element = database.elements[self.result.lower()]
-        database.set_combo_result(self.combo, element)
-        database.found_by_lookup[element.id].add(self.author.id)
-        self.author.add_element(element)
-        if self.author.last_combo == self.combo:
-            self.author.last_combo = ()
-            self.author.last_element = element
+                element = database.elements[self.result.lower()]
+            database.set_combo_result(self.combo, element)
+            database.found_by_lookup[element.id].add(self.author.id)
+            self.author.add_element(element)
+            if self.author.last_combo == self.combo:
+                self.author.last_combo = ()
+                self.author.last_element = element
         return element
 
-    def get_news_message(self, instance: "GameInstance") -> str:
-        msg = ""
-        if self.accepted:
-            msg += "🆕 "
-            if self.exists:
-                msg += "Combination"
+    async def get_news_message(self, instance: "GameInstance") -> str:
+        async with instance.db.element_lock.reader:
+            msg = ""
+            if self.accepted:
+                msg += "🆕 "
+                if self.exists:
+                    msg += "Combination"
+                else:
+                    msg += "Element"
+                msg += f" - **{self.result}** (Lasted **{self.get_time()}** • "
+                msg += f"By <@{self.author.id}>) - "
+                if self.exists:
+                    msg += "Combination "
+                    msg += f"**\\#{len(instance.db.combos) + 1}**"
+                else:
+                    msg += "Element "
+                    msg += f"**\\#{instance.db.elements[self.result.lower()].id}**"
             else:
-                msg += "Element"
-            msg += f" - **{self.result}** (Lasted **{self.get_time()}** • "
-            msg += f"By <@{self.author.id}>) - "
-            if self.exists:
-                msg += "Combination "
-                msg += f"**\\#{len(instance.db.combos) + 1}**"
-            else:
-                msg += "Element "
-                msg += f"**\\#{instance.db.elements[self.result.lower()].id}**"
-        else:
-            msg += "❌ Poll Rejected - "
-            if self.exists:
-                msg += "Combination"
-            else:
-                msg += "Element"
-            msg += f" - **{self.result}** (Lasted **{self.get_time()}** • "
-            msg += f"By <@{self.author.id}>) "
-        return msg
+                msg += "❌ Poll Rejected - "
+                if self.exists:
+                    msg += "Combination"
+                else:
+                    msg += "Element"
+                msg += f" - **{self.result}** (Lasted **{self.get_time()}** • "
+                msg += f"By <@{self.author.id}>) "
+            return msg
 
     def get_title(self) -> str:
         return "Combination" if self.exists else "Element"
@@ -152,24 +154,26 @@ class MarkPoll(Poll):
         self.marked_element = marked_element
         self.mark = mark
 
-    def resolve(self, database: "Database") -> str:
-        self.marked_element.mark = self.mark
-        self.marked_element.marker = self.author
-        return self.mark
+    async def resolve(self, database: Database) -> str:
+        async with database.element_lock.writer:
+            self.marked_element.mark = self.mark
+            self.marked_element.marker = self.author
+            return self.mark
 
-    def get_news_message(self, instance: "GameInstance") -> str:
-        msg = ""
-        if self.accepted:
-            msg += ":scroll: "  # Scroll emoji, not unicode cus for some reason it doesn't work
-            msg += "Mark"
-            msg += f" - **{self.marked_element.name}** (Lasted **{self.get_time()}** • "
-            msg += f"By <@{self.author.id}>)"
-        else:
-            msg += "❌ Poll Rejected - "
-            msg += "Mark"
-            msg += f" - **{self.marked_element.name}** (Lasted **{self.get_time()}** • "
-            msg += f"By <@{self.author.id}>) "
-        return msg
+    async def get_news_message(self, instance: "GameInstance") -> str:
+        async with instance.db.element_lock.reader:
+            msg = ""
+            if self.accepted:
+                msg += ":scroll: "  # Scroll emoji, not unicode cus for some reason it doesn't work
+                msg += "Mark"
+                msg += f" - **{self.marked_element.name}** (Lasted **{self.get_time()}** • "
+                msg += f"By <@{self.author.id}>)"
+            else:
+                msg += "❌ Poll Rejected - "
+                msg += "Mark"
+                msg += f" - **{self.marked_element.name}** (Lasted **{self.get_time()}** • "
+                msg += f"By <@{self.author.id}>) "
+            return msg
 
     def get_title(self) -> str:
         return "Mark"
@@ -219,28 +223,30 @@ class ColorPoll(Poll):
         else:
             self.color = color
 
-    def resolve(self, database: "Database") -> int:
-        self.colored_element.color = self.color
-        self.colored_element.colorer = self.author
-        return self.color
+    async def resolve(self, database: Database) -> int:
+        async with database.element_lock.writer:
+            self.colored_element.color = self.color
+            self.colored_element.colorer = self.author
+            return self.color
 
-    def get_news_message(self, instance: "GameInstance") -> str:
-        msg = ""
-        if self.accepted:
-            msg += "🎨 "
-            msg += "Color"
-            msg += (
-                f" - **{self.colored_element.name}** (Lasted **{self.get_time()}** • "
-            )
-            msg += f"By <@{self.author.id}>)"
-        else:
-            msg += "❌ Poll Rejected - "
-            msg += "Color"
-            msg += (
-                f" - **{self.colored_element.name}** (Lasted **{self.get_time()}** • "
-            )
-            msg += f"By <@{self.author.id}>) "
-        return msg
+    async def get_news_message(self, instance: "GameInstance") -> str:
+        async with instance.db.element_lock.reader:
+            msg = ""
+            if self.accepted:
+                msg += "🎨 "
+                msg += "Color"
+                msg += (
+                    f" - **{self.colored_element.name}** (Lasted **{self.get_time()}** • "
+                )
+                msg += f"By <@{self.author.id}>)"
+            else:
+                msg += "❌ Poll Rejected - "
+                msg += "Color"
+                msg += (
+                    f" - **{self.colored_element.name}** (Lasted **{self.get_time()}** • "
+                )
+                msg += f"By <@{self.author.id}>) "
+            return msg
 
     def get_title(self) -> str:
         return "Color"
@@ -299,24 +305,26 @@ class ImagePoll(Poll):
         self.imaged_element = imaged_element
         self.image = image
 
-    def resolve(self, database: "Database") -> str:
-        self.imaged_element.image = self.image
-        self.imaged_element.imager = self.author
-        return self.image
+    async def resolve(self, database: Database) -> str:
+        async with database.element_lock.writer:
+            self.imaged_element.image = self.image
+            self.imaged_element.imager = self.author
+            return self.image
 
-    def get_news_message(self, instance: "GameInstance") -> str:
-        msg = ""
-        if self.accepted:
-            msg += "🖼️ "
-            msg += "Image"
-            msg += f" - **{self.imaged_element.name}** (Lasted **{self.get_time()}** • "
-            msg += f"By <@{self.author.id}>)"
-        else:
-            msg += "❌ Poll Rejected - "
-            msg += "Image"
-            msg += f" - **{self.imaged_element.name}** (Lasted **{self.get_time()}** • "
-            msg += f"By <@{self.author.id}>) "
-        return msg
+    async def get_news_message(self, instance: "GameInstance") -> str:
+        async with instance.db.element_lock.reader:
+            msg = ""
+            if self.accepted:
+                msg += "🖼️ "
+                msg += "Image"
+                msg += f" - **{self.imaged_element.name}** (Lasted **{self.get_time()}** • "
+                msg += f"By <@{self.author.id}>)"
+            else:
+                msg += "❌ Poll Rejected - "
+                msg += "Image"
+                msg += f" - **{self.imaged_element.name}** (Lasted **{self.get_time()}** • "
+                msg += f"By <@{self.author.id}>) "
+            return msg
 
     def get_title(self) -> str:
         return "Image"
@@ -365,24 +373,26 @@ class IconPoll(Poll):
         self.iconed_element = iconed_element
         self.icon = icon
 
-    def resolve(self, database: "Database") -> str:
-        self.iconed_element.icon = self.icon
-        self.iconed_element.iconer = self.author
-        return self.icon
+    async def resolve(self, database: Database) -> str:
+        async with database.element_lock.writer:
+            self.iconed_element.icon = self.icon
+            self.iconed_element.iconer = self.author
+            return self.icon
 
-    def get_news_message(self, instance: "GameInstance") -> str:
-        msg = ""
-        if self.accepted:
-            msg += "📍 "
-            msg += "Icon"
-            msg += f" - **{self.iconed_element.name}** (Lasted **{self.get_time()}** • "
-            msg += f"By <@{self.author.id}>)"
-        else:
-            msg += "❌ Poll Rejected - "
-            msg += "Icon"
-            msg += f" - **{self.iconed_element.name}** (Lasted **{self.get_time()}** • "
-            msg += f"By <@{self.author.id}>) "
-        return msg
+    async def get_news_message(self, instance: "GameInstance") -> str:
+        async with instance.db.element_lock.reader:
+            msg = ""
+            if self.accepted:
+                msg += "📍 "
+                msg += "Icon"
+                msg += f" - **{self.iconed_element.name}** (Lasted **{self.get_time()}** • "
+                msg += f"By <@{self.author.id}>)"
+            else:
+                msg += "❌ Poll Rejected - "
+                msg += "Icon"
+                msg += f" - **{self.iconed_element.name}** (Lasted **{self.get_time()}** • "
+                msg += f"By <@{self.author.id}>) "
+            return msg
 
     def get_title(self) -> str:
         return "Icon"
@@ -433,23 +443,25 @@ class AddCollabPoll(Poll):
         self.element = element
         self.extra_authors = extra_authors
 
-    def resolve(self, database: "Database") -> Tuple[User, ...]:
-        self.element.extra_authors += self.extra_authors
-        return self.extra_authors
+    async def resolve(self, database: Database) -> Tuple[User, ...]:
+        async with database.element_lock.writer:
+            self.element.extra_authors += self.extra_authors
+            return self.extra_authors
 
-    def get_news_message(self, instance: "GameInstance") -> str:
-        msg = ""
-        if self.accepted:
-            msg += "👥 "
-            msg += "Collab"
-            msg += f" - **{self.element.name}** (Lasted **{self.get_time()}** • "
-            msg += f"By <@{self.author.id}>)"
-        else:
-            msg += "❌ Poll Rejected - "
-            msg += "Collab"
-            msg += f" - **{self.element.name}** (Lasted **{self.get_time()}** • "
-            msg += f"By <@{self.author.id}>) "
-        return msg
+    async def get_news_message(self, instance: "GameInstance") -> str:
+        async with instance.db.element_lock.reader:
+            msg = ""
+            if self.accepted:
+                msg += "👥 "
+                msg += "Collab"
+                msg += f" - **{self.element.name}** (Lasted **{self.get_time()}** • "
+                msg += f"By <@{self.author.id}>)"
+            else:
+                msg += "❌ Poll Rejected - "
+                msg += "Collab"
+                msg += f" - **{self.element.name}** (Lasted **{self.get_time()}** • "
+                msg += f"By <@{self.author.id}>) "
+            return msg
 
     def get_title(self) -> str:
         return "Add Collaborators"
@@ -496,24 +508,26 @@ class RemoveCollabPoll(Poll):
         self.element = element
         self.extra_authors = extra_authors
 
-    def resolve(self, database: "Database") -> Tuple[User, ...]:
-        for i in self.extra_authors:
-            self.element.extra_authors.remove(i)
-        return self.extra_authors
+    async def resolve(self, database: Database) -> Tuple[User, ...]:
+        async with database.element_lock.writer:
+            for i in self.extra_authors:
+                self.element.extra_authors.remove(i)
+            return self.extra_authors
 
-    def get_news_message(self, instance: "GameInstance") -> str:
-        msg = ""
-        if self.accepted:
-            msg += "🚷 "
-            msg += "Remove Collaborators"
-            msg += f" - **{self.element.name}** (Lasted **{self.get_time()}** • "
-            msg += f"By <@{self.author.id}>)"
-        else:
-            msg += "❌ Poll Rejected - "
-            msg += "Remove Collaborators"
-            msg += f" - **{self.element.name}** (Lasted **{self.get_time()}** • "
-            msg += f"By <@{self.author.id}>) "
-        return msg
+    async def get_news_message(self, instance: "GameInstance") -> str:
+        async with instance.db.element_lock.reader:
+            msg = ""
+            if self.accepted:
+                msg += "🚷 "
+                msg += "Remove Collaborators"
+                msg += f" - **{self.element.name}** (Lasted **{self.get_time()}** • "
+                msg += f"By <@{self.author.id}>)"
+            else:
+                msg += "❌ Poll Rejected - "
+                msg += "Remove Collaborators"
+                msg += f" - **{self.element.name}** (Lasted **{self.get_time()}** • "
+                msg += f"By <@{self.author.id}>) "
+            return msg
 
     def get_title(self) -> str:
         return "Remove Collaborators"

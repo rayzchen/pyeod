@@ -89,7 +89,7 @@ class DiscordGameInstance(GameInstance):
             lookup,
         )
 
-    def convert_poll_to_embed(self, poll: Poll):
+    async def convert_poll_to_embed(self, poll: Poll):
         embed = Embed(
             title=poll.get_title(),
             description=poll.get_description(),

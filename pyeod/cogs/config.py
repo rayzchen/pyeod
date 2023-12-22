@@ -8,7 +8,9 @@ import io
 import os
 import glob
 import time
+import asyncio
 import threading
+import functools
 
 
 class Config(commands.Cog):
@@ -18,10 +20,11 @@ class Config(commands.Cog):
         # Manager instance is stored under InstanceManager.current
         manager = InstanceManager()
         print("Loading instance databases")
-        self.load_thread = threading.Thread(target=self.load_all_instances, daemon=True)
-        self.load_thread.start()
+        loop = asyncio.get_event_loop()
+        loop.create_task(self.load_all_instances())
+        self.load_event = asyncio.Event()
 
-    def load_all_instances(self):
+    async def load_all_instances(self):
         tic = time.perf_counter()
         with InstanceManager.current.prevent_creation():
             for file in glob.glob(os.path.join(config.package, "db", "*.eod")):
@@ -30,13 +33,16 @@ class Config(commands.Cog):
                 guild_id = int(os.path.basename(file)[:-4])
                 InstanceManager.current.add_instance(guild_id, instance)
         print(f"Loaded instance databases in {time.perf_counter() - tic} seconds")
+        self.load_event.set()
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print("Awaiting load thread")
-        self.load_thread.join()
-        self.save.start()
-        print("Started save loop")
+        if self.load_event.is_set():
+            print("Awaiting load thread")
+            await self.load_event.wait()
+            self.load_event.clear()
+            self.save.start()
+            print("Started save loop")
 
     @tasks.loop(seconds=30, reconnect=True)
     async def save(self):
@@ -47,7 +53,7 @@ class Config(commands.Cog):
     # async def check_for_new_servers(self, msg: Message):
     #     if InstanceManager.current:  # Messages can be caught before bot is ready
     #         return
-    #     InstanceManager.current.get_or_create(msg.guild.id)
+    #     await InstanceManager.current.get_or_create(msg.guild.id)
 
     @bridge.bridge_command(guild_ids=[config.MAIN_SERVER])
     @bridge.guild_only()
@@ -71,7 +77,7 @@ class Config(commands.Cog):
             with open(path, "wb") as f:
                 f.write(await file.read())
 
-        with InstanceManager.current.prevent_creation():
+        async with InstanceManager.current.creation_lock.writer:
             instance = load_instance(path)
             if guild_id in InstanceManager.current.instances:
                 InstanceManager.current.remove_instance(guild_id)
@@ -185,11 +191,12 @@ class Config(commands.Cog):
             await ctx.respond(f"🔴 No element with id #{elem_id}!")
             return
 
-        element = server.db.elem_id_lookup[elem_id]
-        old_name = element.name
-        element.name = name
-        server.db.elements.pop(old_name.lower())
-        server.db.elements[name.lower()] = element
+        async with server.db.element_lock:
+            element = server.db.elem_id_lookup[elem_id]
+            old_name = element.name
+            element.name = name
+            server.db.elements.pop(old_name.lower())
+            server.db.elements[name.lower()] = element
         await ctx.respond(
             f"🤖 Renamed element #{elem_id} ({old_name}) to {name} successfully!"
         )

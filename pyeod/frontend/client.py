@@ -52,14 +52,14 @@ class ElementalBot(bridge.AutoShardedBot):
         suggestion_message: str,
     ):
         if server.vote_req == 0:
-            server.check_single_poll(poll)
+            await server.check_single_poll(poll)
             if server.channels.news_channel is None:
                 raise InternalError(
                     "News channel unset",
                     "Please set the news channel before adding polls",
                 )
             news_channel = await self.fetch_channel(server.channels.news_channel)
-            await news_channel.send(poll.get_news_message(server))
+            await news_channel.send(await poll.get_news_message(server))
         else:
             if server.channels.voting_channel is None:
                 raise InternalError(
@@ -77,10 +77,11 @@ class ElementalBot(bridge.AutoShardedBot):
             await poll_msg.add_reaction("\U0001F53D")
 
 
-def autocomplete_elements(ctx: AutocompleteContext):
+async def autocomplete_elements(ctx: AutocompleteContext):
     server = InstanceManager.current.get_or_create(ctx.interaction.guild.id)
     names = []
-    for element in server.db.elements:
-        if ctx.value.lower() in element:
-            names.append(server.db.elements[element].name)
-    return names
+    async with server.db.element_lock.reader:
+        for element in server.db.elements:
+            if ctx.value.lower() in element:
+                names.append(server.db.elements[element].name)
+        return names

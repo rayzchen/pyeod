@@ -24,7 +24,7 @@ class Info(commands.Cog):
     @option_decorator("marked_element", autocomplete=autocomplete_elements)
     async def mark(self, ctx: bridge.Context, *, marked_element: str, mark: str = ""):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
-        user = server.login_user(ctx.author.id)
+        user = await server.login_user(ctx.author.id)
         if ctx.is_app:
             if not mark:
                 await ctx.respond("🔴 Please suggest a mark!")
@@ -38,14 +38,14 @@ class Info(commands.Cog):
                 )
                 return
             mark = split_msg[1].strip()
-        if not server.db.has_element(marked_element):
+        if not await server.db.has_element(marked_element):
             await ctx.respond("🔴 Not a valid element!")
             return
         if len(mark) > 3000:
             await ctx.respond("🔴 Marks cannot be over 3000 characters in length!")
             return
         element = server.db.elements[marked_element]
-        poll = server.suggest_poll(MarkPoll(user, element, mark))
+        poll = await server.suggest_poll(MarkPoll(user, element, mark))
 
         await self.bot.add_poll(
             server, poll, ctx, f"🗳️ Suggested a new mark for {element.name}!"
@@ -68,12 +68,12 @@ class Info(commands.Cog):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if not ctx.is_app:
             element, color = element.rsplit("|", 1)
-        user = server.login_user(ctx.author.id)
-        elem = server.check_element(element.strip())
+        user = await server.login_user(ctx.author.id)
+        elem = await server.check_element(element.strip())
         if not self.check_color(color.strip()):
             await ctx.respond("🔴 Invalid hex code!")
             return
-        poll = server.suggest_poll(ColorPoll(user, elem, color.strip()))
+        poll = await server.suggest_poll(ColorPoll(user, elem, color.strip()))
 
         await self.bot.add_poll(
             server, poll, ctx, f"🗳️ Suggested a new color for {elem.name}!"
@@ -98,8 +98,6 @@ class Info(commands.Cog):
     async def image(
         self, ctx: bridge.Context, *, element: str, image: Optional[Attachment] = None
     ):
-        import discord
-
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if not ctx.is_app:
             if not ctx.message.attachments:
@@ -124,10 +122,10 @@ class Info(commands.Cog):
                 await ctx.respond("🔴 Invalid image!")
                 return
 
-        user = server.login_user(ctx.author.id)
-        elem = server.check_element(element)
+        user = await server.login_user(ctx.author.id)
+        elem = await server.check_element(element)
 
-        poll = server.suggest_poll(ImagePoll(user, elem, image_link.strip()))
+        poll = await server.suggest_poll(ImagePoll(user, elem, image_link.strip()))
 
         await self.bot.add_poll(
             server, poll, ctx, f"🗳️ Suggested a new image for {elem.name}!"
@@ -139,8 +137,6 @@ class Info(commands.Cog):
     async def icon(
         self, ctx: bridge.Context, *, element: str, icon: Optional[Attachment] = None
     ):
-        import discord
-
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if not ctx.is_app:
             if not ctx.message.attachments:
@@ -165,10 +161,10 @@ class Info(commands.Cog):
                 await ctx.respond("🔴 Invalid image!")
                 return
 
-        user = server.login_user(ctx.author.id)
-        elem = server.check_element(element)
+        user = await server.login_user(ctx.author.id)
+        elem = await server.check_element(element)
 
-        poll = server.suggest_poll(IconPoll(user, elem, icon_link.strip()))
+        poll = await server.suggest_poll(IconPoll(user, elem, icon_link.strip()))
 
         await self.bot.add_poll(
             server, poll, ctx, f"🗳️ Suggested a new icon for {elem.name}!"
@@ -194,10 +190,10 @@ class Info(commands.Cog):
         collaborator10: Optional[User] = None,
     ):  # Dude fuck slash commands this is the only way to do this (i think)
         server = InstanceManager.current.get_or_create(ctx.guild.id)
-        user = server.login_user(ctx.author.id)
+        user = await server.login_user(ctx.author.id)
         extra_authors = []
         if ctx.is_app:
-            elem = server.check_element(element)
+            elem = await server.check_element(element)
             for i in [
                 collaborator1,
                 collaborator2,
@@ -218,7 +214,7 @@ class Info(commands.Cog):
             if len(split_msg) < 2:
                 await ctx.respond("🔴 Please separate each parameter with a | !")
                 return
-            elem = server.check_element(split_msg[0].strip())
+            elem = await server.check_element(split_msg[0].strip())
             for i in (
                 split_msg[1]
                 .strip()
@@ -258,7 +254,7 @@ class Info(commands.Cog):
         if len(authors) + len(elem.extra_authors) > 10:
             await ctx.respond("🔴 You can only add 10 collaborators!")
             return
-        poll = server.suggest_poll(AddCollabPoll(user, elem, tuple(authors)))
+        poll = await server.suggest_poll(AddCollabPoll(user, elem, tuple(authors)))
         await self.bot.add_poll(
             server,
             poll,
@@ -286,10 +282,10 @@ class Info(commands.Cog):
         collaborator10: Optional[User] = None,
     ):  # Dude fuck slash commands this is the only way to do this (i think)
         server = InstanceManager.current.get_or_create(ctx.guild.id)
-        user = server.login_user(ctx.author.id)
+        user = await server.login_user(ctx.author.id)
         extra_authors = []
         if ctx.is_app:
-            elem = server.check_element(element)
+            elem = await server.check_element(element)
             for i in [
                 collaborator1,
                 collaborator2,
@@ -310,7 +306,7 @@ class Info(commands.Cog):
             if len(split_msg) < 2:
                 await ctx.respond("🔴 Please separate each parameter with a | !")
                 return
-            elem = server.check_element(split_msg[0].strip())
+            elem = await server.check_element(split_msg[0].strip())
             for i in (
                 split_msg[1].strip().replace(",", " ").replace("|", " ").split(" ")
             ):
@@ -341,7 +337,7 @@ class Info(commands.Cog):
                 "🔴 Please make sure you entered a valid user created element and valid users already in the collaboration!"
             )
             return
-        poll = server.suggest_poll(RemoveCollabPoll(user, elem, tuple(authors)))
+        poll = await server.suggest_poll(RemoveCollabPoll(user, elem, tuple(authors)))
         await self.bot.add_poll(
             server,
             poll,
