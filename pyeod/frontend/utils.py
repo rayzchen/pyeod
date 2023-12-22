@@ -20,15 +20,19 @@ import math
 
 
 def parse_element_list(content: str) -> List[str]:
-    #! TEMP COMBO PARSING SOLUTION
-    # Will change to be more robust later, works for now
-    elements = []
-    if "\n" in content:
-        elements = content.split("\n")
-    elif "+" in content:
-        elements = content.split("+")
-    else:
-        elements = content.split(",")
+    delimiters = [
+        "\n",
+        "+",
+        ",",
+        "plus",  # consistency with EoDE
+    ]
+    elements = None
+    for delimiter in delimiters:
+        if delimiter in content:
+            elements = content.split(delimiter)
+            break
+    if elements is None:
+        elements = [content]
     stripped_elements = [item.strip() for item in elements if item]
     return stripped_elements
 
