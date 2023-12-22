@@ -57,7 +57,7 @@ class Base(commands.Cog):
         if msg.content.startswith("?"):
             await self.show_element_info(server, msg)
         elif msg.content.startswith("="):
-            await self.suggest_element(server, msg.content[1:], msg)
+            await self.suggest_element(server, msg.content[1:], msg, True)
         else:
             await self.combine_elements(server, msg)
 
@@ -162,19 +162,13 @@ class Base(commands.Cog):
     @bridge.bridge_command(aliases=["s"])
     @bridge.guild_only()
     @option_decorator("element_name", required=True)
-    async def suggest(self, ctx: bridge.Context, *, element_name: str = ""):
+    async def suggest(self, ctx: bridge.Context, *, element_name: str, autocapitalize: bool = True):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if ctx.channel.id not in server.channels.play_channels:
             await ctx.respond("🔴 You can only suggest in play channels!")
             return
-        if element_name == "":
-            if ctx.message.content.startswith("="):
-                element_name = ctx.message.content[1:].strip()
-            if element_name == "":
-                await ctx.respond("🔴 Please specify an element name!")
-                return
         # Only required methods of ctx is .author, .channel and .reply
-        await self.suggest_element(server, element_name, ctx)
+        await self.suggest_element(server, element_name, ctx, autocapitalize)
 
     @bridge.bridge_command(aliases=["rc"])
     @bridge.guild_only()
@@ -219,6 +213,7 @@ class Base(commands.Cog):
         server: DiscordGameInstance,
         name: str,
         msg: Message,
+        autocapitalize: bool
     ) -> None:
         user = server.login_user(msg.author.id)
         if server.channels.voting_channel is None:
@@ -238,7 +233,11 @@ class Base(commands.Cog):
             await msg.reply("🔴 That combo already exists!")
         else:
             combo = user.last_combo
-            poll = server.suggest_element(user, combo, capitalize(name.strip()))
+            if autocapitalize:
+                name = capitalize(name.strip())
+            else:
+                name = name.strip()
+            poll = server.suggest_element(user, combo, name)
 
             emoji = "🌟" if poll.exists else "✨"
             elements = "** + **".join([i.name for i in combo])
