@@ -22,10 +22,12 @@ else:
 if not token:
     print("Token not found")
 
-intents = Intents.all()
-# Unneeded privileged intents
-intents.presences = False
-intents.members = False
+# Minimize received events
+intents = Intents.none()
+intents.guilds = True
+intents.guild_messages = True
+intents.guild_reactions = True
+intents.message_content = True
 
 opts = {
     "auto_sync_commands": True,
