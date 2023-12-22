@@ -15,13 +15,6 @@ from typing import Tuple, Union
 import time
 
 
-def capitalize(name: str) -> str:
-    if name.lower() != name:
-        return name
-    words = [word.capitalize() for word in name.split(" ")]
-    return " ".join(words)
-
-
 class ElementPoll(Poll):
     __slots__ = (
         "author",
@@ -39,7 +32,7 @@ class ElementPoll(Poll):
     ) -> None:
         super(ElementPoll, self).__init__(author)
         self.combo = combo
-        self.result = capitalize(result)
+        self.result = result
         self.exists = exists
         self.id_override = None
 

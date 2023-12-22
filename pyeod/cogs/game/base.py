@@ -15,6 +15,13 @@ import random
 import functools
 
 
+def capitalize(name: str) -> str:
+    if name.lower() != name:
+        return name
+    words = [word.capitalize() for word in name.split(" ")]
+    return " ".join(words)
+
+
 class Base(commands.Cog):
     def __init__(self, bot: ElementalBot) -> None:
         self.bot = bot
@@ -229,7 +236,7 @@ class Base(commands.Cog):
             await msg.reply("🔴 That combo already exists!")
         else:
             combo = user.last_combo
-            poll = server.suggest_element(user, combo, name.strip())
+            poll = server.suggest_element(user, combo, capitalize(name.strip()))
 
             emoji = "🌟" if poll.exists else "✨"
             elements = "** + **".join([i.name for i in combo])
