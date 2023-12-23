@@ -33,7 +33,9 @@ class Main(commands.Cog):
             await ctx.respond("🔴 " + str(err))
             return
 
-        if isinstance(err, (commands.errors.CommandInvokeError, ApplicationCommandInvokeError)):
+        if isinstance(
+            err, (commands.errors.CommandInvokeError, ApplicationCommandInvokeError)
+        ):
             err = err.original
         if isinstance(err, GameError):
             if err.type == "Not an element":
