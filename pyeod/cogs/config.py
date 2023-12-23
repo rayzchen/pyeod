@@ -92,6 +92,22 @@ class Config(commands.Cog):
 
     @bridge.bridge_command(guild_ids=[config.MAIN_SERVER])
     @bridge.guild_only()
+    async def active_servers(self, ctx: bridge.Context):
+        if ctx.author.id not in config.SERVER_CONTROL_USERS:
+            await ctx.respond("🔴 You don't have permission to do that!")
+            return
+
+        servers = InstanceManager.current.instances
+
+        server_list = ""
+        for guild_id, game_instance in servers.items():
+            guild = await self.bot.fetch_guild(guild_id)
+            server_list += f"\n1. **{guild.name}** (*{guild.id}*) - __{len(game_instance.db.users)} invs__S"
+
+        await ctx.respond(f"Connected on {str(len(servers))} servers:\n{server_list}")
+
+    @bridge.bridge_command(guild_ids=[config.MAIN_SERVER])
+    @bridge.guild_only()
     async def download_instance(
         self, ctx: bridge.Context, guild_id: Optional[int] = None
     ):
