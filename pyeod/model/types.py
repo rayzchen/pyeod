@@ -280,6 +280,18 @@ class Database(SavableMixin):
         self.complexities = {}
         self.min_elem_tree = {}
 
+    async def acquire_all_locks(self):
+        await self.complexity_lock.reader.acquire()
+        await self.element_lock.reader.acquire()
+        await self.user_lock.reader.acquire()
+        await self.poll_lock.reader.acquire()
+
+    def release_all_locks(self):
+        self.complexity_lock.reader.release()
+        self.element_lock.reader.release()
+        self.user_lock.reader.release()
+        self.poll_lock.reader.release()
+
     async def calculate_infos(self) -> None:
         async with self.complexity_lock.writer:
             async with self.element_lock.reader:
