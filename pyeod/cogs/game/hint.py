@@ -9,6 +9,7 @@ from pyeod.frontend import (
 )
 from discord.ext import bridge, commands
 from discord.commands import option as option_decorator
+from typing import Optional
 import random
 
 
@@ -127,12 +128,19 @@ class Hint(commands.Cog):
 
     @bridge.bridge_command(aliases=["p", "invhint", "ih"])
     @bridge.guild_only()
-    @option_decorator("element", autocomplete=autocomplete_elements)
-    async def products(self, ctx: bridge.Context, *, element: str):
+    @option_decorator("element", str, autocomplete=autocomplete_elements)
+    async def products(self, ctx: bridge.Context, *, element: Optional[str] = ""):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
-        elem = await server.check_element(element)
-
         user = await server.login_user(ctx.author.id)
+
+        if element:
+            elem = await server.check_element(element)
+        elif not user.last_element:
+            await ctx.respond("🔴 Combine something first")
+            return
+        else:
+            elem = user.last_element
+
         async with server.db.element_lock.reader:
             lines = []
             sorter = lambda combo: server.db.combos[combo].id
