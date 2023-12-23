@@ -33,7 +33,9 @@ class Main(commands.Cog):
             await ctx.respond("🔴 " + str(err))
             return
 
-        if isinstance(err, (commands.errors.CommandInvokeError, ApplicationCommandInvokeError)):
+        if isinstance(
+            err, (commands.errors.CommandInvokeError, ApplicationCommandInvokeError)
+        ):
             err = err.original
         if isinstance(err, GameError):
             if err.type == "Not an element":
@@ -91,6 +93,14 @@ class Main(commands.Cog):
         await msg.edit(
             content=f"💽 Updated successfully to commit {stdout.decode()[:7]}. Restarting"
         )
+
+    @bridge.bridge_command()
+    @bridge.has_permissions(manage_messages=True)
+    async def active_servers(self, ctx: bridge.Context):
+        servers = list(self.bot.guilds)
+
+        await ctx.respond(f"Connected on {str(len(servers))} servers:")
+        await ctx.respond("\n".join((f"{guild.name}") for guild in servers))
 
     @tasks.loop(seconds=2)
     async def restart_checker(self):
