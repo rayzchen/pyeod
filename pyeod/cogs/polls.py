@@ -10,7 +10,7 @@ class Polls(commands.Cog):
         self.bot = bot
         # self.check_polls.start()
 
-    @tasks.loop(seconds=1)
+    @tasks.loop(seconds=1, reconnect=True)
     async def check_polls(self):
         for server in InstanceManager.current.instances.values():
             if server.channels.voting_channel is None:

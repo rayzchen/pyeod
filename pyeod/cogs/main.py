@@ -94,7 +94,7 @@ class Main(commands.Cog):
             content=f"💽 Updated successfully to commit {stdout.decode()[:7]}. Restarting"
         )
 
-    @tasks.loop(seconds=2)
+    @tasks.loop(seconds=2, reconnect=True)
     async def restart_checker(self):
         if os.path.isfile(config.stopfile):
             print("Stopping")
