@@ -244,7 +244,7 @@ class Info(commands.Cog):
                 and i not in authors
                 and i != self.bot.user.id
             ):
-                authors.append(server.login_user(i))
+                authors.append(await server.login_user(i))
 
         if len(authors) == 0:
             await ctx.respond(
@@ -330,7 +330,7 @@ class Info(commands.Cog):
                 and i not in authors
                 and i != self.bot.user.id
             ):
-                authors.append(server.login_user(i))
+                authors.append(await server.login_user(i))
 
         if len(authors) == 0:
             await ctx.respond(

@@ -37,7 +37,7 @@ class Path(commands.Cog):
             elem = await server.check_element(element)
 
         if not ctx.author.guild_permissions.manage_guild:
-            logged_in = server.login_user(ctx.author.id)
+            logged_in = await server.login_user(ctx.author.id)
             if elem.id not in logged_in.inv:
                 await ctx.respond(f"🔴 You don't have **{elem.name}**!")
                 return

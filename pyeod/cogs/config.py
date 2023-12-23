@@ -191,7 +191,7 @@ class Config(commands.Cog):
             await ctx.respond(f"🔴 No element with id #{elem_id}!")
             return
 
-        async with server.db.element_lock:
+        async with server.db.element_lock.writer:
             element = server.db.elem_id_lookup[elem_id]
             old_name = element.name
             element.name = name

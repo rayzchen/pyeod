@@ -130,7 +130,7 @@ class Hint(commands.Cog):
     @option_decorator("element", autocomplete=autocomplete_elements)
     async def products(self, ctx: bridge.Context, *, element: str):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
-        elem = server.check_element(element)
+        elem = await server.check_element(element)
 
         user = await server.login_user(ctx.author.id)
         async with server.db.element_lock.reader:

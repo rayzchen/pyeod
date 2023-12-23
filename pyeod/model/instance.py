@@ -27,8 +27,7 @@ class GameInstance(SavableMixin):
         if db is None:
             if starter_elements is None:
                 starter_elements = copy.deepcopy(DEFAULT_STARTER_ELEMENTS)
-            loop = asyncio.get_running_loop()
-            self.db = loop.run_until_complete(Database.new_db(starter_elements))
+            self.db = Database.new_db(starter_elements)
         else:
             self.db = db
         self.vote_req = vote_req
@@ -125,7 +124,7 @@ class GameInstance(SavableMixin):
     async def suggest_element(
         self, user: User, combo: Tuple[Element, ...], result: str
     ) -> ElementPoll:
-        poll = ElementPoll(user, combo, result, self.db.has_element(result))
+        poll = ElementPoll(user, combo, result, await self.db.has_element(result))
         await self.suggest_poll(poll)
         return poll
 

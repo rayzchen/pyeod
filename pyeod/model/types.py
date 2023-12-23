@@ -298,7 +298,7 @@ class Database(SavableMixin):
                             break
                     else:
                         print("Warning: Dropping elements:", unseen)
-                        with self.element_lock.writer:
+                        async with self.element_lock.writer:
                             for elem_id in unseen:
                                 assert elem_id not in self.complexities
                                 element = self.elem_id_lookup[elem_id]
@@ -380,7 +380,7 @@ class Database(SavableMixin):
         return path
 
     @staticmethod
-    async def new_db(starter_elements: Tuple[Element, ...]) -> "Database":
+    def new_db(starter_elements: Tuple[Element, ...]) -> "Database":
         database = Database(
             elements={i.name.lower(): i for i in starter_elements},
             starters=starter_elements,
@@ -388,7 +388,9 @@ class Database(SavableMixin):
             users={},
             polls=[],
         )
-        await database.calculate_infos()
+        for elem in database.starters:
+            database.complexities[elem.id] = 0
+            database.min_elem_tree[elem.id] = ()
         return database
 
     async def add_element(self, element: Element):
@@ -414,7 +416,7 @@ class Database(SavableMixin):
     async def set_combo_result(self, combo: Tuple[Element, ...], result: Element) -> None:
         if self.complexity_lock.writer.locked:
             raise InternalError("Complexity lock", "Complexity calculations in process")
-        with self.element_lock.writer:
+        async with self.element_lock.writer:
             sorted_combo = tuple(sorted(elem.id for elem in combo))
             if sorted_combo in self.combos:
                 raise InternalError("Combo exists", "That combo already exists")
