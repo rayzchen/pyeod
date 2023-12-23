@@ -1,5 +1,5 @@
 from pyeod import config
-from pyeod.frontend import DiscordGameInstance, ElementalBot, InstanceManager, prepare_file
+from pyeod.frontend import DiscordGameInstance, ElementalBot, InstanceManager, prepare_file, generate_embed_list, FooterPaginator
 from pyeod.packer import load_instance, save_instance
 from discord import Attachment, Embed, File, Message, TextChannel, default_permissions
 from discord.ext import bridge, commands, tasks
@@ -99,12 +99,14 @@ class Config(commands.Cog):
 
         servers = InstanceManager.current.instances
 
-        server_list = ""
+        lines = []
         for guild_id, game_instance in servers.items():
             guild = await self.bot.fetch_guild(guild_id)
-            server_list += f"\n1. **{guild.name}** (*{guild.id}*) - __{len(game_instance.db.users)} invs__S"
+            lines.append(f"\n(*{guild.id}*) **{guild.name}** - __{len(game_instance.db.users)}__ users")
 
-        await ctx.respond(f"Connected on {str(len(servers))} servers:\n{server_list}")
+        embeds = generate_embed_list(lines, f"Connected servers ({len(servers)})", 10)
+        paginator = FooterPaginator(embeds)
+        await paginator.respond(ctx)
 
     @bridge.bridge_command(guild_ids=[config.MAIN_SERVER])
     @bridge.guild_only()
