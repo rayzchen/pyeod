@@ -13,7 +13,7 @@ from pyeod.frontend.model import DiscordGameInstance
 from pyeod.model import ColorPoll, Element, GameInstance, User
 from discord import Embed, EmbedField, File
 from io import BytesIO, StringIO
-from typing import List
+from typing import List, Union
 import os
 import gzip
 import math
@@ -153,8 +153,11 @@ def generate_embed_list(
     return embeds
 
 
-def prepare_file(fp: StringIO, filename: str):
-    encoded = fp.getvalue().encode("utf-8")
+def prepare_file(fp: Union[StringIO, BytesIO], filename: str):
+    if isinstance(fp, StringIO):
+        encoded = fp.getvalue().encode("utf-8")
+    else:
+        encoded = fp.getvalue()
     if len(encoded) > 25 * 1024 * 1024:
         fp = BytesIO(gzip.compress(encoded, 9))
         filename += ".gz"

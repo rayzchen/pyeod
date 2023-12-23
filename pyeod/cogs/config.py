@@ -1,5 +1,5 @@
 from pyeod import config
-from pyeod.frontend import DiscordGameInstance, ElementalBot, InstanceManager
+from pyeod.frontend import DiscordGameInstance, ElementalBot, InstanceManager, prepare_file
 from pyeod.packer import load_instance, save_instance
 from discord import Attachment, Embed, File, Message, TextChannel, default_permissions
 from discord.ext import bridge, commands, tasks
@@ -105,11 +105,13 @@ class Config(commands.Cog):
         if guild_id not in InstanceManager.current.instances:
             await ctx.respond("🔴 Server not found!")
             return
+
+        await ctx.defer()
         path = os.path.join(config.package, "db", str(guild_id) + ".eod")
         with open(path, "rb") as f:
             data = f.read()
         stream = io.BytesIO(data)
-        file = File(stream, filename=str(guild_id) + ".eod")
+        file = prepare_file(stream, filename=str(guild_id) + ".eod")
         await ctx.respond(f"🤖 Instance download for {guild_id}:", file=file)
 
     @bridge.bridge_command()
