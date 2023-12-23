@@ -105,7 +105,7 @@ class Config(commands.Cog):
             lines.append(f"\n(*{guild.id}*) **{guild.name}** - __{len(game_instance.db.users)}__ users")
 
         embeds = generate_embed_list(lines, f"Connected servers ({len(servers)})", 10)
-        paginator = FooterPaginator(embeds)
+        paginator = FooterPaginator(embeds, loop=False)
         await paginator.respond(ctx)
 
     @bridge.bridge_command(guild_ids=[config.MAIN_SERVER])
