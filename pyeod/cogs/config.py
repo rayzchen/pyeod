@@ -104,7 +104,12 @@ class Config(commands.Cog):
         lines = []
         for guild_id, game_instance in servers.items():
             guild = await self.bot.fetch_guild(guild_id)
-            lines.append(f"\n(*{guild.id}*) **{guild.name}** - __{len(game_instance.db.users)}__ users")
+            lines.append(" ".join([
+                f"(*{guild.id}*)",
+                f"**{guild.name}** -",
+                f"__{len(game_instance.db.users)}__ users,",
+                f"__{len(game_instance.db.elements)}__ elements"
+            ]))
 
         embeds = generate_embed_list(lines, f"Connected servers ({len(servers)})", 10)
         paginator = FooterPaginator(embeds, loop=False)
