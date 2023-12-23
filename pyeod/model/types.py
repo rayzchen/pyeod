@@ -354,6 +354,17 @@ class Database(SavableMixin):
                 self.complexities[element.id] = new_complexity
                 self.min_elem_tree[element.id] = combo
 
+    async def give_element(self, user: User, element: Element) -> None:
+        if element.id in user.inv:
+            raise GameError(
+                "Already have element",
+                f"You made {element.name}, but you already have it",
+                {"element": element},
+            )
+        async with self.element_lock.writer:
+            self.found_by_lookup[element.id].add(user.id)
+            user.add_element(element)
+
     async def get_path(self, element: Element) -> List[int]:
         if self.complexity_lock.reader.locked:
             raise InternalError("Complexity lock", "Complexity calculations in process")

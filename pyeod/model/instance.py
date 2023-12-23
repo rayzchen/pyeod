@@ -101,16 +101,8 @@ class GameInstance(SavableMixin):
         result = await self.db.get_combo_result(element_combo)
         if result is None:
             raise GameError("Not a combo", "That combo does not exist")
-        user.last_element = result
-        if result.id in user.inv:
-            raise GameError(
-                "Already have element",
-                f"You made {result.name}, but you already have it",
-                {"element": result},
-            )
-        self.db.found_by_lookup[result.id].add(user.id)
-        user.add_element(result)
-        user.last_element = result
+        user.last_element = element
+        await self.db.give_element(user, result)
         return result
 
     async def suggest_poll(self, poll: Poll) -> Poll:

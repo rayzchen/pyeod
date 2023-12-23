@@ -61,8 +61,7 @@ class ElementPoll(Poll):
             else:
                 element = database.elements[self.result.lower()]
             await database.set_combo_result(self.combo, element)
-            database.found_by_lookup[element.id].add(self.author.id)
-            self.author.add_element(element)
+            await database.give_element(self.author, element)
             if self.author.last_combo == self.combo:
                 self.author.last_combo = ()
                 self.author.last_element = element
