@@ -67,7 +67,7 @@ class Polls(commands.Cog):
             await message.delete()
             server.poll_msg_lookup.pop(message.id)
             if send_news_message and news_channel is not None:
-                await news_channel.send(poll.get_news_message(server))
+                await news_channel.send(await poll.get_news_message(server))
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
