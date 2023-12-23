@@ -34,8 +34,9 @@ class Polls(commands.Cog):
             messages = [
                 message for message in messages if message.author.id == self.bot.user.id
             ]
-            for message in messages:
-                await self.resolve_poll(message, server, news_channel)
+            async with server.db.poll_lock.writer:
+                for message in messages:
+                    await self.resolve_poll(message, server, news_channel)
 
     async def resolve_poll(
         self,
@@ -44,6 +45,8 @@ class Polls(commands.Cog):
         news_channel: Optional[TextChannel] = None,
     ):
         poll = server.poll_msg_lookup[message.id]
+        if poll.accepted:
+            return
         poll.votes = 0
         send_news_message = True
         try:
@@ -87,7 +90,8 @@ class Polls(commands.Cog):
             news_channel = await self.bot.fetch_channel(server.channels.news_channel)
         else:
             news_channel = None
-        await self.resolve_poll(message, server, news_channel)
+        async with server.db.poll_lock.writer:
+            await self.resolve_poll(message, server, news_channel)
 
     @bridge.bridge_command()
     @bridge.guild_only()
