@@ -6,7 +6,7 @@ __all__ = [
 ]
 
 
-from pyeod.errors import InternalError
+from pyeod.errors import InternalError, GameError
 from pyeod.model.mixins import SavableMixin
 from abc import abstractmethod
 from typing import Dict, List, Tuple, Union, Optional

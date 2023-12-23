@@ -101,7 +101,7 @@ class GameInstance(SavableMixin):
         result = await self.db.get_combo_result(element_combo)
         if result is None:
             raise GameError("Not a combo", "That combo does not exist")
-        user.last_element = element
+        user.last_element = result
         await self.db.give_element(user, result)
         return result
 
