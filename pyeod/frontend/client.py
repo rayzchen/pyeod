@@ -68,7 +68,7 @@ class ElementalBot(bridge.AutoShardedBot):
                 )
             voting_channel = await self.fetch_channel(server.channels.voting_channel)
             poll_msg = await voting_channel.send(
-                embed=server.convert_poll_to_embed(poll)
+                embed=await server.convert_poll_to_embed(poll)
             )
             server.poll_msg_lookup[poll_msg.id] = poll
         await msg.reply(suggestion_message)
