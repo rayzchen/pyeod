@@ -7,7 +7,6 @@ Please feel free to suggest new features, ideas, or bugs. All are welcome to sub
 * Do not write functions for code that will be only used once, at minimum split code into a function if it is repeated more than 2 times and you know 100% will not need to be changed (to your own knowledge of course)
 * Write the simplest and easiest solution first, and then optimize it later
 * Use [Black Python Formatter](https://marketplace.visualstudio.com/items?itemName=ms-python.black-formatter) on everything you contribute
-* `pyeod.model` should stay completely in pure synchronous python, do not make multi-threaded or asynchronous changes to the backend without consulting more developers
 * `pyeod.frontend` should deal only with discord.py usage and other utility commands for displaying info
 * Do not assume you know best when changing older code, if a piece of code is more than 2 weeks old consult other developers before changing it
 * Do not change the file structure unless given specific permission from rayzchen, cheesy-brik, or steyerofoam
