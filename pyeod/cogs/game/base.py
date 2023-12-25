@@ -27,40 +27,6 @@ class Base(commands.Cog):
     def __init__(self, bot: ElementalBot) -> None:
         self.bot = bot
 
-    @staticmethod
-    def handle_errors(func):
-        @functools.wraps(func)
-        async def inner(self, msg: Message):
-            try:
-                await func(self, msg)
-            except Exception as e:
-                context = bridge.BridgeExtContext(message=msg, bot=self.bot, view=None)
-                self.bot.dispatch("bridge_command_error", context, e)
-
-        return inner
-
-    @commands.Cog.listener("on_message")
-    @handle_errors
-    async def message_handler(self, msg: Message):
-        if msg.guild is None:
-            # Message from a DM channel
-            return
-        if msg.guild.id not in InstanceManager.current.instances:
-            return
-        server = InstanceManager.current.instances[msg.guild.id]
-
-        if msg.author.bot:  # No bots in eod
-            return
-        if msg.content.startswith("!"):
-            return
-
-        if msg.content.startswith("?"):
-            await self.show_element_info(server, msg)
-        elif msg.content.startswith("="):
-            await self.suggest_element(server, msg.content[1:], msg, True)
-        else:
-            await self.combine_elements(server, msg)
-
     async def show_element_info(
         self, server: DiscordGameInstance, msg: Message
     ) -> None:
@@ -158,11 +124,83 @@ class Base(commands.Cog):
                 user.last_combo = ()
                 element_list = [f"**{elem.name}**" for elem in g.meta["elements"]]
                 await msg.reply(f"🔴 You don't have {format_list(element_list)}!")
+    
+    async def suggest_element(
+        self, server: DiscordGameInstance, name: str, msg: Message, autocapitalize: bool
+    ) -> None:
+        user = await server.login_user(msg.author.id)
+        if server.channels.voting_channel is None:
+            await msg.reply("🤖 Server not configured, please set voting channel")
+            return
+        if server.channels.news_channel is None:
+            await msg.reply("🤖 Server not configured, please set news channel")
+            return
+        if msg.channel.id not in server.channels.play_channels:
+            await msg.reply("🔴 You can only suggest in play channels!")
+            return
+
+        if user.last_combo == ():
+            await msg.reply("🔴 Combine something first!")
+            return
+        elif user.last_element is not None:
+            await msg.reply("🔴 That combo already exists!")
+        else:
+            combo = user.last_combo
+            if autocapitalize:
+                name = capitalize(name.strip())
+            else:
+                name = name.strip()
+            poll = await server.suggest_element(user, combo, name)
+
+            emoji = "🌟" if poll.exists else "✨"
+            elements = "** + **".join([i.name for i in combo])
+            await self.bot.add_poll(
+                server,
+                poll,
+                msg,
+                f"🗳️ Suggested **{elements}** = **{poll.result}**! {emoji}",
+            )
+
+    @staticmethod
+    def handle_errors(func):
+        @functools.wraps(func)
+        async def inner(self, msg: Message):
+            try:
+                await func(self, msg)
+            except Exception as e:
+                context = bridge.BridgeExtContext(message=msg, bot=self.bot, view=None)
+                self.bot.dispatch("bridge_command_error", context, e)
+
+        return inner
+
+    @commands.Cog.listener("on_message")
+    @handle_errors
+    async def message_handler(self, msg: Message):
+        if msg.guild is None:
+            # Message from a DM channel
+            return
+        if msg.guild.id not in InstanceManager.current.instances:
+            return
+        server = InstanceManager.current.instances[msg.guild.id]
+
+        if msg.author.bot:  # No bots in eod
+            return
+        if msg.content.startswith("!"):
+            return
+
+        if msg.content.startswith("?"):
+            await self.show_element_info(server, msg)
+        elif msg.content.startswith("="):
+            await self.suggest_element(server, msg.content[1:], msg, True)
+        else:
+            await self.combine_elements(server, msg)
 
     @bridge.bridge_command(aliases=["s"])
     @bridge.guild_only()
     @option_decorator("element_name", required=True)
-    async def suggest(self, ctx: bridge.Context, *, element_name: str, autocapitalize: bool = True):
+    async def suggest(
+        self, ctx: bridge.Context, *, element_name: str, autocapitalize: bool = True
+    ):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if ctx.channel.id not in server.channels.play_channels:
             await ctx.respond("🔴 You can only suggest in play channels!")
@@ -209,45 +247,6 @@ class Base(commands.Cog):
         )
         await ctx.respond(embed=embed)
 
-    async def suggest_element(
-        self,
-        server: DiscordGameInstance,
-        name: str,
-        msg: Message,
-        autocapitalize: bool
-    ) -> None:
-        user = await server.login_user(msg.author.id)
-        if server.channels.voting_channel is None:
-            await msg.reply("🤖 Server not configured, please set voting channel")
-            return
-        if server.channels.news_channel is None:
-            await msg.reply("🤖 Server not configured, please set news channel")
-            return
-        if msg.channel.id not in server.channels.play_channels:
-            await msg.reply("🔴 You can only suggest in play channels!")
-            return
-
-        if user.last_combo == ():
-            await msg.reply("🔴 Combine something first!")
-            return
-        elif user.last_element is not None:
-            await msg.reply("🔴 That combo already exists!")
-        else:
-            combo = user.last_combo
-            if autocapitalize:
-                name = capitalize(name.strip())
-            else:
-                name = name.strip()
-            poll = await server.suggest_element(user, combo, name)
-
-            emoji = "🌟" if poll.exists else "✨"
-            elements = "** + **".join([i.name for i in combo])
-            await self.bot.add_poll(
-                server,
-                poll,
-                msg,
-                f"🗳️ Suggested **{elements}** = **{poll.result}**! {emoji}",
-            )
 
 
 def setup(client):

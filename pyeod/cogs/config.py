@@ -1,5 +1,12 @@
 from pyeod import config
-from pyeod.frontend import DiscordGameInstance, ElementalBot, InstanceManager, prepare_file, generate_embed_list, FooterPaginator
+from pyeod.frontend import (
+    DiscordGameInstance,
+    ElementalBot,
+    InstanceManager,
+    prepare_file,
+    generate_embed_list,
+    FooterPaginator,
+)
 from pyeod.packer import load_instance, save_instance
 from discord import Attachment, Embed, File, Message, TextChannel, default_permissions
 from discord.ext import bridge, commands, tasks
@@ -48,8 +55,10 @@ class Config(commands.Cog):
     async def save(self):
         for id, instance in InstanceManager.current.instances.items():
             await instance.db.acquire_all_locks()
-            save_instance(instance, str(id) + ".eod")
-            instance.db.release_all_locks()
+            try:
+                save_instance(instance, str(id) + ".eod")
+            finally:
+                instance.db.release_all_locks()
 
     # @commands.Cog.listener("on_message")
     # async def check_for_new_servers(self, msg: Message):
@@ -104,12 +113,16 @@ class Config(commands.Cog):
         lines = []
         for guild_id, game_instance in servers.items():
             guild = await self.bot.fetch_guild(guild_id)
-            lines.append(" ".join([
-                f"(*{guild.id}*)",
-                f"**{guild.name}** -",
-                f"__{len(game_instance.db.users)}__ users,",
-                f"__{len(game_instance.db.elements)}__ elements"
-            ]))
+            lines.append(
+                " ".join(
+                    [
+                        f"(*{guild.id}*)",
+                        f"**{guild.name}** -",
+                        f"__{len(game_instance.db.users)}__ users,",
+                        f"__{len(game_instance.db.elements)}__ elements",
+                    ]
+                )
+            )
 
         embeds = generate_embed_list(lines, f"Connected servers ({len(servers)})", 10)
         paginator = FooterPaginator(embeds, loop=False)

@@ -61,9 +61,10 @@ class Lists(commands.Cog):
                 EmbedField("👨‍💻 Commands Used", "N/A", True),
                 EmbedField("🗳️ Votes Cast", "N/A", True),
                 EmbedField("❌ Polls Rejected", "N/A", True),
-            ]
+            ],
         )
         await ctx.respond(embed=embed)
+
 
 def setup(client):
     client.add_cog(Lists(client))
