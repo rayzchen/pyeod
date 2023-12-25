@@ -51,7 +51,10 @@ class InstanceLoader:
 warned_types = []
 
 
-def convert_to_dict(obj: SavableMixin, mapping_type: Type[SavableMixinMapping] = PlainSavableMixinMapping) -> dict:
+def convert_to_dict(
+    obj: SavableMixin,
+    mapping_type: Type[SavableMixinMapping] = PlainSavableMixinMapping,
+) -> dict:
     if type(obj) not in types and type(obj).__name__ not in warned_types:
         warned_types.append(type(obj).__name__)
         print(f"Warning: type {type(obj).__name__} saved but not in type_dict")
@@ -63,7 +66,9 @@ def convert_to_dict(obj: SavableMixin, mapping_type: Type[SavableMixinMapping] =
 
 
 def convert_from_dict(
-    loader: InstanceLoader, mapping_type: Type[SavableMixinMapping], data: Dict[str, str]
+    loader: InstanceLoader,
+    mapping_type: Type[SavableMixinMapping],
+    data: Dict[str, str],
 ) -> Union[SavableMixin, dict]:
     if mapping_type.indicator not in data:
         return data
@@ -109,7 +114,9 @@ def load_instance(file: str) -> GameInstance:
             mapping_type = cls
             break
     if mapping_type is None:
-        print("Warning: could not find suitable mapping type to use, defaulting to PlainSavableMixinMapping")
+        print(
+            "Warning: could not find suitable mapping type to use, defaulting to PlainSavableMixinMapping"
+        )
         mapping_type = PlainSavableMixinMapping
 
     loader = InstanceLoader()
@@ -120,7 +127,9 @@ def load_instance(file: str) -> GameInstance:
 
     def wrapper(loop):
         task1 = asyncio.run_coroutine_threadsafe(instance.db.check_colors(), loop=loop)
-        task2 = asyncio.run_coroutine_threadsafe(instance.db.calculate_infos(), loop=loop)
+        task2 = asyncio.run_coroutine_threadsafe(
+            instance.db.calculate_infos(), loop=loop
+        )
         task1.result()
         task2.result()
         print("Finished calculating complexity for", os.path.basename(file))

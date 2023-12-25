@@ -10,34 +10,6 @@ class Polls(commands.Cog):
         self.bot = bot
         # self.check_polls.start()
 
-    @tasks.loop(seconds=1, reconnect=True)
-    async def check_polls(self):
-        for server in InstanceManager.current.instances.values():
-            if server.channels.voting_channel is None:
-                continue
-            if not server.db.polls:
-                continue
-
-            voting_channel = await self.bot.fetch_channel(
-                server.channels.voting_channel
-            )
-            if server.channels.news_channel is not None:
-                news_channel = await self.bot.fetch_channel(
-                    server.channels.news_channel
-                )
-            else:
-                news_channel = None
-            messages = await voting_channel.history(
-                limit=50, oldest_first=True
-            ).flatten()
-            # Only select bot messages
-            messages = [
-                message for message in messages if message.author.id == self.bot.user.id
-            ]
-            async with server.db.poll_lock.writer:
-                for message in messages:
-                    await self.resolve_poll(message, server, news_channel)
-
     async def resolve_poll(
         self,
         message: Message,
@@ -71,6 +43,34 @@ class Polls(commands.Cog):
             server.poll_msg_lookup.pop(message.id)
             if send_news_message and news_channel is not None:
                 await news_channel.send(await poll.get_news_message(server))
+
+    @tasks.loop(seconds=1, reconnect=True)
+    async def check_polls(self):
+        for server in InstanceManager.current.instances.values():
+            if server.channels.voting_channel is None:
+                continue
+            if not server.db.polls:
+                continue
+
+            voting_channel = await self.bot.fetch_channel(
+                server.channels.voting_channel
+            )
+            if server.channels.news_channel is not None:
+                news_channel = await self.bot.fetch_channel(
+                    server.channels.news_channel
+                )
+            else:
+                news_channel = None
+            messages = await voting_channel.history(
+                limit=50, oldest_first=True
+            ).flatten()
+            # Only select bot messages
+            messages = [
+                message for message in messages if message.author.id == self.bot.user.id
+            ]
+            async with server.db.poll_lock.writer:
+                for message in messages:
+                    await self.resolve_poll(message, server, news_channel)
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
