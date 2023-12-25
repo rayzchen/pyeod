@@ -4,7 +4,7 @@ from pyeod.frontend import (
     ElementalBot,
     InstanceManager,
     prepare_file,
-    autocomplete_elements
+    autocomplete_elements,
 )
 from discord.ext import bridge, commands
 from discord.commands import option as option_decorator

@@ -1,4 +1,9 @@
-from pyeod.frontend import DiscordGameInstance, ElementalBot, InstanceManager, autocomplete_elements
+from pyeod.frontend import (
+    DiscordGameInstance,
+    ElementalBot,
+    InstanceManager,
+    autocomplete_elements,
+)
 from pyeod.model import (
     AddCollabPoll,
     ColorPoll,
@@ -18,6 +23,16 @@ import re
 class Info(commands.Cog):
     def __init__(self, bot: ElementalBot):
         self.bot = bot
+
+    def check_color(self, color: str) -> bool:
+        if not color.startswith("#"):
+            return False
+        if not len(color) == 7:
+            return False
+        numbers = "0123456789abcdef"
+        if not all(x.lower() in numbers for x in color[1:]):
+            return False
+        return True
 
     @bridge.bridge_command(aliases=["c", "comment", "note"])
     @bridge.guild_only()
@@ -50,16 +65,6 @@ class Info(commands.Cog):
         await self.bot.add_poll(
             server, poll, ctx, f"🗳️ Suggested a new mark for {element.name}!"
         )
-
-    def check_color(self, color: str) -> bool:
-        if not color.startswith("#"):
-            return False
-        if not len(color) == 7:
-            return False
-        numbers = "0123456789abcdef"
-        if not all(x.lower() in numbers for x in color[1:]):
-            return False
-        return True
 
     @bridge.bridge_command()
     @bridge.guild_only()
