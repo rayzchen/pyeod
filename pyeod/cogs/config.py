@@ -48,8 +48,10 @@ class Config(commands.Cog):
     async def save(self):
         for id, instance in InstanceManager.current.instances.items():
             await instance.db.acquire_all_locks()
-            save_instance(instance, str(id) + ".eod")
-            instance.db.release_all_locks()
+            try:
+                save_instance(instance, str(id) + ".eod")
+            finally:
+                instance.db.release_all_locks()
 
     # @commands.Cog.listener("on_message")
     # async def check_for_new_servers(self, msg: Message):
