@@ -150,7 +150,8 @@ class User(SavableMixin):
         id: int,
         inv: List[int],
         active_polls: int = 0,
-        created_combo_count = 0,
+        created_combo_count: int = 0,
+        votes_cast_count: int = 0,
         last_combo: Tuple[Element, ...] = (),
         last_element: Optional[Element] = None,
     ) -> None:
@@ -160,6 +161,7 @@ class User(SavableMixin):
         self.last_combo = last_combo
         self.last_element = last_element
         self.created_combo_count = created_combo_count
+        self.votes_cast_count = votes_cast_count
 
     def add_element(self, element: Element):
         # Error handled outside
@@ -171,6 +173,7 @@ class User(SavableMixin):
         data["inv"] = self.inv
         data["active_polls"] = self.active_polls
         data["created_combo_count"] = self.created_combo_count
+        data["votes_cast_count"] = self.votes_cast_count
 
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "User":

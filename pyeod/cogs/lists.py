@@ -46,8 +46,10 @@ class Lists(commands.Cog):
         users = len(server.db.users)
 
         found = 0
+        cast = 0
         for user in server.db.users.values():
             found += len(user.inv)
+            cast += user.votes_cast_count
 
         embed = Embed(
             color=config.EMBED_COLOR,
@@ -59,7 +61,7 @@ class Lists(commands.Cog):
                 EmbedField("🔍 Elements Found", f"{found:,}", True),
                 EmbedField("📁 Elements Categorized", "N/A", True),
                 EmbedField("👨‍💻 Commands Used", "N/A", True),
-                EmbedField("🗳️ Votes Cast", "N/A", True),
+                EmbedField("🗳️ Votes Cast", f"{cast:,}", True),
                 EmbedField("❌ Polls Rejected", "N/A", True),
             ],
         )

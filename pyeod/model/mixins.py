@@ -22,6 +22,7 @@ class SavableMixin(metaclass=ABCMeta):
 
 VT = TypeVar("VT")
 
+
 class SavableMixinMapping(Generic[VT], metaclass=ABCMeta):
     indicator: str
 

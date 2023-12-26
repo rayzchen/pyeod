@@ -47,7 +47,9 @@ class GameInstance(SavableMixin):
                 self.db.users[user_id] = User(user_id, inv)
             return self.db.users[user_id]
 
-    async def check_element(self, element_name: str, user: Optional[User] = None) -> Element:
+    async def check_element(
+        self, element_name: str, user: Optional[User] = None
+    ) -> Element:
         async with self.db.element_lock.reader:
             if not await self.db.has_element(element_name):
                 raise GameError(

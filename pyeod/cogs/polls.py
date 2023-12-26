@@ -3,6 +3,7 @@ from discord import Message, TextChannel, errors
 from discord.ext import bridge, commands, tasks
 from discord.utils import get
 from typing import Optional
+import traceback
 
 
 class Polls(commands.Cog):
@@ -24,11 +25,15 @@ class Polls(commands.Cog):
             poll.votes = 0
             send_news_message = True
             try:
-                downvotes = get(message.reactions, emoji="\U0001F53D")
                 upvotes = get(message.reactions, emoji="\U0001F53C")
-            except:
+                downvotes = get(message.reactions, emoji="\U0001F53D")
+                upvoters = set(u.id for u in await upvotes.users().flatten())
+                downvoters = set(u.id for u in await downvotes.users().flatten())
+            except Exception as e:
                 # TODO: handle exceptions properly
                 # Just break out of the loop if the above code breaks
+                print("Ignored exception in resolve_poll")
+                traceback.print_exception(type(e), e, e.__traceback__)
                 return
             if get(await downvotes.users().flatten(), id=poll.author.id):
                 # Double it and give it to the next person
@@ -42,6 +47,12 @@ class Polls(commands.Cog):
                 server.poll_msg_lookup.pop(message.id)
                 if send_news_message and news_channel is not None:
                     await news_channel.send(await poll.get_news_message(server))
+
+                voters = upvoters ^ downvoters
+                async with server.db.user_lock.writer:
+                    for voter in voters:
+                        user = await server.login_user(voter)
+                        user.votes_cast_count += 1
         finally:
             server.processing_polls.remove(message.id)
 

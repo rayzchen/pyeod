@@ -9,7 +9,7 @@ __all__ = [
 ]
 
 
-from pyeod.errors import InternalError
+from pyeod.errors import InternalError, GameError
 from pyeod.model.types import Element, Poll, User, Database
 from typing import Tuple, Union
 import time
@@ -61,7 +61,11 @@ class ElementPoll(Poll):
             else:
                 element = database.elements[self.result.lower()]
             await database.set_combo_result(self.combo, element)
-            await database.give_element(self.author, element)
+            try:
+                await database.give_element(self.author, element)
+            except GameError:
+                # User suggested combo for element they already have
+                pass
             if self.author.last_combo == self.combo:
                 self.author.last_combo = ()
                 self.author.last_element = element

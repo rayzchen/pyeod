@@ -124,7 +124,7 @@ class Base(commands.Cog):
                 user.last_combo = ()
                 element_list = [f"**{elem.name}**" for elem in g.meta["elements"]]
                 await msg.reply(f"🔴 You don't have {format_list(element_list)}!")
-    
+
     async def suggest_element(
         self, server: DiscordGameInstance, name: str, msg: Message, autocapitalize: bool
     ) -> None:
@@ -246,7 +246,6 @@ class Base(commands.Cog):
             title="Random Combo", description=description, color=config.EMBED_COLOR
         )
         await ctx.respond(embed=embed)
-
 
 
 def setup(client):
