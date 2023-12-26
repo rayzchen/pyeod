@@ -8,7 +8,7 @@ from typing import Optional
 class Polls(commands.Cog):
     def __init__(self, bot: ElementalBot):
         self.bot = bot
-        # self.check_polls.start()
+        # self.check_polls.start()  # prevent double poll accepting
 
     async def resolve_poll(
         self,
@@ -16,33 +16,34 @@ class Polls(commands.Cog):
         server: DiscordGameInstance,
         news_channel: Optional[TextChannel] = None,
     ):
-        poll = server.poll_msg_lookup[message.id]
-        if poll.accepted:
+        if message.id in server.processing_polls:
             return
-        poll.votes = 0
-        send_news_message = True
+        server.processing_polls.add(message.id)
         try:
-            downvotes = get(message.reactions, emoji="\U0001F53D")
-            upvote_count = get(message.reactions, emoji="\U0001F53C").count
-            downvote_count = downvotes.count
-        except:
-            # TODO: handle exceptions properly
-            # Just break out of the loop if the above code breaks
-            return
-        if get(await downvotes.users().flatten(), id=poll.author.id):
-            # Double it and give it to the next person
-            poll.votes -= server.vote_req * 2
-            send_news_message = False
-        else:
-            # Do not include the bot's own reaction
-            poll.votes += upvote_count - 1
-            poll.votes -= downvote_count - 1
-        if await server.check_single_poll(poll):
-            # Delete messages before we send to news
-            await message.delete()
-            server.poll_msg_lookup.pop(message.id)
-            if send_news_message and news_channel is not None:
-                await news_channel.send(await poll.get_news_message(server))
+            poll = server.poll_msg_lookup[message.id]
+            poll.votes = 0
+            send_news_message = True
+            try:
+                downvotes = get(message.reactions, emoji="\U0001F53D")
+                upvotes = get(message.reactions, emoji="\U0001F53C")
+            except:
+                # TODO: handle exceptions properly
+                # Just break out of the loop if the above code breaks
+                return
+            if get(await downvotes.users().flatten(), id=poll.author.id):
+                # Double it and give it to the next person
+                poll.votes = -server.vote_req * 2
+                send_news_message = False
+            else:
+                poll.votes = upvotes.count - downvotes.count
+            if await server.check_single_poll(poll):
+                # Delete messages before we send to news
+                await message.delete()
+                server.poll_msg_lookup.pop(message.id)
+                if send_news_message and news_channel is not None:
+                    await news_channel.send(await poll.get_news_message(server))
+        finally:
+            server.processing_polls.remove(message.id)
 
     @tasks.loop(seconds=1, reconnect=True)
     async def check_polls(self):
