@@ -48,7 +48,7 @@ class PlainSavableMixinMapping(SavableMixinMapping[VT]):
     indicator = "__type__"
 
     def get(self, key: str, default: VT = None) -> VT:
-        if key not in self.mapping:
+        if key not in self.mapping and default == None:
             raise KeyError(key)
         value = self.mapping.get(key, default)
         return value
