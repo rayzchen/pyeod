@@ -65,7 +65,7 @@ class ElementPoll(Poll):
             if self.author.last_combo == self.combo:
                 self.author.last_combo = ()
                 self.author.last_element = element
-            self.author.combos_created += 1
+            self.author.created_combo_count += 1
         return element
 
     async def get_news_message(self, instance: "GameInstance") -> str:

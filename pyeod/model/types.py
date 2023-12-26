@@ -136,14 +136,21 @@ class Element(SavableMixin):
 
 
 class User(SavableMixin):
-    __slots__ = ("inv", "active_polls", "id", "last_combo", "last_element")
+    __slots__ = (
+        "id",
+        "inv",
+        "active_polls",
+        "created_combo_count",
+        "last_combo",
+        "last_element",
+    )
 
     def __init__(
         self,
         id: int,
         inv: List[int],
         active_polls: int = 0,
-        combos_created_count=0,
+        created_combo_count = 0,
         last_combo: Tuple[Element, ...] = (),
         last_element: Optional[Element] = None,
     ) -> None:
@@ -152,7 +159,7 @@ class User(SavableMixin):
         self.active_polls = active_polls
         self.last_combo = last_combo
         self.last_element = last_element
-        self.combos_created = combos_created_count
+        self.created_combo_count = created_combo_count
 
     def add_element(self, element: Element):
         # Error handled outside
@@ -163,7 +170,7 @@ class User(SavableMixin):
         data["id"] = self.id
         data["inv"] = self.inv
         data["active_polls"] = self.active_polls
-        data["combos_created_count"] = self.combos_created_count
+        data["created_combo_count"] = self.created_combo_count
 
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "User":
@@ -171,7 +178,7 @@ class User(SavableMixin):
             data.get("id"),  # Must be present
             data.get("inv", []),
             data.get("active_polls", 0),
-            data.get("combos_created_count", 0),
+            data.get("created_combo_count", 0),
         )
         loader.users[user.id] = user
         return user
