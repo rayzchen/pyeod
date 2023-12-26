@@ -385,13 +385,21 @@ class Database(SavableMixin):
             self.found_by_lookup[element.id].add(user.id)
             user.add_element(element)
 
+    def give_element_unsafe(self, user: User, element: int) -> None:
+        if element not in user.inv:
+            self.found_by_lookup[element].add(user.id)
+            user.inv.append(element)
+
     async def get_path(self, element: Element) -> List[int]:
+        return await self.get_path_ids([element.id])
+
+    async def get_path_ids(self, elements: List[int]) -> List[int]:
         if self.complexity_lock.reader.locked:
             raise InternalError("Complexity lock", "Complexity calculations in process")
         async with self.complexity_lock.reader:
             path = []
             visited = set()
-            stack = [element.id]
+            stack = elements.copy()
             while stack:
                 node = stack[-1]
                 if node not in visited:
