@@ -159,7 +159,7 @@ class GameInstance(SavableMixin):
                 # Poll was accepted
                 poll.accepted = True
                 await poll.resolve(self.db)
-            async with server.db.poll_lock.writer:
+            async with self.db.poll_lock.writer:
                 poll.author.active_polls -= 1
                 self.db.polls.remove(poll)
             return True

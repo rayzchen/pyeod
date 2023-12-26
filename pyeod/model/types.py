@@ -141,6 +141,7 @@ class User(SavableMixin):
         "inv",
         "active_polls",
         "created_combo_count",
+        "votes_cast_count",
         "last_combo",
         "last_element",
     )

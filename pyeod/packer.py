@@ -60,7 +60,7 @@ def convert_to_dict(
         print(f"Warning: type {type(obj).__name__} saved but not in type_dict")
 
     data = mapping_type()
-    data["__type__"] = type(obj).__name__
+    data[mapping_type.indicator] = type(obj).__name__
     obj.convert_to_dict(data)
     return data.mapping
 
@@ -108,7 +108,7 @@ def load_instance(file: str) -> GameInstance:
     # Assuming the outer dict has <16 elements and the type key is <32 chars
     indicator_check = data[1:33]
     mapping_type = None
-    for cls in SavableMixinMapping.__subclasses__():
+    for cls in SavableMixinMapping.subclasses:
         packed_key = msgpack.packb(cls.indicator)
         if indicator_check.startswith(packed_key):
             mapping_type = cls
