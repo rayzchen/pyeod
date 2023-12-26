@@ -143,6 +143,7 @@ class User(SavableMixin):
         id: int,
         inv: List[int],
         active_polls: int = 0,
+        combos_created=0,
         last_combo: Tuple[Element, ...] = (),
         last_element: Optional[Element] = None,
     ) -> None:
@@ -151,6 +152,7 @@ class User(SavableMixin):
         self.active_polls = active_polls
         self.last_combo = last_combo
         self.last_element = last_element
+        self.combos_created = combos_created
 
     def add_element(self, element: Element):
         # Error handled outside
@@ -161,6 +163,7 @@ class User(SavableMixin):
         data["id"] = self.id
         data["inv"] = self.inv
         data["active_polls"] = self.active_polls
+        data["combos_created"] = self.combos_created
 
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "User":
@@ -168,6 +171,7 @@ class User(SavableMixin):
             data.get("id"),  # Must be present
             data.get("inv", []),
             data.get("active_polls", 0),
+            data.get("combos_created", 0),
         )
         loader.users[user.id] = user
         return user
@@ -354,10 +358,14 @@ class Database(SavableMixin):
                 if not self.combo_lookup[element.id]:
                     continue
 
-                combo = [self.elem_id_lookup[x] for x in self.combo_lookup[element.id][0]]
+                combo = [
+                    self.elem_id_lookup[x] for x in self.combo_lookup[element.id][0]
+                ]
                 element.color = Element.get_color(combo)
 
-    async def update_element_info(self, element: Element, combo: Tuple[int, ...]) -> None:
+    async def update_element_info(
+        self, element: Element, combo: Tuple[int, ...]
+    ) -> None:
         if self.complexity_lock.writer.locked:
             raise InternalError("Complexity lock", "Complexity calculations in process")
         async with self.complexity_lock.writer:
@@ -429,14 +437,18 @@ class Database(SavableMixin):
         async with self.element_lock.reader:
             return element.lower() in self.elements
 
-    async def get_combo_result(self, combo: Tuple[Element, ...]) -> Union[Element, None]:
+    async def get_combo_result(
+        self, combo: Tuple[Element, ...]
+    ) -> Union[Element, None]:
         async with self.element_lock.reader:
             sorted_combo = tuple(sorted(elem.id for elem in combo))
             if sorted_combo in self.combos:
                 return self.combos[sorted_combo]
             return None
 
-    async def set_combo_result(self, combo: Tuple[Element, ...], result: Element) -> None:
+    async def set_combo_result(
+        self, combo: Tuple[Element, ...], result: Element
+    ) -> None:
         if self.complexity_lock.writer.locked:
             raise InternalError("Complexity lock", "Complexity calculations in process")
         async with self.element_lock.writer:

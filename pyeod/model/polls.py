@@ -65,6 +65,7 @@ class ElementPoll(Poll):
             if self.author.last_combo == self.combo:
                 self.author.last_combo = ()
                 self.author.last_element = element
+            self.author.combos_created += 1
         return element
 
     async def get_news_message(self, instance: "GameInstance") -> str:
@@ -234,16 +235,12 @@ class ColorPoll(Poll):
             if self.accepted:
                 msg += "🎨 "
                 msg += "Color"
-                msg += (
-                    f" - **{self.colored_element.name}** (Lasted **{self.get_time()}** • "
-                )
+                msg += f" - **{self.colored_element.name}** (Lasted **{self.get_time()}** • "
                 msg += f"By <@{self.author.id}>)"
             else:
                 msg += "❌ Poll Rejected - "
                 msg += "Color"
-                msg += (
-                    f" - **{self.colored_element.name}** (Lasted **{self.get_time()}** • "
-                )
+                msg += f" - **{self.colored_element.name}** (Lasted **{self.get_time()}** • "
                 msg += f"By <@{self.author.id}>) "
             return msg
 
