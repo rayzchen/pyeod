@@ -159,8 +159,10 @@ class IntKeySavableMixinMapping(PlainSavableMixinMapping[int, VT]):
         return self.KEYS[type + "." + key]
 
 class CompressedIntKeySavableMixinMapping(IntKeySavableMixinMapping[VT]):
+    indicator = "\x07CIT\x07"  # \x07 untypable as elem name
+
     def get(self, key: str, default: VT = None) -> VT:
-        value = super().get(self.encode_key(key), default)
+        value = super().get(key, default)
         if isinstance(value, bytes):
             value = gzip.decompress(value).decode("utf-8")
         return value
