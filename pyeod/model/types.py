@@ -477,14 +477,15 @@ class Database(SavableMixin):
                 await self.add_element(result)
             self.combos[sorted_combo] = result
             self.combo_lookup[result.id].append(sorted_combo)
-            if result.id not in self.complexities:
-                if self.get_complexity(result.id) is None:
-                    raise InternalError(
-                        "Failed getting complexity",
-                        "No combo found with existing complexity",
-                    )
-            else:
-                await self.update_element_info(result, sorted_combo)
+        if result.id not in self.complexities:
+            if self.get_complexity(result.id) is None:
+                raise InternalError(
+                    "Failed getting complexity",
+                    "No combo found with existing complexity",
+                )
+        else:
+            await self.update_element_info(result, sorted_combo)
+        async with self.element_lock.writer:
             for elem in sorted_combo:
                 self.used_in_lookup[elem].add(sorted_combo)
 

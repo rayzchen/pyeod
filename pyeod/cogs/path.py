@@ -42,10 +42,11 @@ class Path(commands.Cog):
                 await ctx.respond(f"🔴 You don't have **{elem.name}**!")
                 return
 
+        path = await server.db.get_path(elem)
         async with server.db.element_lock.reader:
             lines = []
             i = 0
-            for pathelem in await server.db.get_path(elem):
+            for pathelem in path:
                 combo = server.db.min_elem_tree[pathelem]
                 if not combo:
                     # Only starter elements should end up here

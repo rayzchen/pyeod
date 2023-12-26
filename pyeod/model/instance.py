@@ -123,6 +123,13 @@ class GameInstance(SavableMixin):
         return poll
 
     async def check_polls(self) -> List[Poll]:
+        """
+        Check all polls stored in this instance.
+
+        The caller must not acquire ``element_lock`` to
+        prevent deadlock.
+
+        """
         async with self.db.poll_lock.writer:
             new_polls = []
             deleted_polls = []
@@ -147,20 +154,16 @@ class GameInstance(SavableMixin):
             return deleted_polls
 
     async def check_single_poll(self, poll: Poll) -> bool:
-        async with self.db.poll_lock.writer:
+        if abs(poll.votes) >= self.vote_req:
             if poll.votes >= self.vote_req:
                 # Poll was accepted
                 poll.accepted = True
                 await poll.resolve(self.db)
+            async with server.db.poll_lock.writer:
                 poll.author.active_polls -= 1
                 self.db.polls.remove(poll)
-                return True
-            if poll.votes <= -self.vote_req:
-                # Poll was denied
-                poll.author.active_polls -= 1
-                self.db.polls.remove(poll)
-                return True
-            return False
+            return True
+        return False
 
     def convert_to_dict(self, data: dict) -> None:
         data["db"] = self.db
