@@ -153,16 +153,14 @@ class User(SavableMixin):
         active_polls: int = 0,
         created_combo_count: int = 0,
         votes_cast_count: int = 0,
-        last_combo: Tuple[Element, ...] = (),
-        last_element: Optional[Element] = None,
     ) -> None:
         self.id = id
         self.inv = inv
         self.active_polls = active_polls
-        self.last_combo = last_combo
-        self.last_element = last_element
         self.created_combo_count = created_combo_count
         self.votes_cast_count = votes_cast_count
+        self.last_combo = ()
+        self.last_element = None
 
     def add_element(self, element: Element):
         # Error handled outside
