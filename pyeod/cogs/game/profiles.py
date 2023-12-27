@@ -31,33 +31,27 @@ class Profiles(commands.Cog):
         embed = Embed(title=user.display_name)
         embed.add_field(name="User", value=user.mention, inline=False)
         async with server.db.user_lock.reader:
-            i = 0
-            for user_id, _user in sorted(
-                server.db.users.items(), key=lambda pair: len(pair[1].inv), reverse=True
-            ):
-                i += 1
-                if logged_in is not None and user_id == logged_in.id:
-                    embed.add_field(
-                        name="Leaderboard Position", value=f"#{i}"
-                    )
-                    embed.add_field(
-                        name="Elements Made",
-                        value=f"{len(logged_in.inv):,}",
-                    )
-                    embed.add_field(
-                        name="Votes Cast",
-                        value=f"{logged_in.votes_cast_count:,}",
-                    )
-                    embed.add_field(
-                        name="Suggested Combos",
-                        value=f"{logged_in.created_combo_count:,}",
-                    )
-                    if logged_in.last_element:
-                        embed.add_field(
-                            name="Most Recent Element",
-                            value=f"{logged_in.last_element.name}",
-                        )
-                    break
+            embed.add_field(
+                name="Leaderboard Position",
+                value=f"#{sorted(server.db.users.keys(), key=lambda key: len(server.db.users[key].inv), reverse=True).index(logged_in.id) + 1}",
+            )
+            embed.add_field(
+                name="Elements Made",
+                value=f"{len(logged_in.inv):,}",
+            )
+            embed.add_field(
+                name="Votes Cast",
+                value=f"{logged_in.votes_cast_count:,}",
+            )
+            embed.add_field(
+                name="Suggested Combos",
+                value=f"{logged_in.created_combo_count:,}",
+            )
+            if logged_in.last_element:
+                embed.add_field(
+                    name="Most Recent Element",
+                    value=f"{logged_in.last_element.name}",
+                )
         embed.set_thumbnail(url=user.avatar.url)
 
         await ctx.respond(embed=embed)
