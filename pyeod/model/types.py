@@ -183,6 +183,7 @@ class User(SavableMixin):
             data.get("inv", []),
             data.get("active_polls", 0),
             data.get("created_combo_count", 0),
+            data.get("votes_cast_count", 0),
         )
         loader.users[user.id] = user
         return user
