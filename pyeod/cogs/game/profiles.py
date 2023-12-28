@@ -42,39 +42,39 @@ class Profiles(commands.Cog):
         async with server.db.user_lock.reader:
             if leaderboard_position == 1:
                 embed.add_field(
-                    name="🥇Leaderboard Position",
+                    name="🥇 Leaderboard Position",
                     value=f"#{leaderboard_position}",
                 )
             elif leaderboard_position == 2:
                 embed.add_field(
-                    name="🥈Leaderboard Position",
+                    name="🥈 Leaderboard Position",
                     value=f"#{leaderboard_position}",
                 )
             elif leaderboard_position == 3:
                 embed.add_field(
-                    name="🥉Leaderboard Position",
+                    name="🥉 Leaderboard Position",
                     value=f"#{leaderboard_position}",
                 )
             else:
                 embed.add_field(
-                    name="🎖️Leaderboard Position",
+                    name="🎖️ Leaderboard Position",
                     value=f"#{leaderboard_position}",
                 )
             embed.add_field(
-                name="🎒Elements Made",
+                name="🎒 Elements Made",
                 value=f"{len(logged_in.inv):,}",
             )
             embed.add_field(
-                name="🗳️Votes Cast",
+                name="🗳️ Votes Cast",
                 value=f"{logged_in.votes_cast_count:,}",
             )
             embed.add_field(
-                name="✍Suggested Combos",
+                name="✍ Suggested Combos",
                 value=f"{logged_in.created_combo_count:,}",
             )
             if logged_in.last_element:
                 embed.add_field(
-                    name="🆕Most Recent Element",
+                    name="🆕 Most Recent Element",
                     value=f"{logged_in.last_element.name}",
                 )
         embed.set_thumbnail(url=user.avatar.url)
