@@ -9,6 +9,7 @@ from pyeod.frontend import (
 from discord import User, Embed
 from discord.ext import bridge, commands
 from typing import Optional
+from pyeod import config
 
 
 class Profiles(commands.Cog):
@@ -28,7 +29,7 @@ class Profiles(commands.Cog):
         else:
             logged_in = None
 
-        embed = Embed(title=user.display_name)
+        embed = Embed(title=user.display_name, color=config.EMBED_COLOR)
         embed.add_field(name="User", value=user.mention, inline=False)
         async with server.db.user_lock.reader:
             embed.add_field(
