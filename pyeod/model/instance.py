@@ -6,7 +6,6 @@ from pyeod.model.mixins import SavableMixin
 from pyeod.model.polls import ElementPoll
 from pyeod.model.types import Database, Element, Poll, User
 from typing import List, Tuple, Optional
-import asyncio
 import copy
 
 AIR = Element("Air", id=1, color=0x99E5DC)

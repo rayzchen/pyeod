@@ -14,7 +14,6 @@ from pyeod.model import ColorPoll, Element, GameInstance, User
 from discord import Embed, EmbedField, File
 from io import BytesIO, StringIO
 from typing import List, Union
-import os
 import gzip
 import math
 
