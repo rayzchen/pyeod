@@ -291,6 +291,15 @@ class Database(SavableMixin):
             for elem in user.inv:
                 self.found_by_lookup[elem].add(user.id)
 
+        self.created_by_lookup: Dict[int, List[int]] = {
+            user: [] for user in self.users
+        }
+        self.created_by_lookup[0] = []  # Glitched elements
+        self.created_by_lookup[None] = []  # Starter elements
+        for elem in self.elements.values():
+            author = elem.author.id if elem.author else elem.author
+            self.created_by_lookup[author].append(elem.id)
+
         self.complexities = {}
         self.min_elem_tree = {}
 
@@ -357,6 +366,13 @@ class Database(SavableMixin):
             self.min_elem_tree[elem_id] = min_combo
             return min_complexity
         return None
+
+    async def check_suggested_combos(self):
+        async with self.user_lock.writer:
+            for user in self.users.values():
+                created = len(self.created_by_lookup[user.id])
+                if created > user.created_combo_count:
+                    user.created_combo_count = created
 
     async def check_colors(self):
         async with self.element_lock.writer:

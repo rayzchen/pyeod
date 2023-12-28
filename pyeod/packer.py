@@ -126,12 +126,18 @@ def load_instance(file: str) -> GameInstance:
     del loader, hook, data
 
     def wrapper(loop):
-        task1 = asyncio.run_coroutine_threadsafe(instance.db.check_colors(), loop=loop)
+        task1 = asyncio.run_coroutine_threadsafe(
+            instance.db.check_colors(), loop=loop
+        )
         task2 = asyncio.run_coroutine_threadsafe(
+            instance.db.check_suggested_combos(), loop=loop
+        )
+        task3 = asyncio.run_coroutine_threadsafe(
             instance.db.calculate_infos(), loop=loop
         )
         task1.result()
         task2.result()
+        task3.result()
         print("Finished calculating complexity for", os.path.basename(file))
 
     loop = asyncio.get_event_loop()
