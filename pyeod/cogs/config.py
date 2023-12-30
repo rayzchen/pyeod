@@ -67,6 +67,7 @@ class Config(commands.Cog):
     #     await InstanceManager.current.get_or_create(msg.guild.id)
 
     @bridge.bridge_command(guild_ids=[config.MAIN_SERVER])
+    @bridge.has_permissions(manage_guild=True)
     @bridge.guild_only()
     async def import_instance(
         self, ctx: bridge.Context, guild_id: int, file: Attachment
@@ -102,6 +103,7 @@ class Config(commands.Cog):
             await ctx.respond("🤖 Old instance backup:", file=file)
 
     @bridge.bridge_command(guild_ids=[config.MAIN_SERVER])
+    @bridge.has_permissions(manage_guild=True)
     @bridge.guild_only()
     async def active_servers(self, ctx: bridge.Context):
         if ctx.author.id not in config.SERVER_CONTROL_USERS:
@@ -129,6 +131,7 @@ class Config(commands.Cog):
         await paginator.respond(ctx)
 
     @bridge.bridge_command(guild_ids=[config.MAIN_SERVER])
+    @bridge.has_permissions(manage_guild=True)
     @bridge.guild_only()
     async def download_instance(
         self, ctx: bridge.Context, guild_id: Optional[int] = None
