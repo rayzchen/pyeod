@@ -134,13 +134,16 @@ async def build_info_embed(
 
 
 def generate_embed_list(
-    lines: List[str], title: str, limit: int, color: int = config.EMBED_COLOR
+    lines: List[str],
+    title: str,
+    limit: int,
+    color: int = config.EMBED_COLOR,
 ) -> List[Embed]:
     if not lines:
         embeds = [Embed(title=title, color=color)]
         return embeds
 
-    embeds = []
+    embeds: List[Embed] = []
     for i in range(math.ceil(len(lines) / limit)):
         embeds.append(
             Embed(
