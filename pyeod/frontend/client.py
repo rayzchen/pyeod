@@ -1,10 +1,24 @@
-__all__ = ["FooterPaginator", "ElementalBot", "autocomplete_elements"]
+__all__ = [
+    "FooterPaginator",
+    "ElementalBot",
+    "autocomplete_elements",
+    "LeaderboardPaginator",
+    "create_leaderboard",
+]
 
-
+from .utils import get_page_limit, generate_embed_list
 from pyeod.model import Poll
 from pyeod.errors import InternalError
 from pyeod.frontend.model import DiscordGameInstance, InstanceManager
-from discord import ButtonStyle, Embed, Message, AutocompleteContext
+from discord import (
+    ButtonStyle,
+    Embed,
+    Message,
+    AutocompleteContext,
+    ui,
+    Interaction,
+    SelectOption,
+)
 from discord.ext import bridge, pages
 
 
@@ -41,6 +55,115 @@ class FooterPaginator(pages.Paginator):
                 footer += " • " + self.footer_text
             page.set_footer(text=footer)
         return buttons
+
+
+async def create_leaderboard(sorting_option, ctx, user):
+    server = InstanceManager.current.get_or_create(ctx.guild.id)
+    # Don't add new user to db
+    if user.id in server.db.users:
+        logged_in = await server.login_user(user.id)
+    else:
+        logged_in = None
+
+    # Handle the interaction here
+    async with server.db.user_lock.reader:
+        lines = []
+        user_index = -1
+        user_inv = 0
+        i = 0
+        find_value = None
+        title = None
+        if sorting_option == "Elements Made":
+            find_value = lambda user: len(user.inv)
+            title = "Top Most Found"
+        elif sorting_option == "Combos Suggested":
+            find_value = lambda user: user.created_combo_count
+            title = "Top Suggested"
+        elif sorting_option == "Votes Cast":
+            find_value = lambda user: user.votes_cast_count
+            title = "Top Votes Cast"
+
+        for user_id, user in sorted(
+            server.db.users.items(),
+            key=lambda pair: find_value(pair[1]),
+            reverse=True,
+        ):
+            i += 1
+            player_value = find_value(user)
+            if logged_in is not None and user_id == logged_in.id:
+                user_index = i
+                lines.append(f"{i}\. <@{user_id}> *You* - {player_value:,}")
+            else:
+                lines.append(f"{i}\. <@{user_id}> - {player_value:,}")
+
+    limit = get_page_limit(server, ctx.channel.id)
+    pages = generate_embed_list(lines, title, limit)
+    for page in pages:
+        page.add_field(name=f"\nYou are #{user_index} on this leaderboard", value="")
+    if logged_in is not None and user_id == logged_in.id:
+        for page in pages:
+            if f"<@{user_id}>" not in page.description:
+                page.description += (
+                    f"\n\n{user_index}\. <@{user_id} *You* - {user_inv:,}"
+                )
+    return pages
+
+
+class SortingDropdown(ui.Select):
+    def __init__(self):
+        self.sorting_option = "Elements Made"
+        options = [
+            SelectOption(
+                label="Elements Made",
+                description="Sorts by elements in inventory",
+                emoji="🎒"
+            ),
+            SelectOption(
+                label="Combos Suggested",
+                description="Sorts by combos that have been suggested and passed",
+                emoji="✍️",
+            ),
+            SelectOption(
+                label="Votes Cast",
+                description="Sorts by amount of times voted",
+                emoji="🗳️",
+            ),
+            # Add more options as needed
+        ]
+        super().__init__(
+            placeholder="Choose a sorting option...",
+            min_values=1,
+            max_values=1,
+            options=options,
+        )
+
+    async def callback(self, interaction: Interaction):
+        ctx = self.paginator.ctx
+        user = self.paginator.user
+
+        pages = await create_leaderboard(self.values[0], ctx, user)
+
+        self.paginator.pages = pages
+        self.paginator.current_page = 0
+
+        await self.paginator.goto_page(
+            self.paginator.current_page, interaction=interaction
+        )
+
+
+class LeaderboardPaginator(FooterPaginator):
+    def __init__(
+        self, page_list, ctx, user, footer_text: str = "", loop: bool = True
+    ) -> None:
+        super(LeaderboardPaginator, self).__init__(page_list, footer_text, loop)
+        self.show_menu = True
+        self.ctx = ctx
+        self.user = user
+
+    def add_menu(self):
+        self.menu = SortingDropdown()
+        self.menu.paginator = self
+        self.add_item(self.menu)
 
 
 class ElementalBot(bridge.AutoShardedBot):
