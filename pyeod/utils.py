@@ -5,7 +5,7 @@ import site
 import traceback
 
 
-def format_traceback(err):
+def format_traceback(err) -> str:
     _traceback = "".join(traceback.format_exception(type(err), err, err.__traceback__))
     error = f"```py\n{_traceback}\n```"
     workdir = os.path.abspath("/<workdir>")
@@ -17,7 +17,7 @@ def format_traceback(err):
     return error
 
 
-def format_list(items, final_sep="or"):
+def format_list(items:list, final_sep:str="or") -> str:
     if len(items) == 0:
         return ""
     if len(items) == 1:
