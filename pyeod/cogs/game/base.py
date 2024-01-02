@@ -124,7 +124,6 @@ class Base(commands.Cog):
                 user.last_combo = ()
                 element_list = [f"**{elem.name}**" for elem in g.meta["elements"]]
                 await msg.reply(f"🔴 You don't have {format_list(element_list)}!")
-        await self.award_achievements(server, msg)
 
     async def suggest_element(
         self, server: DiscordGameInstance, name: str, msg: Message, autocapitalize: bool
@@ -161,23 +160,6 @@ class Base(commands.Cog):
                 msg,
                 f"🗳️ Suggested **{elements}** = **{poll.result}**! {emoji}",
             )
-
-    async def award_achievements(self, server: DiscordGameInstance, msg: Message):
-        user = await server.login_user(msg.author.id)
-        achievements = await server.get_achievements(user)
-        new_achievements = [
-            i for i in achievements if i not in user.last_checked_achievements
-        ]
-
-        if server.channels.news_channel is not None:
-            news_channel = await self.bot.fetch_channel(server.channels.news_channel)
-
-        for achievement in new_achievements:
-            await msg.reply(f"🌟 You got the achievement **{achievement}**")
-            await news_channel.send(
-                f"🌟 <@{user.id}> got the achievement **{achievement}**"
-            )
-        user.last_checked_achievements = achievements
 
     @staticmethod
     def handle_errors(func):
