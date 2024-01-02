@@ -1,4 +1,5 @@
 from pyeod.frontend import DiscordGameInstance, ElementalBot, InstanceManager
+from pyeod.errors import InternalError
 from discord import Message, TextChannel, errors
 from discord.ext import bridge, commands, tasks
 from discord.utils import get
@@ -76,7 +77,15 @@ class Polls(commands.Cog):
                 downvotes = get(message.reactions, emoji="\U0001F53D")
 
                 poll.votes = upvotes.count - downvotes.count
-                if await server.check_single_poll(poll):
+                try:
+                    resolve_poll = await server.check_single_poll(poll)
+                except InternalError as e:
+                    if e.type == "Combo exists":
+                        resolve_poll = False
+                        delete_poll = True
+                    else:
+                        raise
+                if resolve_poll:
                     if server.channels.news_channel is not None:
                         print("send news")
                         news_channel = await self.bot.fetch_channel(server.channels.news_channel)
