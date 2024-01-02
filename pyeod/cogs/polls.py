@@ -59,20 +59,18 @@ class Polls(commands.Cog):
         if payload.message_id in server.processing_polls:
             return
         server.processing_polls.add(payload.message_id)
-        print(payload.message_id)
 
         delete_poll = False
-        silent_delete = False  # author downvoted
+        author_downvote = False
         async with server.db.poll_lock.reader:
             poll = server.poll_msg_lookup[payload.message_id]
             if payload.user_id == poll.author.id and str(payload.emoji) == "\U0001F53D":
                 delete_poll = True
-                silent_delete = True
+                author_downvote = True
         try:
             channel = await self.bot.fetch_channel(payload.channel_id)
             message = await channel.fetch_message(payload.message_id)
-            if not silent_delete:
-                print("fetch reactions")
+            if not author_downvote:
                 upvotes = get(message.reactions, emoji="\U0001F53C")
                 downvotes = get(message.reactions, emoji="\U0001F53D")
 
@@ -87,11 +85,9 @@ class Polls(commands.Cog):
                         raise
                 if resolve_poll:
                     if server.channels.news_channel is not None:
-                        print("send news")
                         news_channel = await self.bot.fetch_channel(server.channels.news_channel)
                         await news_channel.send(await poll.get_news_message(server))
 
-                    print("fetch voters")
                     upvoters = set(u.id for u in await upvotes.users().flatten())
                     downvoters = set(u.id for u in await downvotes.users().flatten())
 
@@ -103,7 +99,6 @@ class Polls(commands.Cog):
 
                     delete_poll = True
             if delete_poll:
-                print("delete poll")
                 await message.delete()
                 async with server.db.poll_lock.writer:
                     server.poll_msg_lookup.pop(payload.message_id)
