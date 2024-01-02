@@ -17,7 +17,7 @@ def format_traceback(err) -> str:
     return error
 
 
-def format_list(items:list, final_sep:str="or") -> str:
+def format_list(items: list, final_sep: str = "or") -> str:
     if len(items) == 0:
         return ""
     if len(items) == 1:
@@ -25,3 +25,31 @@ def format_list(items:list, final_sep:str="or") -> str:
     if len(items) == 2:
         return f"{items[0]} {final_sep} {items[1]}"
     return f"{', '.join(map(str, items[:-1]))}, {final_sep} {items[-1]}"
+
+
+def int_to_roman(num: int) -> str:
+    # Mapping of Roman numerals to their corresponding integer values
+    val_syms = [
+        (1000, "M"),
+        (900, "CM"),
+        (500, "D"),
+        (400, "CD"),
+        (100, "C"),
+        (90, "XC"),
+        (50, "L"),
+        (40, "XL"),
+        (10, "X"),
+        (9, "IX"),
+        (5, "V"),
+        (4, "IV"),
+        (1, "I"),
+    ]
+
+    roman_num = ""
+
+    for val, sym in val_syms:
+        while num >= val:
+            roman_num += sym
+            num -= val
+
+    return roman_num
