@@ -48,6 +48,10 @@ class Polls(commands.Cog):
         if payload.user_id == self.bot.user.id:
             return
         if payload.message_id not in server.poll_msg_lookup:
+            channel = await self.bot.fetch_channel(payload.channel_id)
+            message = await channel.fetch_message(payload.message_id)
+            if message.author.id == self.bot.user.id:
+                await message.delete()
             return
         if str(payload.emoji) not in ["\U0001F53C", "\U0001F53D"]:
             return
