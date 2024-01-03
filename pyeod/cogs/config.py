@@ -90,7 +90,7 @@ class Config(commands.Cog):
             with open(path, "wb") as f:
                 f.write(await file.read())
 
-        async with InstanceManager.current.prevent_creation():
+        with InstanceManager.current.prevent_creation():
             instance = load_instance(path)
             if guild_id in InstanceManager.current.instances:
                 InstanceManager.current.remove_instance(guild_id)
