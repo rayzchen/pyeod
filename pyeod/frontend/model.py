@@ -129,9 +129,12 @@ class InstanceManager:
     def prevent_creation(self):
         @contextmanager
         def decorator():
+            original = self.creation_lock
             self.creation_lock = True
-            yield self
-            self.creation_lock = False
+            try:
+                yield self
+            finally:
+                self.creation_lock = original
 
         return decorator
 
