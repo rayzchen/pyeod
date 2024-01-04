@@ -39,6 +39,37 @@ class Lists(commands.Cog):
 
     @bridge.bridge_command()
     @bridge.guild_only()
+    async def achievements(self, ctx: bridge.Context, user: Optional[User] = None):
+        server = InstanceManager.current.get_or_create(ctx.guild.id)
+        if user is None:
+            user = ctx.author
+        elif user.id not in server.db.users:
+            # If user was None, this shouldn't run
+            await ctx.respond("🔴 User not found!")
+            return
+
+        logged_in = await server.login_user(user.id)
+        async with server.db.user_lock.reader:
+            # Sort by tier then sort by id
+            achievements = [
+                await server.get_achievement_name(achievement)
+                for achievement in sorted(
+                    sorted(
+                        logged_in.achievements,
+                        key=lambda achievement_pair: achievement_pair[1],
+                    ),
+                    key=lambda achievement_pair: achievement_pair[0],
+                )
+            ]
+        title = user.display_name + f"'s Achievements ({len(achievements)})"
+
+        limit = get_page_limit(server, ctx.channel.id)
+        embeds = generate_embed_list(achievements, title, limit)
+        paginator = FooterPaginator(embeds)
+        await paginator.respond(ctx)
+
+    @bridge.bridge_command()
+    @bridge.guild_only()
     async def stats(self, ctx: bridge.Context):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         elements = len(server.db.elements)
