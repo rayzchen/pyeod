@@ -110,6 +110,13 @@ async def leaderboard_pos_func(instance, user):
         elif leaderboard_position <= 10:
             return 0
 
+async def achievement_achievement_func(instance, user):
+    async with instance.db.user_lock.reader:
+        achievement_amount = len(user.achievements)
+        if achievement_amount < 10:
+            return 0
+        else:
+            return achievement_amount//10
 
 # Format:
 # names:list[str] = the tier names
@@ -176,5 +183,10 @@ achievements = {
             "🥇 Top of the pack",
         ],
         "check func": leaderboard_pos_func,
+    },
+    4: {
+        "names": ["Achievement get!"],
+        "default": "Achiever",
+        "check func": achievement_achievement_func,
     },
 }
