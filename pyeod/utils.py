@@ -28,21 +28,21 @@ def format_list(items: list, final_sep: str = "or") -> str:
 
 
 def int_to_roman(num: int) -> str:
-    # Mapping of Roman numerals to their corresponding integer values
+    # Mapping of Roman numerals (in Unicode) to their corresponding integer values
     val_syms = [
-        (1000, "M"),
-        (900, "CM"),
-        (500, "D"),
-        (400, "CD"),
-        (100, "C"),
-        (90, "XC"),
-        (50, "L"),
-        (40, "XL"),
-        (10, "X"),
-        (9, "IX"),
-        (5, "V"),
-        (4, "IV"),
-        (1, "I"),
+        (1000, "\u216F"),  # M
+        (900, "\u216D\u216F"),  # CM
+        (500, "\u216E"),  # D
+        (400, "\u216D\u216E"),  # CD
+        (100, "\u216D"),  # C
+        (90, "\u2169\u216D"),  # XC
+        (50, "\u216C"),  # L
+        (40, "\u2169\u216C"),  # XL
+        (10, "\u2169"),  # X
+        (9, "\u2160\u2169"),  # IX
+        (5, "\u2164"),  # V
+        (4, "\u2160\u2164"),  # IV
+        (1, "\u2160"),  # I
     ]
 
     roman_num = ""

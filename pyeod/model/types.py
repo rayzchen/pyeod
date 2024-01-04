@@ -142,8 +142,7 @@ class User(SavableMixin):
         "active_polls",
         "created_combo_count",
         "votes_cast_count",
-        "last_checked_achievements",
-        "persistent_achievements",
+        "achievements",
         "last_combo",
         "last_element",
     )
@@ -155,16 +154,14 @@ class User(SavableMixin):
         active_polls: int = 0,
         created_combo_count: int = 0,
         votes_cast_count: int = 0,
-        last_checked_achievements: List[str] = [],
-        persistent_achievements: List[str] = [],
+        achievements: List[Tuple[int, int]] = [],
     ) -> None:
         self.id = id
         self.inv = inv
         self.active_polls = active_polls
         self.created_combo_count = created_combo_count
         self.votes_cast_count = votes_cast_count
-        self.last_checked_achievements = last_checked_achievements
-        self.persistent_achievements = persistent_achievements
+        self.achievements = achievements
         self.last_combo = ()
         self.last_element = None
 
@@ -179,8 +176,7 @@ class User(SavableMixin):
         data["active_polls"] = self.active_polls
         data["created_combo_count"] = self.created_combo_count
         data["votes_cast_count"] = self.votes_cast_count
-        data["last_checked_achievements"] = self.last_checked_achievements
-        data["persistent_achievements"] = self.persistent_achievements
+        data["achievements"] = self.achievements
 
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "User":
@@ -190,8 +186,7 @@ class User(SavableMixin):
             data.get("active_polls", 0),
             data.get("created_combo_count", 0),
             data.get("votes_cast_count", 0),
-            data.get("last_checked_achievements", []),
-            data.get("persistent_achievements", []),
+            data.get("achievements", []),
         )
         loader.users[user.id] = user
         return user

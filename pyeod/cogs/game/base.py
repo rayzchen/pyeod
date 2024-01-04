@@ -164,20 +164,20 @@ class Base(commands.Cog):
 
     async def award_achievements(self, server: DiscordGameInstance, msg: Message):
         user = await server.login_user(msg.author.id)
-        achievements = await server.get_achievements(user)
-        new_achievements = [
-            i for i in achievements if i not in user.last_checked_achievements
-        ]
-
-        if server.channels.news_channel is not None:
-            news_channel = await self.bot.fetch_channel(server.channels.news_channel)
+        print(user.achievements)
+        new_achievements = await server.get_achievements(user)
 
         for achievement in new_achievements:
-            await msg.reply(f"🌟 You got the achievement **{achievement}**")
-            await news_channel.send(
-                f"🌟 <@{user.id}> got the achievement **{achievement}**"
+            await msg.reply(
+                f"🌟 You got the achievement **{await server.get_achievement_name(achievement)}**"
             )
-        user.last_checked_achievements = achievements
+            if server.channels.news_channel is not None:
+                news_channel = await self.bot.fetch_channel(
+                    server.channels.news_channel
+                )
+                await news_channel.send(
+                    f"🌟 <@{user.id}> got the achievement **{await server.get_achievement_name(achievement)}**"
+                )
 
     @staticmethod
     def handle_errors(func):
