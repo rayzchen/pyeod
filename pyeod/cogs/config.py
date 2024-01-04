@@ -7,8 +7,9 @@ from pyeod.frontend import (
     generate_embed_list,
     FooterPaginator,
 )
+from pyeod.errors import GameError
 from pyeod.packer import load_instance, save_instance
-from discord import Attachment, Embed, File, Message, TextChannel, default_permissions
+from discord import Attachment, Embed, File, Message, TextChannel, default_permissions, Member
 from discord.ext import bridge, commands, tasks
 from typing import Optional
 import io
@@ -89,7 +90,7 @@ class Config(commands.Cog):
             with open(path, "wb") as f:
                 f.write(await file.read())
 
-        async with InstanceManager.current.creation_lock.writer:
+        with InstanceManager.current.prevent_creation():
             instance = load_instance(path)
             if guild_id in InstanceManager.current.instances:
                 InstanceManager.current.remove_instance(guild_id)
@@ -101,6 +102,40 @@ class Config(commands.Cog):
             stream = io.BytesIO(old_data)
             file = File(stream, filename=str(guild_id) + ".eod")
             await ctx.respond("🤖 Old instance backup:", file=file)
+
+    @bridge.bridge_command()
+    @bridge.guild_only()
+    @bridge.has_permissions(manage_channels=True)
+    async def import_inventory(self, ctx: bridge.Context, user: Member, inv: Attachment):
+        server = InstanceManager.current.get_or_create(ctx.guild.id)
+        logged_in = await server.login_user(user.id)
+
+        found = 0
+        skipped = 0
+        notfound = 0
+        content = await inv.read()
+        for line in content.decode("utf-8").strip().split("\n"):
+            if not line:
+                continue
+            name = line.strip()
+            if name.lower() not in server.db.elements:
+                notfound += 1
+            else:
+                found += 1
+                try:
+                    await server.db.give_element(logged_in, server.db.elements[name.lower()])
+                except GameError as e:
+                    if e.type == "Already have element":
+                        found -= 1
+                        skipped += 1
+                    else:
+                        raise
+
+        msg = f"🤖 Successfully imported inv for user **{user.display_name}**"
+        msg += f"\n> Added {found} elements"
+        msg += f"\n> Skipped {skipped} elements"
+        msg += f"\n> Could not find {notfound} elements"
+        await ctx.respond(msg)
 
     @bridge.bridge_command(guild_ids=[config.MAIN_SERVER])
     @bridge.has_permissions(manage_guild=True)
