@@ -176,7 +176,7 @@ class GameInstance(SavableMixin):
             if [achievement_id, returned_tier] not in user_achievements:
                 user_achievements.append([achievement_id, returned_tier])
                 new_achievements.append([achievement_id, returned_tier])
-            if [achievement_id, returned_tier - 1] not in achievements:
+            if [achievement_id, returned_tier - 1] not in user_achievements:
                 for i in range(returned_tier):
                     if [achievement_id, i] not in user_achievements:
                         user_achievements.append([achievement_id, i])
