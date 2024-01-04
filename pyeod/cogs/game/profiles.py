@@ -24,10 +24,7 @@ class Profiles(commands.Cog):
         if user is None:
             user = ctx.author
 
-        if user.id in server.db.users:
-            logged_in = await server.login_user(user.id)
-        else:
-            logged_in = None
+        logged_in: User = await server.login_user(user.id)
 
         embed = Embed(title=user.display_name, color=config.EMBED_COLOR)
         embed.add_field(name="👤User", value=user.mention, inline=False)
@@ -72,6 +69,11 @@ class Profiles(commands.Cog):
                 name="✍ Suggested Combos",
                 value=f"{logged_in.created_combo_count:,}",
             )
+            if logged_in.achievements:
+                embed.add_field(
+                    name="🌟 Latest Achievement",
+                    value=f"{await server.get_achievement_name(logged_in.achievements[-1])}",
+                )
             if logged_in.last_element:
                 embed.add_field(
                     name="🆕 Most Recent Element",
