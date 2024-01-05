@@ -166,9 +166,9 @@ class GameInstance(SavableMixin):
             return True
         return False
 
-    async def get_achievements(self, user: User) -> List[Tuple[int, int]]:
-        user_achievements: List[Tuple[int, int]] = user.achievements
-        new_achievements: List[Tuple[int, int]] = []
+    async def get_achievements(self, user: User) -> List[List[int, int]]:
+        user_achievements: List[List[int, int]] = user.achievements
+        new_achievements: List[List[int, int]] = []
         for achievement_id, achievement_data in achievements.items():
             returned_tier = await achievement_data["check func"](self, user)
             if returned_tier == None:
@@ -184,7 +184,7 @@ class GameInstance(SavableMixin):
 
         return new_achievements
 
-    async def get_achievement_name(self, achievement: Tuple[int, int]) -> str:
+    async def get_achievement_name(self, achievement: List[int, int]) -> str:
         name = ""
         achievement_data = achievements[achievement[0]]
         try:
