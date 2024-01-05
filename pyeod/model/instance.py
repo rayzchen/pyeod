@@ -198,7 +198,7 @@ class GameInstance(SavableMixin):
         unlocked_icons = []
         for icon_id, icon_data in user_icons.items():
             if icon_data["req"] != None and achievement == icon_data["req"]:
-                unlocked_icons.append(icon_id)
+                unlocked_icons.append(icon_data["emoji"])
         return unlocked_icons
 
     async def get_available_icons(self, user: User):
