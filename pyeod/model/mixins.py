@@ -141,6 +141,8 @@ class IntKeySavableMixinMapping(PlainSavableMixinMapping[int, VT]):
         "DiscordGameInstance.poll_msg_lookup": 65,
         "User.created_combo_count": 66,
         "User.votes_cast_count": 67,
+        "User.achievements": 68,
+        "User.icon": 69,
     }
 
     def get(self, key: str, default: VT = None) -> VT:
