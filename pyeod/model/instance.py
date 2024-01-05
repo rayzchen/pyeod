@@ -171,11 +171,12 @@ class GameInstance(SavableMixin):
         new_achievements: List[List[int]] = []
         for achievement_id, achievement_data in achievements.items():
             returned_tier = await achievement_data["req_func"](self, user)
-            if returned_tier == None:
+            if returned_tier is None:
                 continue
             if [achievement_id, returned_tier] not in user_achievements:
                 user_achievements.append([achievement_id, returned_tier])
                 new_achievements.append([achievement_id, returned_tier])
+            # Check previous achievements if skipped over
             if [achievement_id, returned_tier - 1] not in user_achievements:
                 for i in range(returned_tier):
                     if [achievement_id, i] not in user_achievements:
