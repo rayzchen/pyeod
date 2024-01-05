@@ -121,9 +121,9 @@ async def achievement_achievement_func(instance, user):
 
 
 # Format:
-# names:list[str] = the tier names
-# default:str = what is defaulted to if the check_func returns an index outside of the names list (roman numerals added based on how far off the returned index is)
-# check func:func = the function that takes in user data and returns the appropriate tier of achievement
+# names: list[str] = the tier names
+# default: str = what is defaulted to if the check_func returns an index outside of the names list (roman numerals added based on how far off the returned index is)
+# req_func: Callable[GameInstance, User] = the function that takes in user data and returns the appropriate tier of achievement
 
 achievements = {
     0: {
@@ -139,7 +139,7 @@ achievements = {
             "True Elementalist ⅠⅠⅠ",
         ],
         "default": "Ultimate Elementalist",
-        "check func": elements_collected_func,
+        "req_func": elements_collected_func,
     },
     1: {
         "names": [
@@ -163,7 +163,7 @@ achievements = {
             "Powerful Creator ⅠV,",
         ],
         "default": "Mighty Creator",
-        "check func": elements_created_func,
+        "req_func": elements_created_func,
     },
     2: {
         "names": [
@@ -175,7 +175,7 @@ achievements = {
             "Avid Voter",
         ],
         "default": "Judge",
-        "check func": votes_cast_func,
+        "req_func": votes_cast_func,
     },
     3: {  # No default as it is impossible for an outside index to be returned
         "names": [
@@ -184,18 +184,18 @@ achievements = {
             "🥈 2nd is the best",
             "🥇 Top of the pack",
         ],
-        "check func": leaderboard_pos_func,
+        "req_func": leaderboard_pos_func,
     },
     4: {
         "names": ["Achievement get!"],
         "default": "Achiever",
-        "check func": achievement_achievement_func,
+        "req_func": achievement_achievement_func,
     },
 }
 
 # Format
-# emoji:str = the emoji to display by the user
-# req:List[int] = the achievement and tier required for that icon to be used
+# emoji: str = the emoji to display by the user
+# req: List[int] = the achievement and tier required for that icon to be used
 
 icons = {
     0: {"emoji": "👤", "req": None},  # The default icon available to everyone
@@ -224,6 +224,7 @@ icons = {
     23: {"emoji": "🪐", "req": [4, 5]},
     24: {"emoji": "🌌", "req": [4, 6]},
     25: {"emoji": "💠", "req": [0, 9]},
-    26: {"emoji": "🎨", "req": [1, 18]},   #------# wizard emoji on the line below causes
-    27: {"emoji": "\U0001F9D9", "req": [0, 0]},  # black to freak out
+    26: {"emoji": "🎨", "req": [1, 18]},
+    # wizard emoji causes black to freak out
+    27: {"emoji": "\U0001F9D9", "req": [0, 0]},
 }

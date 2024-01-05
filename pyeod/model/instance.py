@@ -2,13 +2,13 @@ __all__ = ["GameInstance"]
 
 
 from pyeod.errors import GameError, InternalError
+from pyeod.model.achievements import achievements, icons
 from pyeod.model.mixins import SavableMixin
 from pyeod.model.polls import ElementPoll
 from pyeod.model.types import Database, Element, Poll, User
 from pyeod.utils import int_to_roman
 from typing import List, Tuple, Optional
 import copy
-from .achievements import achievements, icons
 
 AIR = Element("Air", id=1, color=0x99E5DC)
 EARTH = Element("Earth", id=2, color=0x806043)
@@ -170,7 +170,7 @@ class GameInstance(SavableMixin):
         user_achievements: List[List[int]] = user.achievements
         new_achievements: List[List[int]] = []
         for achievement_id, achievement_data in achievements.items():
-            returned_tier = await achievement_data["check func"](self, user)
+            returned_tier = await achievement_data["req_func"](self, user)
             if returned_tier == None:
                 continue
             if [achievement_id, returned_tier] not in user_achievements:
