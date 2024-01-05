@@ -164,9 +164,10 @@ class Base(commands.Cog):
 
     async def award_achievements(self, server: DiscordGameInstance, msg: Message):
         user = await server.login_user(msg.author.id)
-        print(user.achievements)
         new_achievements = await server.get_achievements(user)
 
+        unlocked_icons = []
+        
         for achievement in new_achievements:
             await msg.reply(
                 f"🌟 You got the achievement **{await server.get_achievement_name(achievement)}**"
@@ -178,6 +179,14 @@ class Base(commands.Cog):
                 await news_channel.send(
                     f"🌟 <@{user.id}> got the achievement **{await server.get_achievement_name(achievement)}**"
                 )
+            unlocked_icons += await server.get_unlocked_icons(achievement)
+        
+        if unlocked_icons:
+            if len(unlocked_icons) == 1:
+                await msg.reply(f"✨ You unlocked the {unlocked_icons[0]} icon")
+            else:
+                await msg.reply(f"✨ You unlocked the {format_list(unlocked_icons, 'and')} icons")
+            
 
     @staticmethod
     def handle_errors(func):
