@@ -4,6 +4,7 @@ __all__ = [
     "PlainSavableMixinMapping",
     "IntKeySavableMixinMapping",
     "CompressedIntKeySavableMixinMapping",
+    "DefaultSavableMixinMapping",
 ]
 
 
@@ -173,3 +174,6 @@ class CompressedIntKeySavableMixinMapping(IntKeySavableMixinMapping[VT]):
         if isinstance(value, str) and key != self.indicator:
             value = gzip.compress(value.encode("utf-8"), 9)
         self.mapping[self.encode_key(key)] = value
+
+
+DefaultSavableMixinMapping = PlainSavableMixinMapping
