@@ -10,7 +10,7 @@ from pyeod.model import (
     IconPoll,
     ImagePoll,
     MarkPoll,
-    PlainSavableMixinMapping,
+    DefaultSavableMixinMapping,
     RemoveCollabPoll,
     SavableMixin,
     SavableMixinMapping,
@@ -53,7 +53,7 @@ warned_types = []
 
 def convert_to_dict(
     obj: SavableMixin,
-    mapping_type: Type[SavableMixinMapping] = PlainSavableMixinMapping,
+    mapping_type: Type[SavableMixinMapping] = DefaultSavableMixinMapping,
 ) -> dict:
     if type(obj) not in types and type(obj).__name__ not in warned_types:
         warned_types.append(type(obj).__name__)
@@ -115,9 +115,9 @@ def load_instance(file: str) -> GameInstance:
             break
     if mapping_type is None:
         print(
-            "Warning: could not find suitable mapping type to use, defaulting to PlainSavableMixinMapping"
+            "Warning: could not find suitable mapping type to use, defaulting to DefaultSavableMixinMapping"
         )
-        mapping_type = PlainSavableMixinMapping
+        mapping_type = DefaultSavableMixinMapping
 
     loader = InstanceLoader()
     hook = functools.partial(convert_from_dict, loader, mapping_type)
