@@ -1,9 +1,9 @@
-__all__ = ["achievements"]
+__all__ = ["achievements", "icons"]
 
 
 # A separate file to store the achievements dict
 # Purely to not clutter the rest of the model
-# The only thing that should be exported is the "achievements" var
+# The only thing that should be exported is the "achievements" var and the "icons" var
 async def elements_collected_func(instance, user):
     async with instance.db.user_lock.reader:
         element_amount = len(user.inv)
@@ -110,13 +110,15 @@ async def leaderboard_pos_func(instance, user):
         elif leaderboard_position <= 10:
             return 0
 
+
 async def achievement_achievement_func(instance, user):
     async with instance.db.user_lock.reader:
         achievement_amount = len(user.achievements)
         if achievement_amount < 10:
             return 0
         else:
-            return achievement_amount//10
+            return achievement_amount // 10
+
 
 # Format:
 # names:list[str] = the tier names
@@ -189,4 +191,39 @@ achievements = {
         "default": "Achiever",
         "check func": achievement_achievement_func,
     },
+}
+
+# Format
+# emoji:str = the emoji to display by the user
+# req:List[int] = the achievement and tier required for that icon to be used
+
+icons = {
+    0: {"emoji": "👤", "req": None},  # The default icon available to everyone
+    1: {"emoji": "🔝", "req": [3, 3]},
+    2: {"emoji": "🏵️", "req": [3, 0]},
+    3: {"emoji": "🧑‍⚖️", "req": [2, 6]},
+    4: {"emoji": "💧", "req": [0, 3]},
+    5: {"emoji": "🌫️", "req": [0, 3]},
+    6: {"emoji": "🔥", "req": [0, 3]},
+    7: {"emoji": "🪨", "req": [0, 3]},
+    8: {"emoji": "🌊", "req": [0, 6]},
+    9: {"emoji": "🌪️", "req": [0, 6]},
+    10: {"emoji": "💥", "req": [0, 6]},
+    11: {"emoji": "🌎", "req": [0, 6]},
+    12: {"emoji": "🪄", "req": [1, 9]},
+    13: {"emoji": "🔮", "req": [1, 13]},
+    14: {"emoji": "✨", "req": [1, 17]},
+    15: {"emoji": "🏆", "req": [3, 0]},
+    16: {"emoji": "🥉", "req": [3, 1]},
+    17: {"emoji": "🥈", "req": [3, 2]},
+    18: {"emoji": "⭐", "req": [4, 0]},
+    19: {"emoji": "🌞", "req": [4, 1]},
+    20: {"emoji": "🌟", "req": [4, 2]},
+    21: {"emoji": "🌠", "req": [4, 3]},
+    22: {"emoji": "☄️", "req": [4, 4]},
+    23: {"emoji": "🪐", "req": [4, 5]},
+    24: {"emoji": "🌌", "req": [4, 6]},
+    25: {"emoji": "💠", "req": [0, 9]},
+    26: {"emoji": "🎨", "req": [1, 18]},   #------# wizard emoji on the line below causes
+    27: {"emoji": "\U0001F9D9", "req": [0, 0]},  # black to freak out
 }

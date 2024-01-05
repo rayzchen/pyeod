@@ -136,10 +136,10 @@ class Info(commands.Cog):
             server, poll, ctx, f"🗳️ Suggested a new image for {elem.name}!"
         )
 
-    @bridge.bridge_command()
+    @bridge.bridge_command(aliases=["element_icon"])
     @bridge.guild_only()
     @option_decorator("element", autocomplete=autocomplete_elements)
-    async def icon(
+    async def set_element_icon(
         self, ctx: bridge.Context, *, element: str, icon: Optional[Attachment] = None
     ):
         server = InstanceManager.current.get_or_create(ctx.guild.id)

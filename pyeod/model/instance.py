@@ -8,7 +8,7 @@ from pyeod.model.types import Database, Element, Poll, User
 from pyeod.utils import int_to_roman
 from typing import List, Tuple, Optional
 import copy
-from .achievements import achievements
+from .achievements import achievements, icons
 
 AIR = Element("Air", id=1, color=0x99E5DC)
 EARTH = Element("Earth", id=2, color=0x806043)
@@ -166,9 +166,9 @@ class GameInstance(SavableMixin):
             return True
         return False
 
-    async def get_achievements(self, user: User) -> List[List[int, int]]:
-        user_achievements: List[List[int, int]] = user.achievements
-        new_achievements: List[List[int, int]] = []
+    async def get_achievements(self, user: User) -> List[List[int]]:
+        user_achievements: List[List[int]] = user.achievements
+        new_achievements: List[List[int]] = []
         for achievement_id, achievement_data in achievements.items():
             returned_tier = await achievement_data["check func"](self, user)
             if returned_tier == None:
@@ -184,7 +184,7 @@ class GameInstance(SavableMixin):
 
         return new_achievements
 
-    async def get_achievement_name(self, achievement: List[int, int]) -> str:
+    async def get_achievement_name(self, achievement: List[int]) -> str:
         name = ""
         achievement_data = achievements[achievement[0]]
         try:
@@ -192,6 +192,37 @@ class GameInstance(SavableMixin):
         except IndexError:
             name = f"{achievement_data['default']} {int_to_roman(achievement[1] - len(achievement_data['names']))}"
         return name
+
+    async def get_unlocked_icons(self, achievement: List[int]) -> List[int]:
+        unlocked_icons = []
+        for icon_id, icon_data in icons.items():
+            if icon_data["req"] != None and achievement == icon_data["req"]:
+                unlocked_icons.append(icon_id)
+        return unlocked_icons
+
+    async def get_available_icons(self, user: User):
+        available_icons = []
+        for achievement in user.achievements:
+            available_icons += await self.get_unlocked_icons(achievement)
+        return available_icons + [0]
+
+    async def get_icon(self, icon: int) -> str:
+        return icons[icon]["emoji"]
+
+    async def get_icon_by_emoji(self, icon_emoji: str) -> int:
+        for icon_id, icon_data in icons.items():
+            if icon_emoji in icon_data["emoji"]:
+                return icon_id
+        raise KeyError
+
+    async def set_icon(self, user: User, icon: int) -> None:
+        if icons[icon]["req"] == None or icons[icon]["req"] in user.achievements:
+            user.icon = icon
+        else:
+            raise GameError(
+                "Cannot use icon",
+                "You do not have the achievement required to use that icon",
+            )
 
     def convert_to_dict(self, data: dict) -> None:
         data["db"] = self.db

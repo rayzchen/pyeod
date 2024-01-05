@@ -1,15 +1,12 @@
 from pyeod.frontend import (
-    DiscordGameInstance,
     ElementalBot,
-    FooterPaginator,
     InstanceManager,
-    generate_embed_list,
-    get_page_limit,
 )
 from discord import User, Embed
 from discord.ext import bridge, commands
 from typing import Optional
 from pyeod import config
+from pyeod.model.types import GameError
 
 
 class Profiles(commands.Cog):
@@ -27,7 +24,9 @@ class Profiles(commands.Cog):
         logged_in: User = await server.login_user(user.id)
 
         embed = Embed(title=user.display_name, color=config.EMBED_COLOR)
-        embed.add_field(name="👤User", value=user.mention, inline=False)
+        embed.add_field(
+            name=f"{await server.get_icon(logged_in.icon)} User", value=user.mention, inline=False
+        )
         leaderboard_position = (
             sorted(
                 server.db.users.keys(),
@@ -83,6 +82,28 @@ class Profiles(commands.Cog):
 
         await ctx.respond(embed=embed)
 
+    @bridge.bridge_command(aliases=["si", "icon"])
+    @bridge.guild_only()
+    async def set_icon(self, ctx: bridge.Context, *, icon_emoji: str):
+        server = InstanceManager.current.get_or_create(ctx.guild.id)
+
+        logged_in: User = await server.login_user(ctx.author.id)
+
+        try:
+            icon_id = await server.get_icon_by_emoji(icon_emoji)
+        except KeyError:
+            await ctx.respond("🔴 Not an icon")
+            return
+
+        try:
+            await server.set_icon(logged_in, icon_id)
+        except GameError as e:
+            if e.type == "Cannot use icon":
+                await ctx.respond("🔴 You cannot use this icon")
+                return
+
+        await ctx.respond(f"✨ Successfully set {icon_emoji} as your icon")
+ 
 
 def setup(client):
     client.add_cog(Profiles(client))

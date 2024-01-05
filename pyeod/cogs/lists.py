@@ -68,6 +68,31 @@ class Lists(commands.Cog):
         paginator = FooterPaginator(embeds)
         await paginator.respond(ctx)
 
+    @bridge.bridge_command(aliases=["icons"])
+    @bridge.guild_only()
+    async def available_icons(self, ctx: bridge.Context, user: Optional[User] = None):
+        server = InstanceManager.current.get_or_create(ctx.guild.id)
+        if user is None:
+            user = ctx.author
+        elif user.id not in server.db.users:
+            # If user was None, this shouldn't run
+            await ctx.respond("🔴 User not found!")
+            return
+
+        logged_in = await server.login_user(user.id)
+        async with server.db.user_lock.reader:
+            # Sort by tier then sort by id
+            icons = [
+                await server.get_icon(icon)
+                for icon in sorted(await server.get_available_icons(logged_in))
+            ]
+        title = user.display_name + f"'s Icons ({len(icons)})"
+
+        limit = get_page_limit(server, ctx.channel.id)
+        embeds = generate_embed_list(icons, title, limit)
+        paginator = FooterPaginator(embeds)
+        await paginator.respond(ctx)
+
     @bridge.bridge_command()
     @bridge.guild_only()
     async def stats(self, ctx: bridge.Context):
