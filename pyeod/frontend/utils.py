@@ -51,10 +51,13 @@ async def build_info_embed(
 
     if element.author is None:
         creator = "The Big Bang"
+        icon = await instance.get_icon(0)
     elif element.author == 0:
         creator = "<@0>"
+        icon = await instance.get_icon(0)
     else:
         creator = f"<@{element.author.id}>"
+        icon = await instance.get_icon(element.author.icon)
 
     if element.created == 0:
         timestamp = "The Dawn Of Time"
@@ -97,7 +100,7 @@ async def build_info_embed(
         progress = f"{len(set(path) & set(user.inv)) / len(path) * 100:.2f}%"
 
     fields = [
-        EmbedField(f"{await instance.get_icon(user.icon)} Creator", creator, True),
+        EmbedField(f"{icon} Creator", creator, True),
         EmbedField("👥 Collaborators", collaborators, True)
         if element.extra_authors
         else None,

@@ -82,9 +82,9 @@ class Profiles(commands.Cog):
 
         await ctx.respond(embed=embed)
 
-    @bridge.bridge_command(aliases=["si", "icon"])
+    @bridge.bridge_command(aliases=["ui"])
     @bridge.guild_only()
-    async def set_icon(self, ctx: bridge.Context, *, icon_emoji: str):
+    async def user_icon(self, ctx: bridge.Context, *, icon_emoji: str):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
         logged_in: User = await server.login_user(ctx.author.id)
@@ -103,7 +103,7 @@ class Profiles(commands.Cog):
                 return
 
         await ctx.respond(f"✨ Successfully set {icon_emoji} as your icon")
- 
+
 
 def setup(client):
     client.add_cog(Profiles(client))

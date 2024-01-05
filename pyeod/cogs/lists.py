@@ -61,9 +61,9 @@ class Lists(commands.Cog):
         paginator = FooterPaginator(embeds)
         await paginator.respond(ctx)
 
-    @bridge.bridge_command(aliases=["icons"])
+    @bridge.bridge_command()
     @bridge.guild_only()
-    async def available_icons(self, ctx: bridge.Context, user: Optional[User] = None):
+    async def list_icons(self, ctx: bridge.Context, user: Optional[User] = None):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if user is None:
             user = ctx.author
