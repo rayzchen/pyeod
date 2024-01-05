@@ -177,7 +177,7 @@ achievements = {
         "default": "Judge",
         "req_func": votes_cast_func,
     },
-    3: {  # No default as it is impossible for an outside index to be returned
+    3: {
         "names": [
             "🏆 Top ten",
             "🥉 Bronze age",
@@ -185,6 +185,8 @@ achievements = {
             "🥇 Top of the pack",
         ],
         "req_func": leaderboard_pos_func,
+        # No default as it is impossible for an outside index to be returned
+        "default": None,
     },
     4: {
         "names": ["Achievement get!"],
@@ -197,7 +199,7 @@ achievements = {
 # emoji: str = the emoji to display by the user
 # req: List[int] = the achievement and tier required for that icon to be used
 
-icons = {
+user_icons = {
     0: {"emoji": "👤", "req": None},  # The default icon available to everyone
     1: {"emoji": "🔝", "req": [3, 3]},
     2: {"emoji": "🏵️", "req": [3, 0]},

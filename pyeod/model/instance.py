@@ -195,7 +195,7 @@ class GameInstance(SavableMixin):
 
     async def get_unlocked_icons(self, achievement: List[int]) -> List[int]:
         unlocked_icons = []
-        for icon_id, icon_data in icons.items():
+        for icon_id, icon_data in user_icons.items():
             if icon_data["req"] != None and achievement == icon_data["req"]:
                 unlocked_icons.append(icon_id)
         return unlocked_icons
@@ -207,16 +207,16 @@ class GameInstance(SavableMixin):
         return available_icons + [0]
 
     async def get_icon(self, icon: int) -> str:
-        return icons[icon]["emoji"]
+        return user_icons[icon]["emoji"]
 
     async def get_icon_by_emoji(self, icon_emoji: str) -> int:
-        for icon_id, icon_data in icons.items():
+        for icon_id, icon_data in user_icons.items():
             if icon_emoji in icon_data["emoji"]:
                 return icon_id
         raise KeyError
 
     async def set_icon(self, user: User, icon: int) -> None:
-        if icons[icon]["req"] == None or icons[icon]["req"] in user.achievements:
+        if user_icons[icon]["req"] == None or user_icons[icon]["req"] in user.achievements:
             user.icon = icon
         else:
             raise GameError(
