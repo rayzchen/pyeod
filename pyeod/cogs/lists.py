@@ -51,18 +51,11 @@ class Lists(commands.Cog):
         logged_in = await server.login_user(user.id)
         async with server.db.user_lock.reader:
             # Sort by tier then sort by id
-            achievements = [
-                await server.get_achievement_name(achievement)
-                for achievement in sorted(
-                    sorted(
-                        logged_in.achievements,
-                        key=lambda achievement_pair: achievement_pair[1],
-                    ),
-                    key=lambda achievement_pair: achievement_pair[0],
-                )
-            ]
-        title = user.display_name + f"'s Achievements ({len(achievements)})"
+            achievements = []
+            for item in sorted(logged_in.achievements, key=lambda pair: (pair[1], pair[0])):
+                achievements.append(await server.get_achievement_name(item))
 
+        title = user.display_name + f"'s Achievements ({len(achievements)})"
         limit = get_page_limit(server, ctx.channel.id)
         embeds = generate_embed_list(achievements, title, limit)
         paginator = FooterPaginator(embeds)
