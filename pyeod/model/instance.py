@@ -2,7 +2,7 @@ __all__ = ["GameInstance"]
 
 
 from pyeod.errors import GameError, InternalError
-from pyeod.model.achievements import achievements, icons
+from pyeod.model.achievements import achievements, user_icons
 from pyeod.model.mixins import SavableMixin
 from pyeod.model.polls import ElementPoll
 from pyeod.model.types import Database, Element, Poll, User

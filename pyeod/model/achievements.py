@@ -1,97 +1,62 @@
-__all__ = ["achievements", "icons"]
+"""
+A separate file to store the achievements dict
+purely to not clutter the rest of pyeod.model.
+The only thing that should be exported is the
+`achievements` var and the `user_icons` var.
+
+"""
+
+__all__ = ["achievements", "user_icons"]
 
 
-# A separate file to store the achievements dict
-# Purely to not clutter the rest of the model
-# The only thing that should be exported is the "achievements" var and the "icons" var
+def boundary_list_check(boundaries, value):
+    if value >= boundaries[-1]:
+        return len(boundaries) - 1 + value // boundaries[-1]
+    for i in range(len(boundaries) - 2, -1, -1):  # Iterate backwards from 2nd last
+        if value >= boundaries[i]:
+            return i
+    return None
+
+
 async def elements_collected_func(instance, user):
+    boundaries = [25, 50, 100, 250, 500, 1_000, 2_500, 5_000, 10_000, 25_000]
     async with instance.db.user_lock.reader:
         element_amount = len(user.inv)
-        if element_amount >= 25_000:
-            return 8 + element_amount // 25_000
-        if element_amount >= 10_000:
-            return 8
-        if element_amount >= 5_000:
-            return 7
-        if element_amount >= 2_500:
-            return 6
-        if element_amount >= 1_000:
-            return 5
-        if element_amount >= 500:
-            return 4
-        if element_amount >= 250:
-            return 3
-        if element_amount >= 100:
-            return 2
-        if element_amount >= 50:
-            return 1
-        if element_amount >= 25:
-            return 0
-        return None
+        return boundary_list_check(boundaries, element_amount)
 
 
 async def elements_created_func(instance, user):
+    boundaries = [
+        50,
+        100,
+        200,
+        300,
+        400,
+        500,
+        600,
+        700,
+        800,
+        900,
+        1_000,
+        2_000,
+        3_000,
+        4_000,
+        5_000,
+        7_500,
+        10_000,
+        12_500,
+        15_000,
+    ]
     async with instance.db.user_lock.reader:
         combos_created = user.created_combo_count
-        if combos_created >= 15_000:
-            return 17 + combos_created // 15_000
-        if combos_created >= 12_500:
-            return 17
-        if combos_created >= 10_000:
-            return 16
-        if combos_created >= 7_500:
-            return 15
-        if combos_created >= 5_000:
-            return 14
-        if combos_created >= 4_000:
-            return 13
-        if combos_created >= 3_000:
-            return 12
-        if combos_created >= 2_000:
-            return 11
-        if combos_created >= 1_000:
-            return 10
-        if combos_created >= 900:
-            return 9
-        if combos_created >= 800:
-            return 8
-        if combos_created >= 700:
-            return 7
-        if combos_created >= 600:
-            return 6
-        if combos_created >= 500:
-            return 5
-        if combos_created >= 400:
-            return 4
-        if combos_created >= 300:
-            return 3
-        if combos_created >= 200:
-            return 2
-        if combos_created >= 100:
-            return 1
-        if combos_created >= 50:
-            return 0
-        return None
+        return boundary_list_check(boundaries, combos_created)
 
 
 async def votes_cast_func(instance, user):
+    boundaries = [1, 25, 50, 125, 250, 500, 1_000]
     async with instance.db.user_lock.reader:
         cast_votes = user.votes_cast_count
-        if cast_votes >= 1_000:
-            return 5 + votes_cast_func // 1_000
-        if cast_votes >= 500:
-            return 5
-        if cast_votes >= 250:
-            return 4
-        if cast_votes >= 125:
-            return 3
-        if cast_votes >= 50:
-            return 2
-        if cast_votes >= 25:
-            return 1
-        if cast_votes >= 1:
-            return 0
-        return None
+        return boundary_list_check(boundaries, cast_votes)
 
 
 async def leaderboard_pos_func(instance, user):
