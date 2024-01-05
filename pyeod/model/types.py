@@ -154,7 +154,7 @@ class User(SavableMixin):
         active_polls: int = 0,
         created_combo_count: int = 0,
         votes_cast_count: int = 0,
-        achievements: List[Tuple[int, int]] = [],
+        achievements: List[List[int, int]] = [],
     ) -> None:
         self.id = id
         self.inv = inv
