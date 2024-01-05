@@ -82,6 +82,9 @@ async def create_leaderboard(sorting_option, ctx, user):
         elif sorting_option == "Votes Cast":
             find_value = lambda user: user.votes_cast_count
             title = "Top Votes Cast"
+        elif sorting_option == "Achievements Earned":
+            find_value = lambda user: len(user.achievements)
+            title = "Top Earned Achievements"
 
         for user_id, user in sorted(
             server.db.users.items(),
@@ -116,7 +119,7 @@ class SortingDropdown(ui.Select):
             SelectOption(
                 label="Elements Made",
                 description="Sorts by elements in inventory",
-                emoji="🎒"
+                emoji="🎒,,"
             ),
             SelectOption(
                 label="Combos Suggested",
@@ -127,6 +130,11 @@ class SortingDropdown(ui.Select):
                 label="Votes Cast",
                 description="Sorts by amount of times voted",
                 emoji="🗳️",
+            ),
+            SelectOption(
+                label="Achievements Earned",
+                description="Sorts by amount of achievements earned",
+                emoji="🌟",
             ),
             # Add more options as needed
         ]
