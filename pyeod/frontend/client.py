@@ -119,7 +119,7 @@ class SortingDropdown(ui.Select):
             SelectOption(
                 label="Elements Made",
                 description="Sorts by elements in inventory",
-                emoji="🎒,,"
+                emoji="🎒"
             ),
             SelectOption(
                 label="Combos Suggested",
