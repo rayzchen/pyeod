@@ -75,6 +75,8 @@ async def create_leaderboard(sorting_option, ctx, user):
         title = "Top " + sorting_option
         if sorting_option == "Elements Made":
             find_value = lambda user: len(user.inv)
+        elif sorting_option == "Elements Suggested":
+            find_value = lambda user: len(server.db.created_by_lookup[user.id])
         elif sorting_option == "Combos Suggested":
             find_value = lambda user: user.created_combo_count
         elif sorting_option == "Votes Cast":
@@ -117,6 +119,11 @@ class SortingDropdown(ui.Select):
                 label="Elements Made",
                 description="Sorts by elements in inventory",
                 emoji="🎒"
+            ),
+            SelectOption(
+                label="Elements Suggested",
+                description="Sorts by number of new suggested elements",
+                emoji="🪄",
             ),
             SelectOption(
                 label="Combos Suggested",
