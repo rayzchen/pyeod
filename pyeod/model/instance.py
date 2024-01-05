@@ -237,21 +237,27 @@ class GameInstance(SavableMixin):
         )
 
 
-def generate_test_game():
+async def generate_test_game():
     game = GameInstance()
-    user = game.login_user(0)
+    user = await game.login_user(0)
     combo = ("fire", "fire")
     try:
-        game.combine(user, combo)
+        await game.combine(user, combo)
     except GameError as g:
         if g.type == "Not a combo":
-            game.suggest_element(
-                user, tuple(game.check_element(name) for name in combo), "Inferno"
+            await game.suggest_element(
+                user, tuple([await game.check_element(name) for name in combo]), "Inferno"
             )
     game.db.polls[0].votes += 4
-    game.check_polls()
+    await game.check_polls()
     return game
 
 
+async def test_function():
+    game = await generate_test_game()
+    user = await game.login_user(0)
+    print(user.inv)
+
+
 if __name__ == "__main__":
-    print(generate_test_game().login_user(0).inv)
+    asyncio.run(test_function())
