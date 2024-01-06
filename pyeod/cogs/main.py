@@ -123,7 +123,7 @@ class Main(commands.Cog):
             try:
                 if not await command.can_run(ctx):
                     continue
-            except:
+            except discord.ext.commands.CommandError:
                 continue
 
             embed = Embed(
