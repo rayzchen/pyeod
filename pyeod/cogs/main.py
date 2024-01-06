@@ -147,6 +147,7 @@ class Main(commands.Cog):
                 "element_name": "Element Name",
                 "marked_element": "Marked Element",
             }
+            first_param = True
             for name, param in command.params.items():
                 if name in ["self", "ctx"]:
                     continue
@@ -164,11 +165,18 @@ class Main(commands.Cog):
                     param_type = param.annotation.name
                 else:
                     param_type = param.annotation
-                command_desc += (
-                    f" | <{name.title().replace('_', ' ')} : {type_names.get(param_type, param_type)}"
-                    + (" (Optional)" if param.default != inspect._empty else "")
-                    + ">"
-                )
+                if first_param:
+                    command_desc += (
+                        f" <{name.title().replace('_', ' ')} : {type_names.get(param_type, param_type)}"
+                        + (" (Optional)" if param.default != inspect._empty else "")
+                        + ">"
+                    )
+                else:
+                    command_desc += (
+                        f" | <{name.title().replace('_', ' ')} : {type_names.get(param_type, param_type)}"
+                        + (" (Optional)" if param.default != inspect._empty else "")
+                        + ">"
+                    )
             embed.add_field(name="Format", value=command_desc)
             if command.aliases:
                 embed.add_field(

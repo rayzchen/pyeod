@@ -4,6 +4,8 @@ __all__ = [
     "autocomplete_elements",
     "LeaderboardPaginator",
     "create_leaderboard",
+    "InventoryPaginator",
+    "create_inventory",
 ]
 
 from .utils import get_page_limit, generate_embed_list
@@ -177,6 +179,147 @@ class LeaderboardPaginator(FooterPaginator):
 
     def add_menu(self):
         self.menu = SortingDropdown()
+        self.menu.paginator = self
+        self.add_item(self.menu)
+
+
+async def create_inventory(sorting_option, ctx, user):
+    server = InstanceManager.current.get_or_create(ctx.guild.id)
+    if user is None:
+        user = ctx.author
+    elif user.id not in server.db.users:
+        # If user was None, this shouldn't run
+        await ctx.respond("🔴 User not found!")
+        return
+
+    logged_in = await server.login_user(user.id)
+    async with server.db.element_lock.reader:
+        if sorting_option == "Found":
+            elements = [server.db.elem_id_lookup[elem].name for elem in logged_in.inv]
+        elif sorting_option == "Alphabetical":
+            elements = sorted(
+                [server.db.elem_id_lookup[elem].name for elem in logged_in.inv]
+            )
+        elif sorting_option == "Created":
+            elements = [
+                server.db.elem_id_lookup[elem].name
+                for elem in logged_in.inv
+                if server.db.elem_id_lookup[elem].author != None
+                and server.db.elem_id_lookup[elem].author.id == user.id
+            ]
+        elif sorting_option == "ID":
+            elements = [
+                server.db.elem_id_lookup[elem].name for elem in sorted(logged_in.inv)
+            ]
+        elif sorting_option == "Complexity":
+            elements = [
+                server.db.elem_id_lookup[elem].name
+                for elem in sorted(
+                    logged_in.inv,
+                    key=lambda element_id: server.db.complexities[element_id],
+                    reverse=True
+                )
+            ]
+        elif sorting_option == "Time Created":
+            elements = [
+                server.db.elem_id_lookup[elem].name
+                for elem in sorted(
+                    logged_in.inv,
+                    key=lambda element_id: server.db.elem_id_lookup[element_id].created,
+                )
+            ]
+        elif sorting_option == "Creator":
+            elements = [
+                server.db.elem_id_lookup[elem].name
+                for elem in sorted(
+                    logged_in.inv,
+                    key=lambda element_id: server.db.elem_id_lookup[
+                        element_id
+                    ].author.id
+                    if server.db.elem_id_lookup[element_id].author
+                    else 0,
+                )
+            ]
+
+    title = user.display_name + f"'s Inventory ({len(logged_in.inv)})"
+
+    limit = get_page_limit(server, ctx.channel.id)
+    return generate_embed_list(elements, title, limit)
+
+
+class InventorySortingDropdown(ui.Select):
+    def __init__(self):
+        self.sorting_option = "Elements Made"
+        options = [
+            SelectOption(
+                label="Found",
+                description="Sorts by the order the elements were found",
+                emoji="\U0001F392",  # Black freaks out here if the actual char is used
+            ),
+            SelectOption(
+                label="Created",
+                description="Sorts by when the element was created",
+                emoji="🪄",
+            ),
+            SelectOption(
+                label="Alphabetical",
+                description="Sorts by alphabetical order",
+                emoji="🔠",
+            ),
+            SelectOption(
+                label="ID",
+                description="Sorts by ID",
+                emoji="#️⃣",
+            ),
+            SelectOption(
+                label="Time Created",
+                description="Sorts by time the element was created",
+                emoji="📅",
+            ),
+            SelectOption(
+                label="Complexity",
+                description="Sorts by complexity",
+                emoji="🔀",
+            ),
+            SelectOption(
+                label="Creator",
+                description="Sorts by who created the element",
+                emoji="✍",
+            ),
+            # Add more options as needed
+        ]
+        super().__init__(
+            placeholder="Choose a sorting option...",
+            min_values=1,
+            max_values=1,
+            options=options,
+        )
+
+    async def callback(self, interaction: Interaction):
+        ctx = self.paginator.ctx
+        user = self.paginator.user
+
+        pages = await create_inventory(self.values[0], ctx, user)
+
+        self.paginator.pages = pages
+        self.paginator.current_page = 0
+
+        await self.paginator.goto_page(
+            self.paginator.current_page, interaction=interaction
+        )
+
+
+class InventoryPaginator(FooterPaginator):
+    def __init__(
+        self, page_list, ctx, user, footer_text: str = "", loop: bool = True
+    ) -> None:
+        super(InventoryPaginator, self).__init__(page_list, footer_text, loop)
+        self.show_menu = True
+        self.ctx = ctx
+        self.user = user
+
+    def add_menu(self):
+        self.menu = InventorySortingDropdown()
         self.menu.paginator = self
         self.add_item(self.menu)
 
