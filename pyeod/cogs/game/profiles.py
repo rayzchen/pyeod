@@ -1,15 +1,12 @@
 from pyeod.frontend import (
-    DiscordGameInstance,
     ElementalBot,
-    FooterPaginator,
     InstanceManager,
-    generate_embed_list,
-    get_page_limit,
 )
 from discord import User, Embed
 from discord.ext import bridge, commands
 from typing import Optional
 from pyeod import config
+from pyeod.model.types import GameError
 
 
 class Profiles(commands.Cog):
@@ -25,13 +22,12 @@ class Profiles(commands.Cog):
         if user is None:
             user = ctx.author
 
-        if user.id in server.db.users:
-            logged_in = await server.login_user(user.id)
-        else:
-            logged_in = None
+        logged_in: User = await server.login_user(user.id)
 
         embed = Embed(title=user.display_name, color=config.EMBED_COLOR)
-        embed.add_field(name="👤User", value=user.mention, inline=False)
+        embed.add_field(
+            name=f"{server.get_icon(logged_in.icon)} User", value=user.mention, inline=False
+        )
         leaderboard_position = (
             sorted(
                 server.db.users.keys(),
@@ -70,9 +66,18 @@ class Profiles(commands.Cog):
                 value=f"{logged_in.votes_cast_count:,}",
             )
             embed.add_field(
-                name="✍ Suggested Combos",
+                name="✍️ Suggested Combos",
                 value=f"{logged_in.created_combo_count:,}",
             )
+            embed.add_field(
+                name="🏆 Achievements",
+                value=f"{len(logged_in.achievements)}",
+            )
+            if logged_in.achievements:
+                embed.add_field(
+                    name="🌟 Latest Achievement",
+                    value=f"{await server.get_achievement_name(logged_in.achievements[-1])}",
+                )
             if logged_in.last_element:
                 embed.add_field(
                     name="🆕 Most Recent Element",
@@ -81,6 +86,29 @@ class Profiles(commands.Cog):
         embed.set_thumbnail(url=user.avatar.url)
 
         await ctx.respond(embed=embed)
+
+    @bridge.bridge_command(aliases=["ui"])
+    @bridge.guild_only()
+    async def user_icon(self, ctx: bridge.Context, *, icon_emoji: str):
+        """Sets your icon that will appear next to your name"""
+        server = InstanceManager.current.get_or_create(ctx.guild.id)
+
+        logged_in: User = await server.login_user(ctx.author.id)
+
+        try:
+            icon_id = server.get_icon_by_emoji(icon_emoji)
+        except KeyError:
+            await ctx.respond("🔴 Not an icon")
+            return
+
+        try:
+            await server.set_icon(logged_in, icon_id)
+        except GameError as e:
+            if e.type == "Cannot use icon":
+                await ctx.respond("🔴 You cannot use this icon")
+                return
+
+        await ctx.respond(f"✨ Successfully set {icon_emoji} as your icon")
 
 
 def setup(client):

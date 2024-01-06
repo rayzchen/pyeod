@@ -2,10 +2,12 @@ __all__ = ["GameInstance"]
 
 
 from pyeod.errors import GameError, InternalError
+from pyeod.model.achievements import achievements, user_icons
 from pyeod.model.mixins import SavableMixin
 from pyeod.model.polls import ElementPoll
 from pyeod.model.types import Database, Element, Poll, User
-from typing import List, Tuple, Optional
+from pyeod.utils import int_to_roman
+from typing import List, Tuple, Optional, Union
 import copy
 
 AIR = Element("Air", id=1, color=0x99E5DC)
@@ -163,6 +165,73 @@ class GameInstance(SavableMixin):
                 self.db.polls.remove(poll)
             return True
         return False
+
+    async def get_achievements(self, user: User) -> List[List[int]]:
+        user_achievements: List[List[int]] = user.achievements
+        new_achievements: List[List[int]] = []
+        achievement_ids = list(achievements)
+        achievement_ids.append(achievement_ids.pop(0))  # move first achievement to end
+        for achievement_id in achievement_ids:
+            achievement_data = achievements[achievement_id]
+            returned_tier = await achievement_data["req_func"](self, user)
+            if returned_tier is None:
+                continue
+            if [achievement_id, returned_tier] not in user_achievements:
+                user_achievements.append([achievement_id, returned_tier])
+                new_achievements.append([achievement_id, returned_tier])
+            # Check previous achievements if skipped over
+            if [achievement_id, returned_tier - 1] not in user_achievements:
+                for i in range(returned_tier):
+                    if [achievement_id, i] not in user_achievements:
+                        user_achievements.append([achievement_id, i])
+                        new_achievements.append([achievement_id, i])
+
+        return new_achievements
+
+    async def get_achievement_name(self, achievement: Union[List[int], None]) -> str:
+        if achievement is None:
+            return "Default"
+        name = ""
+        achievement_data = achievements[achievement[0]]
+        try:
+            name = achievement_data["names"][achievement[1]]
+        except IndexError:
+            name = f"{achievement_data['default']} {int_to_roman(achievement[1] - len(achievement_data['names']))}"
+        return name
+
+    async def get_unlocked_icons(self, achievement: List[int]) -> List[int]:
+        unlocked_icons = []
+        for icon_id, icon_data in user_icons.items():
+            if icon_data["req"] is not None and achievement == icon_data["req"]:
+                unlocked_icons.append(icon_id)
+        return unlocked_icons
+
+    async def get_available_icons(self, user: User):
+        available_icons = []
+        for achievement in user.achievements:
+            available_icons += await self.get_unlocked_icons(achievement)
+        return available_icons + [0]
+
+    def get_icon(self, icon: int) -> str:
+        return user_icons[icon]["emoji"]
+
+    def get_icon_requirement(self, icon: int) -> str:
+        return user_icons[icon]["req"]
+
+    def get_icon_by_emoji(self, icon_emoji: str) -> int:
+        for icon_id, icon_data in user_icons.items():
+            if icon_emoji in icon_data["emoji"]:
+                return icon_id
+        raise KeyError
+
+    async def set_icon(self, user: User, icon: int) -> None:
+        if user_icons[icon]["req"] == None or user_icons[icon]["req"] in user.achievements:
+            user.icon = icon
+        else:
+            raise GameError(
+                "Cannot use icon",
+                "You do not have the achievement required to use that icon",
+            )
 
     def convert_to_dict(self, data: dict) -> None:
         data["db"] = self.db

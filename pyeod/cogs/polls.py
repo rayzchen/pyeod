@@ -110,6 +110,9 @@ class Polls(commands.Cog):
                 await message.delete()
                 async with server.db.poll_lock.writer:
                     server.poll_msg_lookup.pop(payload.message_id)
+                for user_id in voters + [poll.author.id]:
+                    user = await server.login_user(user_id)
+                    await server.get_achievements(user)
         except Exception as e:
             if isinstance(e, errors.NotFound):
                 return

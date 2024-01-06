@@ -142,6 +142,8 @@ class User(SavableMixin):
         "active_polls",
         "created_combo_count",
         "votes_cast_count",
+        "achievements",
+        "icon",
         "last_combo",
         "last_element",
     )
@@ -153,12 +155,16 @@ class User(SavableMixin):
         active_polls: int = 0,
         created_combo_count: int = 0,
         votes_cast_count: int = 0,
+        achievements: List[List[int]] = [],
+        icon: int = 0,
     ) -> None:
         self.id = id
         self.inv = inv
         self.active_polls = active_polls
         self.created_combo_count = created_combo_count
         self.votes_cast_count = votes_cast_count
+        self.achievements = achievements
+        self.icon = icon
         self.last_combo = ()
         self.last_element = None
 
@@ -173,6 +179,8 @@ class User(SavableMixin):
         data["active_polls"] = self.active_polls
         data["created_combo_count"] = self.created_combo_count
         data["votes_cast_count"] = self.votes_cast_count
+        data["achievements"] = self.achievements
+        data["icon"] = self.icon
 
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "User":
@@ -182,6 +190,8 @@ class User(SavableMixin):
             data.get("active_polls", 0),
             data.get("created_combo_count", 0),
             data.get("votes_cast_count", 0),
+            data.get("achievements", []),
+            data.get("icon", 0),
         )
         loader.users[user.id] = user
         return user

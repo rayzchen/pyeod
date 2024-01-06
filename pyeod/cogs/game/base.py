@@ -162,6 +162,7 @@ class Base(commands.Cog):
                 user.last_combo = ()
                 element_list = [f"**{elem.name}**" for elem in g.meta["elements"]]
                 await msg.reply(f"🔴 You don't have {format_list(element_list)}!")
+        await self.bot.award_achievements(server, msg)
 
     async def suggest_element(
         self, server: DiscordGameInstance, name: str, msg: Message, autocapitalize: bool
