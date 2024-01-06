@@ -18,48 +18,94 @@ def boundary_list_check(boundaries, value):
     return None
 
 
-async def elements_collected_func(instance, user):
-    boundaries = [25, 50, 100, 250, 500, 1_000, 2_500, 5_000, 10_000, 25_000]
+def get_distance_to_nearest_boundary(boundaries, value):
+    for boundary in boundaries:
+        if value < boundary:
+            return boundary - value
+    return boundaries[-1] - (value % boundaries[-1])
+
+
+elements_collected_boundaries = [
+    25,
+    50,
+    100,
+    250,
+    500,
+    1_000,
+    2_500,
+    5_000,
+    10_000,
+    25_000,
+]
+
+
+async def elements_collected_check(instance, user):
     async with instance.db.user_lock.reader:
         element_amount = len(user.inv)
-        return boundary_list_check(boundaries, element_amount)
+        return boundary_list_check(elements_collected_boundaries, element_amount)
 
 
-async def elements_created_func(instance, user):
-    boundaries = [
-        50,
-        100,
-        200,
-        300,
-        400,
-        500,
-        600,
-        700,
-        800,
-        900,
-        1_000,
-        2_000,
-        3_000,
-        4_000,
-        5_000,
-        7_500,
-        10_000,
-        12_500,
-        15_000,
-    ]
+async def elements_collected_progress(instance, user):
+    async with instance.db.user_lock.reader:
+        element_amount = len(user.inv)
+        return get_distance_to_nearest_boundary(
+            elements_collected_boundaries, element_amount
+        )
+
+
+elements_created_boundaries = [
+    50,
+    100,
+    200,
+    300,
+    400,
+    500,
+    600,
+    700,
+    800,
+    900,
+    1_000,
+    2_000,
+    3_000,
+    4_000,
+    5_000,
+    7_500,
+    10_000,
+    12_500,
+    15_000,
+]
+
+
+async def elements_created_check(instance, user):
     async with instance.db.user_lock.reader:
         combos_created = user.created_combo_count
-        return boundary_list_check(boundaries, combos_created)
+        return boundary_list_check(elements_created_boundaries, combos_created)
 
 
-async def votes_cast_func(instance, user):
-    boundaries = [1, 25, 50, 125, 250, 500, 1_000]
+async def elements_created_progress(instance, user):
+    async with instance.db.user_lock.reader:
+        combos_created = user.created_combo_count
+        return get_distance_to_nearest_boundary(
+            elements_created_boundaries, combos_created
+        )
+
+
+votes_cast_boundaries = [1, 25, 50, 125, 250, 500, 1_000]
+
+
+async def votes_cast_check(instance, user):
     async with instance.db.user_lock.reader:
         cast_votes = user.votes_cast_count
-        return boundary_list_check(boundaries, cast_votes)
+        return boundary_list_check(votes_cast_boundaries, cast_votes)
 
 
-async def leaderboard_pos_func(instance, user):
+async def votes_cast_progress(instance, user):
+    async with instance.db.user_lock.reader:
+        cast_votes = user.votes_cast_count
+        return get_distance_to_nearest_boundary(votes_cast_boundaries, cast_votes)
+
+
+async def leaderboard_pos_check(instance, user):
     async with instance.db.user_lock.reader:
         leaderboard_position = (
             sorted(
@@ -80,7 +126,28 @@ async def leaderboard_pos_func(instance, user):
         return None
 
 
-async def achievement_achievement_func(instance, user):
+async def leaderboard_pos_progress(instance, user):
+    async with instance.db.user_lock.reader:
+        leaderboard_position = (
+            sorted(
+                instance.db.users.keys(),
+                key=lambda key: len(instance.db.users[key].inv),
+                reverse=True,
+            ).index(user.id)
+            + 1
+        )
+        if leaderboard_position == 1:
+            return 0
+        if leaderboard_position == 2:
+            return 1
+        if leaderboard_position == 3:
+            return 1
+        if leaderboard_position <= 10:
+            return leaderboard_position - 3
+        return leaderboard_position - 10
+
+
+async def achievement_achievement_check(instance, user):
     async with instance.db.user_lock.reader:
         achievement_amount = len(user.achievements)
         if achievement_amount < 10:
@@ -88,16 +155,24 @@ async def achievement_achievement_func(instance, user):
         return achievement_amount // 10
 
 
+async def achievement_achievement_progress(instance, user):
+    async with instance.db.user_lock.reader:
+        achievement_amount = len(user.achievements)
+        return 10 - (achievement_amount % 10)
+
+
 # Format:
 # names: list[str] = the tier names
-# default: str = what is defaulted to if the check_func returns an index outside of the names list (roman numerals added based on how far off the returned index is)
-# req_func: Callable[GameInstance, User] = the function that takes in user data and returns the appropriate tier of achievement
+# default: str = what is defaulted to if the check_check returns an index outside of the names list (roman numerals added based on how far off the returned index is)
+# req_check: Callable[GameInstance, User] = the checktion that takes in user data and returns the appropriate tier of achievement
 
 achievements = {
     -1: {
         "names": ["Achievement get!"],
         "default": "Achiever",
-        "req_func": achievement_achievement_func,
+        "req_func": achievement_achievement_check,
+        "progress_func": achievement_achievement_progress,
+        "items" : "Achievement"
     },
     0: {
         "names": [
@@ -112,7 +187,9 @@ achievements = {
             "True Elementalist ⅠⅠⅠ",
         ],
         "default": "Ultimate Elementalist",
-        "req_func": elements_collected_func,
+        "req_func": elements_collected_check,
+        "progress_func": elements_collected_progress,
+        "items" : "Element"
     },
     1: {
         "names": [
@@ -136,7 +213,9 @@ achievements = {
             "Powerful Creator ⅠⅤ,",
         ],
         "default": "Mighty Creator",
-        "req_func": elements_created_func,
+        "req_func": elements_created_check,
+        "progress_func": elements_created_progress,
+        "items" : "Created Element"
     },
     2: {
         "names": [
@@ -148,7 +227,9 @@ achievements = {
             "Avid Voter",
         ],
         "default": "Judge",
-        "req_func": votes_cast_func,
+        "req_func": votes_cast_check,
+        "progress_func": votes_cast_progress,
+        "items" : "Vote"
     },
     3: {
         "names": [
@@ -157,7 +238,9 @@ achievements = {
             "🥈 2nd is the best",
             "🥇 Top of the pack",
         ],
-        "req_func": leaderboard_pos_func,
+        "req_func": leaderboard_pos_check,
+        "progress_func": leaderboard_pos_progress,
+        "items" : "Leaderboard Position",
         # No default as it is impossible for an outside index to be returned
         "default": None,
     },

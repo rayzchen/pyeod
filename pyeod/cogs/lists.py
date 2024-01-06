@@ -59,6 +59,53 @@ class Lists(commands.Cog):
 
     @bridge.bridge_command()
     @bridge.guild_only()
+    async def achievement_progress(
+        self, ctx: bridge.Context, user: Optional[User] = None
+    ):
+        """Shows earned achievements"""
+        server = InstanceManager.current.get_or_create(ctx.guild.id)
+        if user is None:
+            user = ctx.author
+        elif user.id not in server.db.users:
+            # If user was None, this shouldn't run
+            await ctx.respond("🔴 User not found!")
+            return
+
+        logged_in = await server.login_user(user.id)
+        async with server.db.user_lock.reader:
+            # Sort by tier then sort by id
+            achievements_progress = []
+            highest_tier_achievements = {}
+            for achievement in logged_in.achievements:
+                if (
+                    achievement[0] not in highest_tier_achievements
+                    or achievement[1] > highest_tier_achievements[achievement[0]]
+                ):
+                    highest_tier_achievements[achievement[0]] = achievement[1]
+            for item in sorted(
+                list(highest_tier_achievements.items())
+            ):  # That worked out nice
+                achievement_name = await server.get_achievement_name(
+                    [item[0], item[1] + 1]
+                )
+                achievement_progress = await server.get_achievement_progress(
+                    item, logged_in
+                )
+                achievement_counting = await server.get_achievement_item_name(
+                    item, achievement_progress
+                )
+                achievements_progress.append(
+                    f"**{achievement_name}**\nYou are {achievement_progress} {achievement_counting} from gaining this achievement\n"
+                )
+
+        title = user.display_name + f"'s Achievement progress"
+        limit = get_page_limit(server, ctx.channel.id)
+        embeds = generate_embed_list(achievements_progress, title, limit)
+        paginator = FooterPaginator(embeds)
+        await paginator.respond(ctx)
+
+    @bridge.bridge_command()
+    @bridge.guild_only()
     async def list_icons(self, ctx: bridge.Context, user: Optional[User] = None):
         """Shows all available icons"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
@@ -73,7 +120,10 @@ class Lists(commands.Cog):
         icons = []
         async with server.db.user_lock.reader:
             spacing = "\xa0" * 8  # NBSP
-            for icon in sorted(await server.get_available_icons(logged_in), key=lambda icon: server.get_icon_requirement(icon) or [-100, 0]):
+            for icon in sorted(
+                await server.get_available_icons(logged_in),
+                key=lambda icon: server.get_icon_requirement(icon) or [-100, 0],
+            ):
                 emoji = server.get_icon(icon)
                 achievement = server.get_icon_requirement(icon)
                 achievement_name = await server.get_achievement_name(achievement)

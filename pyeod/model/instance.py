@@ -196,7 +196,7 @@ class GameInstance(SavableMixin):
         try:
             name = achievement_data["names"][achievement[1]]
         except IndexError:
-            name = f"{achievement_data['default']} {int_to_roman(achievement[1] - len(achievement_data['names']))}"
+            name = f"{achievement_data['default']} {int_to_roman(achievement[1] - len(achievement_data['names']) + 1)}"
         return name
 
     async def get_unlocked_icons(self, achievement: List[int]) -> List[int]:
@@ -212,6 +212,13 @@ class GameInstance(SavableMixin):
             available_icons += await self.get_unlocked_icons(achievement)
         return available_icons + [0]
 
+    async def get_achievement_progress(self, achievement: List[int], user: User) -> int:
+        return await achievements[achievement[0]]["progress_func"](self, user)
+
+    async def get_achievement_item_name(self, achievement: List[int], amount:int = 1) -> str:
+        items = achievements[achievement[0]]["items"]
+        return  items if amount == 1 else f"{items}s"
+
     def get_icon(self, icon: int) -> str:
         return user_icons[icon]["emoji"]
 
@@ -225,7 +232,10 @@ class GameInstance(SavableMixin):
         raise KeyError
 
     async def set_icon(self, user: User, icon: int) -> None:
-        if user_icons[icon]["req"] == None or user_icons[icon]["req"] in user.achievements:
+        if (
+            user_icons[icon]["req"] == None
+            or user_icons[icon]["req"] in user.achievements
+        ):
             user.icon = icon
         else:
             raise GameError(
@@ -254,7 +264,9 @@ async def generate_test_game():
     except GameError as g:
         if g.type == "Not a combo":
             await game.suggest_element(
-                user, tuple([await game.check_element(name) for name in combo]), "Inferno"
+                user,
+                tuple([await game.check_element(name) for name in combo]),
+                "Inferno",
             )
     game.db.polls[0].votes += 4
     await game.check_polls()
