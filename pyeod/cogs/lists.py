@@ -48,7 +48,7 @@ class Lists(commands.Cog):
         async with server.db.user_lock.reader:
             # Sort by tier then sort by id
             achievements = []
-            for item in sorted(logged_in.achievements, key=lambda pair: (pair[1], pair[0])):
+            for item in sorted(logged_in.achievements):
                 achievements.append(await server.get_achievement_name(item))
 
         title = user.display_name + f"'s Achievements ({len(achievements)})"
@@ -70,14 +70,16 @@ class Lists(commands.Cog):
             return
 
         logged_in = await server.login_user(user.id)
+        icons = []
         async with server.db.user_lock.reader:
-            # Sort by tier then sort by id
-            icons = [
-                await server.get_icon(icon)
-                for icon in sorted(await server.get_available_icons(logged_in))
-            ]
-        title = user.display_name + f"'s Icons ({len(icons)})"
+            spacing = "\xa0" * 8  # NBSP
+            for icon in sorted(await server.get_available_icons(logged_in), key=lambda icon: server.get_icon_requirement(icon) or [-100, 0]):
+                emoji = server.get_icon(icon)
+                achievement = server.get_icon_requirement(icon)
+                achievement_name = await server.get_achievement_name(achievement)
+                icons.append(f"{emoji}{spacing}({achievement_name})")
 
+        title = user.display_name + f"'s Icons ({len(icons)})"
         limit = get_page_limit(server, ctx.channel.id)
         embeds = generate_embed_list(icons, title, limit)
         paginator = FooterPaginator(embeds)

@@ -7,7 +7,7 @@ from pyeod.model.mixins import SavableMixin
 from pyeod.model.polls import ElementPoll
 from pyeod.model.types import Database, Element, Poll, User
 from pyeod.utils import int_to_roman
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Union
 import copy
 
 AIR = Element("Air", id=1, color=0x99E5DC)
@@ -188,7 +188,9 @@ class GameInstance(SavableMixin):
 
         return new_achievements
 
-    async def get_achievement_name(self, achievement: List[int]) -> str:
+    async def get_achievement_name(self, achievement: Union[List[int], None]) -> str:
+        if achievement is None:
+            return "Default"
         name = ""
         achievement_data = achievements[achievement[0]]
         try:
@@ -212,6 +214,9 @@ class GameInstance(SavableMixin):
 
     def get_icon(self, icon: int) -> str:
         return user_icons[icon]["emoji"]
+
+    def get_icon_requirement(self, icon: int) -> str:
+        return user_icons[icon]["req"]
 
     def get_icon_by_emoji(self, icon_emoji: str) -> int:
         for icon_id, icon_data in user_icons.items():
