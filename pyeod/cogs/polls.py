@@ -120,6 +120,7 @@ class Polls(commands.Cog):
     @bridge.guild_only()
     @bridge.has_permissions(manage_messages=True)
     async def clear_polls(self, ctx: bridge.Context):
+        """Clears all current polls in the poll channel"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if server.channels.voting_channel is not None:
             channel = await self.bot.fetch_channel(server.channels.voting_channel)

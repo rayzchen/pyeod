@@ -34,6 +34,7 @@ class Hint(commands.Cog):
     @bridge.bridge_command(aliases=["n"])
     @bridge.guild_only()
     async def next(self, ctx: bridge.Context):
+        """Gives a hint for the lowest element id you are missing"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         user = await server.login_user(ctx.author.id)
 
@@ -80,6 +81,7 @@ class Hint(commands.Cog):
     @bridge.guild_only()
     @option_decorator("element", autocomplete=autocomplete_elements)
     async def hint(self, ctx: bridge.Context, *, element: str = ""):
+        """Gives a random or specified hint for how to make an element"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         user = await server.login_user(ctx.author.id)
 

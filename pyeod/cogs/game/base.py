@@ -249,6 +249,7 @@ class Base(commands.Cog):
     async def suggest(
         self, ctx: bridge.Context, *, element_name: str, autocapitalize: bool = True
     ):
+        """Suggests a result for an element combo to be voted on"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if ctx.channel.id not in server.channels.play_channels:
             await ctx.respond("🔴 You can only suggest in play channels!")
@@ -261,6 +262,7 @@ class Base(commands.Cog):
     async def random_combination(
         self, ctx: bridge.Context, number_of_elements: int = 2
     ):
+        """Combines random elements from your inventory"""
         if not (1 < number_of_elements <= 21):
             await ctx.respond("🔴 Invalid number of elements!")
             return

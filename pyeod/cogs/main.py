@@ -55,11 +55,13 @@ class Main(commands.Cog):
 
     @bridge.bridge_command(aliases=["ms"])
     async def ping(self, ctx: bridge.Context):
+        """Gets the current ping between the bot and discord"""
         await ctx.respond(f"🏓 Pong! {round(self.bot.latency*1000)}ms")
 
     @bridge.bridge_command()
     @bridge.has_permissions(manage_messages=True)
     async def update(self, ctx: bridge.Context, *, revision: str = ""):
+        """Updates to the latest github commit"""
         if ctx.author.id not in config.SERVER_CONTROL_USERS:
             await ctx.respond("🔴 You don't have permission to do that!")
             return
