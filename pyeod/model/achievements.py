@@ -215,7 +215,7 @@ achievements = {
         "default": "Mighty Creator",
         "req_func": elements_created_check,
         "progress_func": elements_created_progress,
-        "items" : "Created Element"
+        "items" : "Created Combos"
     },
     2: {
         "names": [
