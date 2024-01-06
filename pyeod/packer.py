@@ -146,16 +146,27 @@ def load_instance(file: str) -> GameInstance:
     return instance
 
 
-def test_function():
+async def test_function():
     from pyeod.model.instance import generate_test_game
     import simplejson
 
-    game = generate_test_game()
+    def pair_hook(d):
+        # Restore integer keys
+        out = {}
+        for k, v in d:
+            if isinstance(k, str) and k.isdecimal():
+                out[int(k)] = v
+            else:
+                out[k] = v
+        return out
+
+    game = await generate_test_game()
 
     dump = simplejson.dumps(game, default=convert_to_dict)
     loader = InstanceLoader()
+    hook = functools.partial(convert_from_dict, loader, DefaultSavableMixinMapping)
     loaded_game = simplejson.loads(
-        dump, object_hook=functools.partial(convert_from_dict, loader)
+        dump, object_hook=hook, object_pairs_hook=pair_hook
     )
     dump2 = simplejson.dumps(loaded_game, default=convert_to_dict)
     print(dump)
@@ -163,4 +174,4 @@ def test_function():
 
 
 if __name__ == "__main__":
-    test_function()
+    asyncio.run(test_function())

@@ -8,7 +8,7 @@ __all__ = [
 
 from .utils import get_page_limit, generate_embed_list
 from pyeod.model import Poll
-from pyeod.errors import InternalError
+from pyeod.errors import InternalError, GameError
 from pyeod.frontend.model import DiscordGameInstance, InstanceManager
 from discord import (
     ButtonStyle,
@@ -72,19 +72,17 @@ async def create_leaderboard(sorting_option, ctx, user):
         user_inv = 0
         i = 0
         find_value = None
-        title = None
+        title = "Top " + sorting_option
         if sorting_option == "Elements Made":
             find_value = lambda user: len(user.inv)
-            title = "Top Most Found"
+        elif sorting_option == "Elements Suggested":
+            find_value = lambda user: len(server.db.created_by_lookup[user.id])
         elif sorting_option == "Combos Suggested":
             find_value = lambda user: user.created_combo_count
-            title = "Top Suggested"
         elif sorting_option == "Votes Cast":
             find_value = lambda user: user.votes_cast_count
-            title = "Top Votes Cast"
-        elif sorting_option == "Achievements Earned":
-            find_value = lambda user: len(user.achievements)
-            title = "Top Earned Achievements"
+        else:
+            raise GameError("Invalid sort", "Failed to find sort function")
 
         for user_id, user in sorted(
             server.db.users.items(),
@@ -95,6 +93,7 @@ async def create_leaderboard(sorting_option, ctx, user):
             player_value = find_value(user)
             if logged_in is not None and user_id == logged_in.id:
                 user_index = i
+                user_inv = player_value
                 lines.append(f"{i}\. <@{user_id}> *You* - {player_value:,}")
             else:
                 lines.append(f"{i}\. <@{user_id}> - {player_value:,}")
@@ -120,6 +119,11 @@ class SortingDropdown(ui.Select):
                 label="Elements Made",
                 description="Sorts by elements in inventory",
                 emoji="🎒"
+            ),
+            SelectOption(
+                label="Elements Suggested",
+                description="Sorts by number of new suggested elements",
+                emoji="🪄",
             ),
             SelectOption(
                 label="Combos Suggested",
