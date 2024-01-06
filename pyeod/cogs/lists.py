@@ -5,6 +5,8 @@ from pyeod.frontend import (
     InstanceManager,
     generate_embed_list,
     get_page_limit,
+    create_inventory,
+    InventoryPaginator,
 )
 from pyeod import config
 from discord import User, Embed, EmbedField
@@ -20,22 +22,14 @@ class Lists(commands.Cog):
     @bridge.guild_only()
     async def inv(self, ctx: bridge.Context, user: Optional[User] = None):
         """Shows your elements"""
+
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if user is None:
             user = ctx.author
-        elif user.id not in server.db.users:
-            # If user was None, this shouldn't run
-            await ctx.respond("🔴 User not found!")
-            return
 
-        logged_in = await server.login_user(user.id)
-        async with server.db.element_lock.reader:
-            elements = [server.db.elem_id_lookup[elem].name for elem in logged_in.inv]
-        title = user.display_name + f"'s Inventory ({len(logged_in.inv)})"
+        pages = await create_inventory("Found", ctx, user)
 
-        limit = get_page_limit(server, ctx.channel.id)
-        embeds = generate_embed_list(elements, title, limit)
-        paginator = FooterPaginator(embeds)
+        paginator = InventoryPaginator(pages, ctx, user)
         await paginator.respond(ctx)
 
     @bridge.bridge_command()
