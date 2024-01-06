@@ -5,6 +5,7 @@ from pyeod.frontend import (
     InstanceManager,
     build_info_embed,
     parse_element_list,
+    get_multiplier,
 )
 from pyeod.utils import format_list
 from pyeod import config
@@ -54,38 +55,59 @@ class Base(commands.Cog):
             return
         user = await server.login_user(msg.author.id)
 
-        elements = []
-        if msg.content.startswith("*"):
-            number = msg.content.split(" ", 1)[0][1:]
-            if number.isdecimal():
-                multiplier = min(int(number), 22)
-                if " " in msg.content:
-                    elements = [msg.content.split(" ", 1)[1]] * multiplier
-                elif user.last_element is not None:
-                    elements = [user.last_element.name] * multiplier
-                else:
-                    await msg.reply("🔴 Combine something first!")
-                    return
-                if len(elements) < 2:
-                    await msg.reply("🔴 Please combine at least 2 elements!")
-                    return
+        try:
+            if user.last_element is not None:
+                last_element_name = user.last_element.name
+            else:
+                last_element_name = None
 
-        if not elements:
-            elements = parse_element_list(msg.content)
+            combined_items = parse_element_list(msg.content, "\n")
+            elements = []
+            if len(combined_items) == 1:
+                # No newline found
+                if msg.content.startswith("*"):
+                    name, count = get_multiplier(msg.content, last_element_name)
+                    if name.lower() in server.db.elements:
+                        if count > 21:
+                            raise GameError("Too many elements")
+                        elements = [name] * count
+                if not len(elements):
+                    combined_items = parse_element_list(msg.content)
 
-        if (
-            msg.content.startswith("*")
-            and len(elements) == 1
-            and not number.isdecimal()
-        ):
-            # multiplier found, no other element delimiters found
-            await msg.reply(f"🔴 Invalid multiplier: **{number}**")
+            if not len(elements):
+                # Newlines found or single multiplier failed
+                for item in combined_items:
+                    if item.lower() in server.db.elements:
+                        elements.append(item)
+                        continue
+                    if item.startswith("*"):
+                        name, count = get_multiplier(item, last_element_name)
+                        if len(elements) + count > 21:
+                            raise GameError("Too many elements")
+                        elements += [name] * count
+                    else:
+                        if len(elements) + 1 > 21:
+                            raise GameError("Too many elements")
+                        elements.append(item)
+        except GameError:
+            await msg.reply("🔴 You cannot combine more than 21 elements!")
+            return
 
-        if msg.content.startswith("+"):
+        if msg.content.startswith("+") and "\n" not in msg.content:
             if user.last_element is None:
                 await msg.reply("🔴 Combine something first!")
                 return
             elements.insert(0, user.last_element.name)
+
+        if len(elements) == 1 and elements[0].startswith("*"):
+            number = elements[0].split(" ", 1)[0][1:]
+            if number.isdecimal():
+                await msg.reply(f"🔴 Combine something first!")
+            else:
+                await msg.reply(f"🔴 Invalid multiplier: **{number}**")
+            return
+
+        await msg.reply(f"`{elements}`")
 
         if len(elements) < 2:
             return
