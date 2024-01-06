@@ -95,7 +95,7 @@ class Lists(commands.Cog):
                     item, achievement_progress
                 )
                 achievements_progress.append(
-                    f"**{achievement_name}**\nYou are {achievement_progress} {achievement_counting} from gaining this achievement\n"
+                    f"**{achievement_name}**\nYou are {achievement_progress} {achievement_counting} away from gaining this achievement\n"
                 )
 
         title = user.display_name + f"'s Achievement progress"
