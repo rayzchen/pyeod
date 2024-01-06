@@ -156,7 +156,7 @@ class SortingDropdown(ui.Select):
 
     async def callback(self, interaction: Interaction):
         ctx = self.paginator.ctx
-        user = self.paginator.user
+        user = self.paginator.target_user
 
         pages = await create_leaderboard(self.values[0], ctx, user)
 
@@ -175,7 +175,7 @@ class LeaderboardPaginator(FooterPaginator):
         super(LeaderboardPaginator, self).__init__(page_list, footer_text, loop)
         self.show_menu = True
         self.ctx = ctx
-        self.user = user
+        self.target_user = user
 
     def add_menu(self):
         self.menu = SortingDropdown()
@@ -185,9 +185,8 @@ class LeaderboardPaginator(FooterPaginator):
 
 async def create_inventory(sorting_option, ctx, user):
     server = InstanceManager.current.get_or_create(ctx.guild.id)
-    if user is None:
-        user = ctx.author
-    elif user.id not in server.db.users:
+
+    if user.id not in server.db.users:
         # If user was None, this shouldn't run
         await ctx.respond("🔴 User not found!")
         return
@@ -217,7 +216,7 @@ async def create_inventory(sorting_option, ctx, user):
                 for elem in sorted(
                     logged_in.inv,
                     key=lambda element_id: server.db.complexities[element_id],
-                    reverse=True
+                    reverse=True,
                 )
             ]
         elif sorting_option == "Time Created":
@@ -241,7 +240,7 @@ async def create_inventory(sorting_option, ctx, user):
                 )
             ]
 
-    title = user.display_name + f"'s Inventory ({len(logged_in.inv)})"
+    title = user.display_name + f"'s Inventory ({len(elements)})"
 
     limit = get_page_limit(server, ctx.channel.id)
     return generate_embed_list(elements, title, limit)
@@ -297,7 +296,7 @@ class InventorySortingDropdown(ui.Select):
 
     async def callback(self, interaction: Interaction):
         ctx = self.paginator.ctx
-        user = self.paginator.user
+        user = self.paginator.target_user
 
         pages = await create_inventory(self.values[0], ctx, user)
 
@@ -316,7 +315,7 @@ class InventoryPaginator(FooterPaginator):
         super(InventoryPaginator, self).__init__(page_list, footer_text, loop)
         self.show_menu = True
         self.ctx = ctx
-        self.user = user
+        self.target_user = user
 
     def add_menu(self):
         self.menu = InventorySortingDropdown()
@@ -373,19 +372,22 @@ class ElementalBot(bridge.AutoShardedBot):
                 f"🌟 Achievement unlocked: **{await server.get_achievement_name(achievement)}**"
             )
             if server.channels.news_channel is not None:
-                news_channel = await self.fetch_channel(
-                    server.channels.news_channel
-                )
+                news_channel = await self.fetch_channel(server.channels.news_channel)
                 await news_channel.send(
                     f"🌟 <@{user.id}> Achievement unlocked: **{await server.get_achievement_name(achievement)}**"
                 )
-            unlocked_icons += [server.get_icon(icon) for icon in await server.get_unlocked_icons(achievement)]
+            unlocked_icons += [
+                server.get_icon(icon)
+                for icon in await server.get_unlocked_icons(achievement)
+            ]
 
         if unlocked_icons:
             if len(unlocked_icons) == 1:
                 await msg.reply(f"✨ Icon unlocked: {unlocked_icons[0]}")
             else:
-                await msg.reply(f"✨ Icons unlocked: {format_list(unlocked_icons, 'and')}")
+                await msg.reply(
+                    f"✨ Icons unlocked: {format_list(unlocked_icons, 'and')}"
+                )
 
 
 async def autocomplete_elements(ctx: AutocompleteContext):
