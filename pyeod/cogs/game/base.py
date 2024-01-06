@@ -93,8 +93,26 @@ class Base(commands.Cog):
             await msg.reply("🔴 You cannot combine more than 21 elements!")
             return
 
+        notfound = []
+        async with server.db.element_lock.reader:
+            for i in range(len(elements)):
+                if elements[i].startswith("#"):
+                    elem_id = elements[i][1:].strip()
+                    if elem_id.isdecimal() and int(elem_id) in server.db.elem_id_lookup:
+                        elements[i] = server.db.elem_id_lookup[int(elem_id)].name
+                    else:
+                        notfound.append(elem_id)
+
+        if notfound:
+            if len(notfound) == 1:
+                await msg.reply(f"🔴 Element ID **{notfound[0]}** doesn't exist!")
+            else:
+                id_list = [f"**{elem_id}**" for elem_id in notfound]
+                await msg.reply(f"🔴 Element IDs {format_list(id_list, 'and')} don't exist!")
+            return
+
         try:
-            element = await server.combine(user, tuple(i.strip() for i in elements))
+            element = await server.combine(user, tuple(elements))
             await msg.reply(f"🆕 You made **{element.name}**!")
         except GameError as g:
             if g.type == "Already have element":

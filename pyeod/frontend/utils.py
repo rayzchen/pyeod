@@ -32,7 +32,7 @@ def parse_element_list(content: str) -> List[str]:
             break
     if elements is None:
         elements = [content]
-    stripped_elements = [item.strip() for item in elements if item]
+    stripped_elements = [item.strip() for item in elements if item.strip()]
     return stripped_elements
 
 
