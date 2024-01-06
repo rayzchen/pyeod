@@ -41,6 +41,7 @@ class Lists(commands.Cog):
     @bridge.bridge_command()
     @bridge.guild_only()
     async def achievements(self, ctx: bridge.Context, user: Optional[User] = None):
+        """Shows earned achievements"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if user is None:
             user = ctx.author
@@ -65,6 +66,7 @@ class Lists(commands.Cog):
     @bridge.bridge_command()
     @bridge.guild_only()
     async def list_icons(self, ctx: bridge.Context, user: Optional[User] = None):
+        """Shows all available icons"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if user is None:
             user = ctx.author

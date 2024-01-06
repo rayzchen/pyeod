@@ -86,6 +86,7 @@ class Profiles(commands.Cog):
     @bridge.bridge_command(aliases=["ui"])
     @bridge.guild_only()
     async def user_icon(self, ctx: bridge.Context, *, icon_emoji: str):
+        """Sets your icon that will appear next to your name"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
         logged_in: User = await server.login_user(ctx.author.id)
