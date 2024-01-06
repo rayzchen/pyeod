@@ -96,9 +96,11 @@ class Lists(commands.Cog):
 
         found = 0
         cast = 0
+        achievements = 0
         for user in server.db.users.values():
             found += len(user.inv)
             cast += user.votes_cast_count
+            achievements += len(user.achievements)
 
         embed = Embed(
             color=config.EMBED_COLOR,
@@ -111,6 +113,7 @@ class Lists(commands.Cog):
                 EmbedField("📁 Elements Categorized", "N/A", True),
                 EmbedField("👨‍💻 Commands Used", "N/A", True),
                 EmbedField("🗳️ Votes Cast", f"{cast:,}", True),
+                EmbedField("🏆 Achievements Earned", f"{achievements:,}", True),
                 EmbedField("❌ Polls Rejected", "N/A", True),
             ],
         )
