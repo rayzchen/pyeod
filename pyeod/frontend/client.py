@@ -373,13 +373,13 @@ class ElementalBot(bridge.AutoShardedBot):
                 f"🌟 Achievement unlocked: **{await server.get_achievement_name(achievement)}**"
             )
             if server.channels.news_channel is not None:
-                news_channel = await self.bot.fetch_channel(
+                news_channel = await self.fetch_channel(
                     server.channels.news_channel
                 )
                 await news_channel.send(
                     f"🌟 <@{user.id}> Achievement unlocked: **{await server.get_achievement_name(achievement)}**"
                 )
-            unlocked_icons += [await server.get_icon(icon) for icon in await server.get_unlocked_icons(achievement)]
+            unlocked_icons += [server.get_icon(icon) for icon in await server.get_unlocked_icons(achievement)]
 
         if unlocked_icons:
             if len(unlocked_icons) == 1:

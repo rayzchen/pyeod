@@ -210,10 +210,10 @@ class GameInstance(SavableMixin):
             available_icons += await self.get_unlocked_icons(achievement)
         return available_icons + [0]
 
-    async def get_icon(self, icon: int) -> str:
+    def get_icon(self, icon: int) -> str:
         return user_icons[icon]["emoji"]
 
-    async def get_icon_by_emoji(self, icon_emoji: str) -> int:
+    def get_icon_by_emoji(self, icon_emoji: str) -> int:
         for icon_id, icon_data in user_icons.items():
             if icon_emoji in icon_data["emoji"]:
                 return icon_id

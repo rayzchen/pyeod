@@ -26,7 +26,7 @@ class Profiles(commands.Cog):
 
         embed = Embed(title=user.display_name, color=config.EMBED_COLOR)
         embed.add_field(
-            name=f"{await server.get_icon(logged_in.icon)} User", value=user.mention, inline=False
+            name=f"{server.get_icon(logged_in.icon)} User", value=user.mention, inline=False
         )
         leaderboard_position = (
             sorted(
@@ -92,7 +92,7 @@ class Profiles(commands.Cog):
         logged_in: User = await server.login_user(ctx.author.id)
 
         try:
-            icon_id = await server.get_icon_by_emoji(icon_emoji)
+            icon_id = server.get_icon_by_emoji(icon_emoji)
         except KeyError:
             await ctx.respond("🔴 Not an icon")
             return

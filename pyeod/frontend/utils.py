@@ -70,13 +70,13 @@ async def build_info_embed(
 
     if element.author is None:
         creator = "The Big Bang"
-        icon = await instance.get_icon(0)
+        icon = instance.get_icon(0)
     elif element.author == 0:
         creator = "<@0>"
-        icon = await instance.get_icon(0)
+        icon = instance.get_icon(0)
     else:
         creator = f"<@{element.author.id}>"
-        icon = await instance.get_icon(element.author.icon)
+        icon = instance.get_icon(element.author.icon)
 
     if element.created == 0:
         timestamp = "The Dawn Of Time"
