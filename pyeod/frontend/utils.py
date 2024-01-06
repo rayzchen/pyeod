@@ -1,5 +1,6 @@
 __all__ = [
     "parse_element_list",
+    "get_multiplier",
     "build_info_embed",
     "generate_embed_list",
     "prepare_file",
@@ -13,18 +14,21 @@ from pyeod.frontend.model import DiscordGameInstance
 from pyeod.model import ColorPoll, Element, GameInstance, User
 from discord import Embed, EmbedField, File
 from io import BytesIO, StringIO
-from typing import List, Union
+from typing import Optional, List, Union
 import gzip
 import math
 
 
-def parse_element_list(content: str) -> List[str]:
-    delimiters = [
-        "\n",
-        "+",
-        ",",
-        "plus",  # consistency with EoDE
-    ]
+def parse_element_list(content: str, delimiter: Optional[str] = None) -> List[str]:
+    if delimiter is None:
+        delimiters = [
+            "\n",
+            "+",
+            ",",
+            "plus",  # consistency with EoDE
+        ]
+    else:
+        delimiters = [delimiter]
     elements = None
     for delimiter in delimiters:
         if delimiter in content:
@@ -32,8 +36,23 @@ def parse_element_list(content: str) -> List[str]:
             break
     if elements is None:
         elements = [content]
-    stripped_elements = [item.strip() for item in elements if item]
+    stripped_elements = [item.strip() for item in elements if item.strip()]
     return stripped_elements
+
+
+def get_multiplier(text, fallback=None):
+    number = text.split(" ", 1)[0][1:]
+    if number.isdecimal():
+        multiplier = int(number)
+        if " " in text:
+            element = text.split(" ", 1)[1].strip()
+        elif fallback is not None:
+            element = fallback
+        else:
+            multiplier = 1
+            element = text
+        return element.strip(), multiplier
+    return text.strip(), 1
 
 
 async def build_info_embed(
