@@ -196,7 +196,10 @@ class GameInstance(SavableMixin):
         try:
             name = achievement_data["names"][achievement[1]]
         except IndexError:
-            name = f"{achievement_data['default']} {int_to_roman(achievement[1] - len(achievement_data['names']) + 1)}"
+            if achievement_data["default"] != None:
+                name = f"{achievement_data['default']} {int_to_roman(achievement[1] - len(achievement_data['names']) + 1)}"
+            else:
+                return None
         return name
 
     async def get_unlocked_icons(self, achievement: List[int]) -> List[int]:

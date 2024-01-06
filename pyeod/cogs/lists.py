@@ -94,9 +94,14 @@ class Lists(commands.Cog):
                 achievement_counting = await server.get_achievement_item_name(
                     item, achievement_progress
                 )
-                achievements_progress.append(
-                    f"**{achievement_name}**\nYou are {achievement_progress} {achievement_counting} away from gaining this achievement\n"
-                )
+                if achievement_name != None:
+                    achievements_progress.append(
+                        f"**{achievement_name}**\nYou are {achievement_progress} {achievement_counting} away from gaining this achievement\n"
+                    )
+                else:
+                    achievements_progress.append(
+                        f"**{await server.get_achievement_name([item[0], item[1]])}**\nYou have reached the max achievement\n"
+                    )
 
         title = user.display_name + f"'s Achievement progress"
         limit = get_page_limit(server, ctx.channel.id)
