@@ -66,8 +66,12 @@ class Profiles(commands.Cog):
                 value=f"{logged_in.votes_cast_count:,}",
             )
             embed.add_field(
-                name="✍ Suggested Combos",
+                name="✍️ Suggested Combos",
                 value=f"{logged_in.created_combo_count:,}",
+            )
+            embed.add_field(
+                name="🏆 Achievements",
+                value=f"{len(logged_in.achievements)}",
             )
             if logged_in.achievements:
                 embed.add_field(
