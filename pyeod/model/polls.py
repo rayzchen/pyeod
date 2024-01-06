@@ -11,6 +11,7 @@ __all__ = [
 
 from pyeod.errors import InternalError, GameError
 from pyeod.model.types import Element, Poll, User, Database
+from discord import Embed  # I have sinned but our news message structure is weird
 from typing import Tuple, Union
 import time
 
@@ -319,12 +320,16 @@ class ImagePoll(Poll):
                 msg += "Image"
                 msg += f" - **{self.imaged_element.name}** (Lasted **{self.get_time()}** • "
                 msg += f"By <@{self.author.id}>)"
+                embed = Embed(
+                    title="New Image", image=self.image, color=self.imaged_element.color
+                )
+                return msg, embed
             else:
                 msg += "❌ Poll Rejected - "
                 msg += "Image"
                 msg += f" - **{self.imaged_element.name}** (Lasted **{self.get_time()}** • "
                 msg += f"By <@{self.author.id}>) "
-            return msg
+                return msg
 
     def get_title(self) -> str:
         return "Image"

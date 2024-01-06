@@ -291,9 +291,7 @@ class Database(SavableMixin):
             for elem in user.inv:
                 self.found_by_lookup[elem].add(user.id)
 
-        self.created_by_lookup: Dict[int, List[int]] = {
-            user: [] for user in self.users
-        }
+        self.created_by_lookup: Dict[int, List[int]] = {user: [] for user in self.users}
         self.created_by_lookup[0] = []  # Glitched elements
         self.created_by_lookup[None] = []  # Starter elements
         for elem in self.elements.values():

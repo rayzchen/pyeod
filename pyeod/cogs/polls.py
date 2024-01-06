@@ -85,8 +85,16 @@ class Polls(commands.Cog):
                         raise
                 if resolve_poll:
                     if server.channels.news_channel is not None:
-                        news_channel = await self.bot.fetch_channel(server.channels.news_channel)
-                        await news_channel.send(await poll.get_news_message(server))
+                        news_channel = await self.bot.fetch_channel(
+                            server.channels.news_channel
+                        )
+                        news_message = await poll.get_news_message(server)
+                        if isinstance(news_message, tuple):  # (msg, embed)
+                            await news_channel.send(
+                                news_message[0], embed=news_message[1]
+                            )
+                        else:
+                            await news_channel.send(news_message)
 
                     upvoters = set(u.id for u in await upvotes.users().flatten())
                     downvoters = set(u.id for u in await downvotes.users().flatten())
