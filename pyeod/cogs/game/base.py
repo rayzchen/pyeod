@@ -107,8 +107,6 @@ class Base(commands.Cog):
                 await msg.reply(f"🔴 Invalid multiplier: **{number}**")
             return
 
-        await msg.reply(f"`{elements}`")
-
         if len(elements) < 2:
             return
         if len(elements) > 21:
