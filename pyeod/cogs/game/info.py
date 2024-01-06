@@ -38,6 +38,8 @@ class Info(commands.Cog):
     @bridge.guild_only()
     @option_decorator("marked_element", autocomplete=autocomplete_elements)
     async def mark(self, ctx: bridge.Context, *, marked_element: str, mark: str = ""):
+        """Adds a mark to an element
+        The text will be displayed on the element's info page"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         user = await server.login_user(ctx.author.id)
         if ctx.is_app:
@@ -70,6 +72,8 @@ class Info(commands.Cog):
     @bridge.guild_only()
     @option_decorator("element", autocomplete=autocomplete_elements)
     async def color(self, ctx: bridge.Context, *, element: str, color: str = ""):
+        """Adds a color to an element
+        The color will be put on the element's info page"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if not ctx.is_app:
             element, color = element.rsplit("|", 1)
@@ -103,6 +107,8 @@ class Info(commands.Cog):
     async def image(
         self, ctx: bridge.Context, *, element: str, image: Optional[Attachment] = None
     ):
+        """Adds an image to an element
+        The image will be displayed on the element's info page"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if not ctx.is_app:
             if not ctx.message.attachments:
@@ -142,6 +148,8 @@ class Info(commands.Cog):
     async def icon(
         self, ctx: bridge.Context, *, element: str, icon: Optional[Attachment] = None
     ):
+        """Adds an icon to an element
+        The icon will be displayed beside the element name on the element's info page"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if not ctx.is_app:
             if not ctx.message.attachments:
@@ -194,6 +202,8 @@ class Info(commands.Cog):
         collaborator9: Optional[User] = None,
         collaborator10: Optional[User] = None,
     ):  # Dude fuck slash commands this is the only way to do this (i think)
+        """Adds collaborators to the element
+        The collaborators will be displayed on the elements info page"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         user = await server.login_user(ctx.author.id)
         extra_authors = []
@@ -286,6 +296,8 @@ class Info(commands.Cog):
         collaborator9: Optional[User] = None,
         collaborator10: Optional[User] = None,
     ):  # Dude fuck slash commands this is the only way to do this (i think)
+        """Removes collaborators from an element
+        The collaborators will be displayed on the elements info page"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         user = await server.login_user(ctx.author.id)
         extra_authors = []

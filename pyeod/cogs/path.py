@@ -19,6 +19,8 @@ class Path(commands.Cog):
     @bridge.guild_only()
     @option_decorator("element", autocomplete=autocomplete_elements)
     async def path(self, ctx: bridge.Context, *, element: str) -> None:
+        """Gives the step by step element creation towards a certain element.
+Ie. !path mud would `water+earth=mud`"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if server.db.complexity_lock.reader.locked:
             raise InternalError("Complexity lock", "Complexity calculations in process")

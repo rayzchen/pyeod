@@ -1,4 +1,5 @@
 from pyeod import config
+from pyeod.utils import format_list
 from pyeod.frontend import (
     DiscordGameInstance,
     ElementalBot,
@@ -9,16 +10,27 @@ from pyeod.frontend import (
 )
 from pyeod.errors import GameError
 from pyeod.packer import load_instance, save_instance
-from discord import Attachment, Embed, File, Message, TextChannel, default_permissions, Member
-from discord.ext import bridge, commands, tasks
+from discord import (
+    Attachment,
+    Embed,
+    File,
+    Message,
+    TextChannel,
+    default_permissions,
+    Member,
+    CheckFailure,
+    ButtonStyle,
+)
+import discord
+from discord.ext import bridge, commands, tasks, pages
 from typing import Optional
 import io
 import os
 import glob
 import time
 import asyncio
-import threading
-import functools
+import inspect
+import typing
 
 
 class Config(commands.Cog):
@@ -73,6 +85,7 @@ class Config(commands.Cog):
     async def import_instance(
         self, ctx: bridge.Context, guild_id: int, file: Attachment
     ):
+        """Imports an instance into a server"""
         if ctx.author.id not in config.SERVER_CONTROL_USERS:
             await ctx.respond("🔴 You don't have permission to do that!")
             return
@@ -106,7 +119,10 @@ class Config(commands.Cog):
     @bridge.bridge_command()
     @bridge.guild_only()
     @bridge.has_permissions(manage_channels=True)
-    async def import_inventory(self, ctx: bridge.Context, user: Member, inv: Attachment):
+    async def import_inventory(
+        self, ctx: bridge.Context, user: Member, inv: Attachment
+    ):
+        """Imports an inventory for a user"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         logged_in = await server.login_user(user.id)
 
@@ -123,7 +139,9 @@ class Config(commands.Cog):
             else:
                 found += 1
                 try:
-                    await server.db.give_element(logged_in, server.db.elements[name.lower()])
+                    await server.db.give_element(
+                        logged_in, server.db.elements[name.lower()]
+                    )
                 except GameError as e:
                     if e.type == "Already have element":
                         found -= 1
@@ -141,6 +159,7 @@ class Config(commands.Cog):
     @bridge.has_permissions(manage_guild=True)
     @bridge.guild_only()
     async def active_servers(self, ctx: bridge.Context):
+        """Servers with the bot added"""
         if ctx.author.id not in config.SERVER_CONTROL_USERS:
             await ctx.respond("🔴 You don't have permission to do that!")
             return
@@ -171,6 +190,7 @@ class Config(commands.Cog):
     async def download_instance(
         self, ctx: bridge.Context, guild_id: Optional[int] = None
     ):
+        """Downloads an instance"""
         if ctx.author.id not in config.SERVER_CONTROL_USERS:
             await ctx.respond("🔴 You don't have permission to do that!")
             return
@@ -194,6 +214,8 @@ class Config(commands.Cog):
     @bridge.guild_only()
     @default_permissions(manage_channels=True)
     async def view_channels(self, ctx: bridge.Context):
+        """View all currently set play channels and the servers news and voting channels"""
+
         def convert_channel(channel):
             if channel is None:
                 return "None"
@@ -222,6 +244,7 @@ class Config(commands.Cog):
     @bridge.guild_only()
     @default_permissions(manage_channels=True)
     async def add_play_channel(self, ctx: bridge.Context, channel: TextChannel):
+        """Adds a channel to be considered a play channel"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
         if channel.id not in server.channels.play_channels:
@@ -232,6 +255,7 @@ class Config(commands.Cog):
     @bridge.guild_only()
     @default_permissions(manage_channels=True)
     async def remove_play_channel(self, ctx: bridge.Context, channel: TextChannel):
+        """Removes a channel from being considered a play channel"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
         if channel.id in server.channels.play_channels:
@@ -246,6 +270,7 @@ class Config(commands.Cog):
     @bridge.guild_only()
     @default_permissions(manage_channels=True)
     async def set_news_channel(self, ctx: bridge.Context, channel: TextChannel):
+        """Sets the servers news channel"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
         server.channels.news_channel = channel.id
@@ -255,6 +280,7 @@ class Config(commands.Cog):
     @bridge.guild_only()
     @default_permissions(manage_channels=True)
     async def set_voting_channel(self, ctx: bridge.Context, channel: TextChannel):
+        """Sets the servers voting channel"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
         server.channels.voting_channel = channel.id
@@ -264,6 +290,7 @@ class Config(commands.Cog):
     @bridge.guild_only()
     @bridge.has_permissions(manage_channels=True)
     async def edit_element_name(self, ctx: bridge.Context, elem_id: int, *, name: str):
+        """Replaces an element's name"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if elem_id not in server.db.elem_id_lookup:
             await ctx.respond(f"🔴 No element with id #{elem_id}!")
@@ -289,15 +316,119 @@ class Config(commands.Cog):
         await ctx.respond(f"🤖 Successfully set the vote requirement to {vote_req}")
 
     @bridge.bridge_command()
-    @bridge.guild_only()
-    @bridge.has_permissions(manage_channels=True)
-    async def set_max_polls(self, ctx: bridge.Context, max_polls: int):
-        server = InstanceManager.current.get_or_create(ctx.guild.id)
+    async def help(self, ctx: bridge.Context):
+        """Shows this command"""
+        help_pages = {}
+        for command in self.bot.commands:
+            try:
+                if not await command.can_run(ctx):
+                    continue
+            except CheckFailure:
+                continue
 
-        server.poll_limit = max_polls
-        await ctx.respond(
-            f"🤖 Successfully set the max polls a user can have to {max_polls}"
+            embed = Embed(
+                title=command.name,
+                description=command.help or "No description available.",
+            )
+
+            # Fucked up code I wrote a while ago
+            # Works and that's about it
+            command_desc = "\n!" + command.name
+            type_names = {
+                int: "Number",
+                str: "Text",
+                bool: "True or False",
+                discord.member.Member: "@User",
+                discord.user.User: "@User",
+                discord.message.Attachment: "Message Attachment",
+                discord.channel.TextChannel: "#Text Channel",
+                # For BridgeOption
+                "element": "Element",
+                "element_name": "Element Name",
+                "marked_element": "Marked Element",
+            }
+            for name, param in command.params.items():
+                if name in ["self", "ctx"]:
+                    continue
+
+                if (
+                    getattr(param.annotation, "__origin__", None) is typing.Union
+                    and type(None) in param.annotation.__args__
+                ):  # Handle Optional type hints
+                    param_type = next(
+                        t for t in param.annotation.__args__ if t is not type(None)
+                    )
+                elif (
+                    type(param.annotation).__name__ == "BridgeOption"
+                ):  # I cannot figure out to import this fucking type
+                    param_type = param.annotation.name
+                else:
+                    param_type = param.annotation
+                command_desc += (
+                    f" | <{name.title().replace('_', ' ')} : {type_names.get(param_type, param_type)}"
+                    + (" (Optional)" if param.default != inspect._empty else "")
+                    + ">"
+                )
+            embed.add_field(name="Format", value=command_desc)
+            if command.aliases:
+                embed.add_field(
+                    name="Aliases",
+                    value=format_list(["!" + i for i in command.aliases]),
+                )
+            if command.cog_name not in help_pages:
+                help_pages[command.cog_name] = [embed]
+            else:
+                help_pages[command.cog_name].append(embed)
+
+        page_groups = []
+        for cog_name, command_pages in help_pages.items():
+            for index, embed in enumerate(command_pages):
+                embed.set_footer(
+                    text=f"{index+1}/{len(command_pages)}"
+                    + '\nWhen using text commands, separate each parameter with "|" '
+                )
+            page_groups.append(
+                pages.PageGroup(
+                    pages=command_pages,
+                    label=cog_name,
+                    loop_pages=True,
+                    use_default_buttons=False,
+                    custom_buttons=[
+                        pages.PaginatorButton(
+                            "prev",
+                            emoji="<:leftarrow:1182293710684295178>",
+                            style=ButtonStyle.blurple,
+                        ),
+                        pages.PaginatorButton(
+                            "next",
+                            emoji="<:rightarrow:1182293601540132945>",
+                            style=ButtonStyle.blurple,
+                        ),
+                    ],
+                )
+            )
+
+        page_groups[0].default = True
+
+        paginator = pages.Paginator(
+            pages=page_groups,
+            show_menu=True,
+            show_indicator=False,
+            use_default_buttons=False,
+            custom_buttons=[
+                pages.PaginatorButton(
+                    "prev",
+                    emoji="<:leftarrow:1182293710684295178>",
+                    style=ButtonStyle.blurple,
+                ),
+                pages.PaginatorButton(
+                    "next",
+                    emoji="<:rightarrow:1182293601540132945>",
+                    style=ButtonStyle.blurple,
+                ),
+            ],
         )
+        await paginator.respond(ctx)
 
 
 def setup(client):

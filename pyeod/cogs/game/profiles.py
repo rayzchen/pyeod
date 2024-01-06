@@ -19,6 +19,7 @@ class Profiles(commands.Cog):
     @bridge.bridge_command(aliases=["prof"])
     @bridge.guild_only()
     async def profile(self, ctx: bridge.Context, *, user: Optional[User] = None):
+        """Shows your profile and your own personal stats"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
         if user is None:

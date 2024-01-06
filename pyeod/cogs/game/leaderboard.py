@@ -19,6 +19,8 @@ class Leaderboard(commands.Cog):
     @bridge.bridge_command(aliases=["leaderboard"])
     @bridge.guild_only()
     async def lb(self, ctx: bridge.Context, *, user: Optional[User] = None):
+        """Shows the leaderboard of who has the most elements
+Has other sorting options available"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if user is None:
             user = ctx.author

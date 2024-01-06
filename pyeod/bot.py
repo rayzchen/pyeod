@@ -46,6 +46,7 @@ def run():
     opts["loop"] = loop
 
     bot = ElementalBot(**opts)
+    bot.remove_command("help")#Remove default help command
     for file in glob.glob(
         os.path.join(config.package, "cogs", "**", "*.py"), recursive=True
     ):
