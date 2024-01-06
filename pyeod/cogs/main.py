@@ -1,16 +1,19 @@
 from pyeod import config
 from pyeod.errors import GameError, InternalError
 from pyeod.frontend import DiscordGameInstance, ElementalBot, InstanceManager
-from pyeod.utils import format_traceback
-from discord import DiscordException
+from pyeod.utils import format_traceback, format_list
+from discord import DiscordException, ButtonStyle, CheckFailure, Embed
 from discord.errors import ApplicationCommandInvokeError
 from discord.commands import ApplicationContext
-from discord.ext import bridge, commands, tasks
+from discord.ext import bridge, commands, tasks, pages
+import discord
 import io
 import os
 import sys
 import traceback
 import subprocess
+import typing
+import inspect
 
 
 class Main(commands.Cog):
@@ -111,6 +114,121 @@ class Main(commands.Cog):
             print("Restarting")
             self.restart_checker.stop()
             await self.bot.close()
+
+    @bridge.bridge_command()
+    async def help(self, ctx: bridge.Context):
+        """Shows this command"""
+        help_pages = {}
+        for command in self.bot.commands:
+            try:
+                if not await command.can_run(ctx):
+                    continue
+            except discord.ext.commands.CommandError:
+                continue
+
+            embed = Embed(
+                title=command.name,
+                description=command.help or "No description available.",
+            )
+
+            # Fucked up code I wrote a while ago
+            # Works and that's about it
+            command_desc = "\n!" + command.name
+            type_names = {
+                int: "Number",
+                str: "Text",
+                bool: "True or False",
+                discord.member.Member: "@User",
+                discord.user.User: "@User",
+                discord.message.Attachment: "Message Attachment",
+                discord.channel.TextChannel: "#Text Channel",
+                # For BridgeOption
+                "element": "Element",
+                "element_name": "Element Name",
+                "marked_element": "Marked Element",
+            }
+            for name, param in command.params.items():
+                if name in ["self", "ctx"]:
+                    continue
+
+                if (
+                    getattr(param.annotation, "__origin__", None) is typing.Union
+                    and type(None) in param.annotation.__args__
+                ):  # Handle Optional type hints
+                    param_type = next(
+                        t for t in param.annotation.__args__ if t is not type(None)
+                    )
+                elif (
+                    type(param.annotation).__name__ == "BridgeOption"
+                ):  # I cannot figure out to import this fucking type
+                    param_type = param.annotation.name
+                else:
+                    param_type = param.annotation
+                command_desc += (
+                    f" | <{name.title().replace('_', ' ')} : {type_names.get(param_type, param_type)}"
+                    + (" (Optional)" if param.default != inspect._empty else "")
+                    + ">"
+                )
+            embed.add_field(name="Format", value=command_desc)
+            if command.aliases:
+                embed.add_field(
+                    name="Aliases",
+                    value=format_list(["!" + i for i in command.aliases]),
+                )
+            if command.cog_name not in help_pages:
+                help_pages[command.cog_name] = [embed]
+            else:
+                help_pages[command.cog_name].append(embed)
+
+        page_groups = []
+        for cog_name, command_pages in help_pages.items():
+            for index, embed in enumerate(command_pages):
+                embed.set_footer(
+                    text=f"{index+1}/{len(command_pages)}"
+                    + '\nWhen using text commands, separate each parameter with "|" '
+                )
+            page_groups.append(
+                pages.PageGroup(
+                    pages=command_pages,
+                    label=cog_name,
+                    loop_pages=True,
+                    use_default_buttons=False,
+                    custom_buttons=[
+                        pages.PaginatorButton(
+                            "prev",
+                            emoji="<:leftarrow:1182293710684295178>",
+                            style=ButtonStyle.blurple,
+                        ),
+                        pages.PaginatorButton(
+                            "next",
+                            emoji="<:rightarrow:1182293601540132945>",
+                            style=ButtonStyle.blurple,
+                        ),
+                    ],
+                )
+            )
+
+        page_groups[0].default = True
+
+        paginator = pages.Paginator(
+            pages=page_groups,
+            show_menu=True,
+            show_indicator=False,
+            use_default_buttons=False,
+            custom_buttons=[
+                pages.PaginatorButton(
+                    "prev",
+                    emoji="<:leftarrow:1182293710684295178>",
+                    style=ButtonStyle.blurple,
+                ),
+                pages.PaginatorButton(
+                    "next",
+                    emoji="<:rightarrow:1182293601540132945>",
+                    style=ButtonStyle.blurple,
+                ),
+            ],
+        )
+        await paginator.respond(ctx)
 
 
 def setup(client):
