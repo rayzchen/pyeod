@@ -144,22 +144,31 @@ class Base(commands.Cog):
             return
         elif user.last_element is not None:
             await msg.reply("🔴 That combo already exists!")
-        else:
-            combo = user.last_combo
-            if autocapitalize:
-                name = capitalize(name.strip())
-            else:
-                name = name.strip()
-            poll = await server.suggest_element(user, combo, name)
+            return
 
-            emoji = "🌟" if poll.exists else "✨"
-            elements = "** + **".join([i.name for i in combo])
-            await self.bot.add_poll(
-                server,
-                poll,
-                msg,
-                f"🗳️ Suggested **{elements}** = **{poll.result}**! {emoji}",
-            )
+        combo = user.last_combo
+        if autocapitalize:
+            name = capitalize(name.strip())
+        else:
+            name = name.strip()
+
+        if name.startswith("#"):
+            await msg.reply("🔴 Element names cannot start with **#**!")
+            return
+        if "\n" in name:
+            await msg.reply("🔴 Element names cannot contain newlines!")
+            return
+
+        poll = await server.suggest_element(user, combo, name)
+
+        emoji = "🌟" if poll.exists else "✨"
+        elements = "** + **".join([i.name for i in combo])
+        await self.bot.add_poll(
+            server,
+            poll,
+            msg,
+            f"🗳️ Suggested **{elements}** = **{poll.result}**! {emoji}",
+        )
 
     @staticmethod
     def handle_errors(func):
