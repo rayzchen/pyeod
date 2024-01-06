@@ -124,7 +124,7 @@ class Base(commands.Cog):
                 user.last_combo = ()
                 element_list = [f"**{elem.name}**" for elem in g.meta["elements"]]
                 await msg.reply(f"🔴 You don't have {format_list(element_list)}!")
-        await self.award_achievements(server, msg)
+        await self.bot.award_achievements(server, msg)
 
     async def suggest_element(
         self, server: DiscordGameInstance, name: str, msg: Message, autocapitalize: bool
@@ -161,32 +161,7 @@ class Base(commands.Cog):
                 msg,
                 f"🗳️ Suggested **{elements}** = **{poll.result}**! {emoji}",
             )
-
-    async def award_achievements(self, server: DiscordGameInstance, msg: Message):
-        user = await server.login_user(msg.author.id)
-        new_achievements = await server.get_achievements(user)
-
-        unlocked_icons = []
-
-        for achievement in new_achievements:
-            await msg.reply(
-                f"🌟 Achievement unlocked: **{await server.get_achievement_name(achievement)}**"
-            )
-            if server.channels.news_channel is not None:
-                news_channel = await self.bot.fetch_channel(
-                    server.channels.news_channel
-                )
-                await news_channel.send(
-                    f"🌟 <@{user.id}> Achievement unlocked: **{await server.get_achievement_name(achievement)}**"
-                )
-            unlocked_icons += [await server.get_icon(icon) for icon in await server.get_unlocked_icons(achievement)]
-
-        if unlocked_icons:
-            if len(unlocked_icons) == 1:
-                await msg.reply(f"✨ Icon unlocked: {unlocked_icons[0]}")
-            else:
-                await msg.reply(f"✨ Icons unlocked: {format_list(unlocked_icons, 'and')}")
-
+        await self.bot.award_achievements(server, msg)
 
     @staticmethod
     def handle_errors(func):

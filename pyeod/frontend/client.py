@@ -10,6 +10,7 @@ from .utils import get_page_limit, generate_embed_list
 from pyeod.model import Poll
 from pyeod.errors import InternalError, GameError
 from pyeod.frontend.model import DiscordGameInstance, InstanceManager
+from pyeod.utils import format_list
 from discord import (
     ButtonStyle,
     Embed,
@@ -212,6 +213,31 @@ class ElementalBot(bridge.AutoShardedBot):
         if server.vote_req != 0:  # Adding reactions after just feels snappier
             await poll_msg.add_reaction("\U0001F53C")  # ⬆️ Emoji
             await poll_msg.add_reaction("\U0001F53D")
+
+    async def award_achievements(self, server: DiscordGameInstance, msg: Message):
+        user = await server.login_user(msg.author.id)
+        new_achievements = await server.get_achievements(user)
+
+        unlocked_icons = []
+
+        for achievement in new_achievements:
+            await msg.reply(
+                f"🌟 Achievement unlocked: **{await server.get_achievement_name(achievement)}**"
+            )
+            if server.channels.news_channel is not None:
+                news_channel = await self.bot.fetch_channel(
+                    server.channels.news_channel
+                )
+                await news_channel.send(
+                    f"🌟 <@{user.id}> Achievement unlocked: **{await server.get_achievement_name(achievement)}**"
+                )
+            unlocked_icons += [await server.get_icon(icon) for icon in await server.get_unlocked_icons(achievement)]
+
+        if unlocked_icons:
+            if len(unlocked_icons) == 1:
+                await msg.reply(f"✨ Icon unlocked: {unlocked_icons[0]}")
+            else:
+                await msg.reply(f"✨ Icons unlocked: {format_list(unlocked_icons, 'and')}")
 
 
 async def autocomplete_elements(ctx: AutocompleteContext):
