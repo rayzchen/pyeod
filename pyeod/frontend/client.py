@@ -121,7 +121,7 @@ class SortingDropdown(ui.Select):
             SelectOption(
                 label="Elements Made",
                 description="Sorts by elements in inventory",
-                emoji="🎒"
+                emoji="\U0001F392",  # Black freaks out here if the actual char is used
             ),
             SelectOption(
                 label="Elements Suggested",
@@ -197,6 +197,11 @@ class ElementalBot(bridge.AutoShardedBot):
                     "Please set the news channel before adding polls",
                 )
             news_channel = await self.fetch_channel(server.channels.news_channel)
+            news_message = await poll.get_news_message(server)
+            if isinstance(news_message, tuple):  # (msg, embed)
+                await news_channel.send(news_message[0], embed=news_message[1])
+            else:
+                await news_channel.send(news_message)
             await news_channel.send(await poll.get_news_message(server))
         else:
             if server.channels.voting_channel is None:
