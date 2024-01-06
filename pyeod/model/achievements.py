@@ -94,6 +94,11 @@ async def achievement_achievement_func(instance, user):
 # req_func: Callable[GameInstance, User] = the function that takes in user data and returns the appropriate tier of achievement
 
 achievements = {
+    -1: {
+        "names": ["Achievement get!"],
+        "default": "Achiever",
+        "req_func": achievement_achievement_func,
+    },
     0: {
         "names": [
             "Beginner Elementalist Ⅰ",
@@ -155,11 +160,6 @@ achievements = {
         "req_func": leaderboard_pos_func,
         # No default as it is impossible for an outside index to be returned
         "default": None,
-    },
-    4: {
-        "names": ["Achievement get!"],
-        "default": "Achiever",
-        "req_func": achievement_achievement_func,
     },
 }
 

@@ -179,7 +179,7 @@ class Base(commands.Cog):
                 await news_channel.send(
                     f"🌟 <@{user.id}> Achievement unlocked: **{await server.get_achievement_name(achievement)}**"
                 )
-            unlocked_icons += await server.get_unlocked_icons(achievement)
+            unlocked_icons += [await server.get_icon(icon) for icon in await server.get_unlocked_icons(achievement)]
 
         if unlocked_icons:
             if len(unlocked_icons) == 1:
