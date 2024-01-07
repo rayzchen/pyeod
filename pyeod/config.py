@@ -20,4 +20,5 @@ IMAGE_TYPES = [
     "image/jpg",
     "image/bmp",
     "image/webp",
+    "image/gif",
 ]
