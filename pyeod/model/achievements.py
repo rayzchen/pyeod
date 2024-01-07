@@ -48,9 +48,7 @@ async def elements_collected_check(instance, user):
 async def elements_collected_progress(instance, user):
     async with instance.db.user_lock.reader:
         element_amount = len(user.inv)
-        return get_nearest_boundary(
-            elements_collected_boundaries, element_amount
-        )
+        return get_nearest_boundary(elements_collected_boundaries, element_amount)
 
 
 elements_created_boundaries = [
@@ -85,9 +83,7 @@ async def elements_created_check(instance, user):
 async def elements_created_progress(instance, user):
     async with instance.db.user_lock.reader:
         combos_created = user.created_combo_count
-        return get_nearest_boundary(
-            elements_created_boundaries, combos_created
-        )
+        return get_nearest_boundary(elements_created_boundaries, combos_created)
 
 
 votes_cast_boundaries = [1, 25, 50, 125, 250, 500, 1_000]
@@ -150,8 +146,8 @@ async def leaderboard_pos_progress(instance, user):
 async def achievement_achievement_check(instance, user):
     async with instance.db.user_lock.reader:
         achievement_amount = len(user.achievements)
-        if achievement_amount < 10:
-            return 0
+        if achievement_amount == 0:
+            return None
         return achievement_amount // 10
 
 
@@ -173,7 +169,7 @@ achievements = {
         "default": "Achiever",
         "req_func": achievement_achievement_check,
         "progress_func": achievement_achievement_progress,
-        "items" : "Achievement"
+        "items": "Achievement",
     },
     0: {
         "names": [
@@ -190,7 +186,7 @@ achievements = {
         "default": "Ultimate Elementalist",
         "req_func": elements_collected_check,
         "progress_func": elements_collected_progress,
-        "items" : "Element"
+        "items": "Element",
     },
     1: {
         "names": [
@@ -216,7 +212,7 @@ achievements = {
         "default": "Mighty Creator",
         "req_func": elements_created_check,
         "progress_func": elements_created_progress,
-        "items" : "Created Combos"
+        "items": "Created Combos",
     },
     2: {
         "names": [
@@ -230,7 +226,7 @@ achievements = {
         "default": "Judge",
         "req_func": votes_cast_check,
         "progress_func": votes_cast_progress,
-        "items" : "Vote"
+        "items": "Vote",
     },
     3: {
         "names": [
@@ -241,7 +237,7 @@ achievements = {
         ],
         "req_func": leaderboard_pos_check,
         "progress_func": leaderboard_pos_progress,
-        "items" : "Leaderboard Position",
+        "items": "Leaderboard Position",
         # No default as it is impossible for an outside index to be returned
         "default": None,
     },
