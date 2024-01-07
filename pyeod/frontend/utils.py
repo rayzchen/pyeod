@@ -70,7 +70,7 @@ async def build_info_embed(
 
     if element.author is None:
         creator = "The Big Bang"
-        icon = instance.get_icon(0)
+        icon = "♾️"
     elif element.author == 0:
         creator = "<@0>"
         icon = instance.get_icon(0)
@@ -124,8 +124,13 @@ async def build_info_embed(
         if element.extra_authors
         else None,
         EmbedField("📅 Created At", timestamp, True),
-        EmbedField("🌲 Tree Size", str(tree_size), True),
-        EmbedField("🔀 Complexity", str(complexity), True),
+        EmbedField("🌲 Tree Size", f"{tree_size:,}", True),
+        EmbedField("🔀 Complexity", f"{complexity:,}", True),
+        EmbedField(
+            "\U0001F4DB Difficulty",
+            f"{tree_size/complexity:,.2f}".rstrip(".0") if complexity else "0",
+            True,
+        ),
         EmbedField("🔨 Made With", str(made_with), True),
         EmbedField("🧰 Used In", str(used_in), True),
         EmbedField("🔍 Found By", str(found_by), True),
