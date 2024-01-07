@@ -89,11 +89,11 @@ class Lists(commands.Cog):
                 achievement_progress = await server.get_achievement_progress(
                     item, logged_in
                 )
-                achievement_counting = await server.get_achievement_item_name(
-                    item, achievement_progress
-                )
                 progress_string = f"({achievement_progress[1]:,}/{achievement_progress[0]:,})"
                 difference = achievement_progress[0] - achievement_progress[1]
+                achievement_counting = await server.get_achievement_item_name(
+                    item, difference
+                )
                 if difference < 0:
                     # leaderboard
                     progress_string = f"({achievement_progress[1]})"

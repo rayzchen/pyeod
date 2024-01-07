@@ -218,7 +218,7 @@ class GameInstance(SavableMixin):
     async def get_achievement_progress(self, achievement: List[int], user: User) -> int:
         return await achievements[achievement[0]]["progress_func"](self, user)
 
-    async def get_achievement_item_name(self, achievement: List[int], amount:int = 1) -> str:
+    async def get_achievement_item_name(self, achievement: List[int], amount: int = 1) -> str:
         items = achievements[achievement[0]]["items"]
         return items if amount == 1 else f"{items}s"
 
