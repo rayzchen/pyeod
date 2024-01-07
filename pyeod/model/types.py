@@ -474,6 +474,7 @@ class Database(SavableMixin):
                 self.combo_lookup[element.id] = []
                 self.used_in_lookup[element.id] = set()
                 self.found_by_lookup[element.id] = set()
+                self.created_by_lookup[element.author.id].append(element.id)
 
     async def has_element(self, element: str) -> bool:
         async with self.element_lock.reader:
