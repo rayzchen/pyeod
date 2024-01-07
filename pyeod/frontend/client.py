@@ -99,9 +99,9 @@ async def create_leaderboard(sorting_option, ctx, user):
             if logged_in is not None and user_id == logged_in.id:
                 user_index = i
                 user_inv = player_value
-                lines.append(f"{i}\. <@{user_id}> *You* - {player_value:,}")
+                lines.append(f"{i}\. {server.get_icon(user.icon)} <@{user_id}> *You* - {player_value:,}")
             else:
-                lines.append(f"{i}\. <@{user_id}> - {player_value:,}")
+                lines.append(f"{i}\. {server.get_icon(user.icon)} <@{user_id}> - {player_value:,}")
 
     limit = get_page_limit(server, ctx.channel.id)
     pages = generate_embed_list(lines, title, limit)
