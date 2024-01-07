@@ -197,6 +197,9 @@ class Base(commands.Cog):
         if "\n" in name:
             await msg.reply("🔴 Element names cannot contain newlines!")
             return
+        if "<@" in name:
+            await msg.reply("🔴 Element names cannot contain **<@**!")
+            return
 
         poll = await server.suggest_element(user, combo, name)
 
