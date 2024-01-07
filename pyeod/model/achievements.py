@@ -18,11 +18,11 @@ def boundary_list_check(boundaries, value):
     return None
 
 
-def get_distance_to_nearest_boundary(boundaries, value):
+def get_nearest_boundary(boundaries, value):
     for boundary in boundaries:
         if value < boundary:
-            return boundary - value
-    return boundaries[-1] - (value % boundaries[-1])
+            return (boundary, value)
+    return ((value // boundaries[-1] + 1) * boundaries[-1], value)
 
 
 elements_collected_boundaries = [
@@ -48,7 +48,7 @@ async def elements_collected_check(instance, user):
 async def elements_collected_progress(instance, user):
     async with instance.db.user_lock.reader:
         element_amount = len(user.inv)
-        return get_distance_to_nearest_boundary(
+        return get_nearest_boundary(
             elements_collected_boundaries, element_amount
         )
 
@@ -85,7 +85,7 @@ async def elements_created_check(instance, user):
 async def elements_created_progress(instance, user):
     async with instance.db.user_lock.reader:
         combos_created = user.created_combo_count
-        return get_distance_to_nearest_boundary(
+        return get_nearest_boundary(
             elements_created_boundaries, combos_created
         )
 
@@ -102,7 +102,7 @@ async def votes_cast_check(instance, user):
 async def votes_cast_progress(instance, user):
     async with instance.db.user_lock.reader:
         cast_votes = user.votes_cast_count
-        return get_distance_to_nearest_boundary(votes_cast_boundaries, cast_votes)
+        return get_nearest_boundary(votes_cast_boundaries, cast_votes)
 
 
 async def leaderboard_pos_check(instance, user):
@@ -137,14 +137,14 @@ async def leaderboard_pos_progress(instance, user):
             + 1
         )
         if leaderboard_position == 1:
-            return 0
+            return (0, 1)
         if leaderboard_position == 2:
-            return 1
+            return (1, 2)
         if leaderboard_position == 3:
-            return 1
+            return (2, 3)
         if leaderboard_position <= 10:
-            return leaderboard_position - 3
-        return leaderboard_position - 10
+            return (3, leaderboard_position)
+        return (10, leaderboard_position)
 
 
 async def achievement_achievement_check(instance, user):
@@ -158,13 +158,14 @@ async def achievement_achievement_check(instance, user):
 async def achievement_achievement_progress(instance, user):
     async with instance.db.user_lock.reader:
         achievement_amount = len(user.achievements)
-        return 10 - (achievement_amount % 10)
+        return ((achievement_amount // 10 + 1) * 10, achievement_amount)
 
 
 # Format:
 # names: list[str] = the tier names
-# default: str = what is defaulted to if the check_check returns an index outside of the names list (roman numerals added based on how far off the returned index is)
-# req_check: Callable[GameInstance, User] = the checktion that takes in user data and returns the appropriate tier of achievement
+# default: str = what is defaulted to if the req_func returns an index outside of the names list (roman numerals added based on how far off the returned index is)
+# req_func: Callable[[GameInstance, User], int] = the function that takes in user data and returns the appropriate tier of achievement
+# progress_func: Callable[[GameInstance, User], Tuple[int, int]] = function that user data and returns the next goal and the current value
 
 achievements = {
     -1: {

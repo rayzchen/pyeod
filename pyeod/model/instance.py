@@ -220,7 +220,7 @@ class GameInstance(SavableMixin):
 
     async def get_achievement_item_name(self, achievement: List[int], amount:int = 1) -> str:
         items = achievements[achievement[0]]["items"]
-        return  items if amount == 1 else f"{items}s"
+        return items if amount == 1 else f"{items}s"
 
     def get_icon(self, icon: int) -> str:
         return user_icons[icon]["emoji"]

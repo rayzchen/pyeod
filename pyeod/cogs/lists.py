@@ -82,9 +82,7 @@ class Lists(commands.Cog):
                     or achievement[1] > highest_tier_achievements[achievement[0]]
                 ):
                     highest_tier_achievements[achievement[0]] = achievement[1]
-            for item in sorted(
-                list(highest_tier_achievements.items())
-            ):  # That worked out nice
+            for item in sorted(highest_tier_achievements.items()):
                 achievement_name = await server.get_achievement_name(
                     [item[0], item[1] + 1]
                 )
@@ -94,9 +92,15 @@ class Lists(commands.Cog):
                 achievement_counting = await server.get_achievement_item_name(
                     item, achievement_progress
                 )
-                if achievement_name != None:
+                progress_string = f"({achievement_progress[1]:,}/{achievement_progress[0]:,})"
+                difference = achievement_progress[0] - achievement_progress[1]
+                if difference < 0:
+                    # leaderboard
+                    progress_string = f"({achievement_progress[1]})"
+                    difference = achievement_progress[1] - achievement_progress[0]
+                if achievement_name is not None:
                     achievements_progress.append(
-                        f"**{achievement_name}**\nYou are {achievement_progress} {achievement_counting} away from gaining this achievement\n"
+                        f"**{achievement_name}**\n{progress_string} You are {difference} {achievement_counting} away from gaining this achievement\n"
                     )
                 else:
                     achievements_progress.append(
