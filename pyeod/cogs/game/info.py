@@ -12,6 +12,7 @@ from pyeod.model import (
     MarkPoll,
     RemoveCollabPoll,
 )
+from pyeod import config
 from discord import Attachment, NotFound, User
 from discord.ext import bridge, commands
 from discord.commands import option as option_decorator
@@ -94,7 +95,7 @@ class Info(commands.Cog):
                 async with session.head(url, allow_redirects=True) as response:
                     if 200 <= response.status < 300 and response.headers[
                         "Content-Type"
-                    ] in ["image/png", "image/jpeg", "image/jpg"]:
+                    ] in config.IMAGE_TYPES:
                         return True
                     else:
                         return False
@@ -117,17 +118,13 @@ class Info(commands.Cog):
                     await ctx.respond("🔴 Invalid image link!")
                     return
             else:
-                if ctx.message.attachments[0].content_type in [
-                    "image/png",
-                    "image/jpeg",
-                    "image/jpg",
-                ]:
+                if ctx.message.attachments[0].content_type in config.IMAGE_TYPES:
                     image_link = ctx.message.attachments[0].url
                 else:
                     await ctx.respond("🔴 Invalid image!")
                     return
         else:
-            if image.content_type in ["image/png", "image/jpeg", "image/jpg"]:
+            if image.content_type in config.IMAGE_TYPES:
                 image_link = image.url
             else:
                 await ctx.respond("🔴 Invalid image!")
@@ -158,17 +155,13 @@ class Info(commands.Cog):
                     await ctx.respond("🔴 Invalid image link!")
                     return
             else:
-                if ctx.message.attachments[0].content_type in [
-                    "image/png",
-                    "image/jpeg",
-                    "image/jpg",
-                ]:
+                if ctx.message.attachments[0].content_type in config.IMAGE_TYPES:
                     icon_link = ctx.message.attachments[0].url
                 else:
                     await ctx.respond("🔴 Invalid image!")
                     return
         else:
-            if icon.content_type in ["image/png", "image/jpeg", "image/jpg"]:
+            if icon.content_type in config.IMAGE_TYPES:
                 icon_link = icon.url
             else:
                 await ctx.respond("🔴 Invalid image!")

@@ -14,3 +14,10 @@ SERVER_CONTROL_USERS = [
     274518100500676608,  # steyerofoam
 ]
 EMBED_COLOR = 0x3499EB
+IMAGE_TYPES = [
+    "image/png",
+    "image/jpeg",
+    "image/jpg",
+    "image/bmp",
+    "image/webp",
+]
