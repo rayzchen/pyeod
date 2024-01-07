@@ -128,7 +128,7 @@ async def build_info_embed(
         EmbedField("🔀 Complexity", f"{complexity:,}", True),
         EmbedField(
             "\U0001F4DB Difficulty",
-            f"{tree_size/complexity:,.2f}" if complexity else "0",
+            f"{tree_size/complexity:,.2f}" if complexity else "0.00",
             True,
         ),
         EmbedField("🔨 Made With", str(made_with), True),
