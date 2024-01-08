@@ -12,6 +12,7 @@ from pyeod import config
 from pyeod.errors import InternalError
 from pyeod.frontend.model import DiscordGameInstance
 from pyeod.model import ColorPoll, Element, GameInstance, User
+from pyeod.utils import calculate_difficulty
 from discord import Embed, EmbedField, File
 from io import BytesIO, StringIO
 from typing import Optional, List, Union
@@ -125,10 +126,10 @@ async def build_info_embed(
         else None,
         EmbedField("📅 Created At", timestamp, True),
         EmbedField("🌲 Tree Size", f"{tree_size:,}", True),
-        EmbedField("🔀 Complexity", f"{complexity:,}", True),
+        EmbedField("📶 Element Tier", f"{complexity:,}", True),
         EmbedField(
             "\U0001F4DB Difficulty",
-            f"{tree_size/math.sqrt(complexity):,.2f}" if complexity else "0.00",
+            f"{calculate_difficulty(tree_size, complexity):,.2f}",
             True,
         ),
         EmbedField("🔨 Made With", str(made_with), True),

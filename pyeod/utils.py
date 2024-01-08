@@ -2,6 +2,7 @@ from pyeod import config
 import os
 import sys
 import site
+import math
 import traceback
 
 
@@ -58,3 +59,18 @@ def int_to_roman(num: int) -> str:
             num -= val
 
     return roman_num
+
+def calculate_difficulty(tree_size, complexity):
+    # Parameters that can be tweaked
+    scaling = 1.5
+    ideal_tier_size = 8
+    disparity_power = 1.2
+    large_elem_correction = 5
+
+    difficulty = scaling * tree_size * complexity
+    tier_size_factor = math.log10(tree_size) / large_elem_correction
+    adjusted_tier_size = ideal_tier_size * (1 + tier_size_factor)
+    difference = abs(tree_size - adjusted_tier_size * complexity)
+    adjusted_difference = difference ** disparity_power + 1
+    difficulty /= adjusted_difference
+    return difficulty
