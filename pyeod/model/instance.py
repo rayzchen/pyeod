@@ -46,6 +46,7 @@ class GameInstance(SavableMixin):
             if user_id not in self.db.users:
                 inv = [elem.id for elem in self.db.starters]
                 self.db.users[user_id] = User(user_id, inv)
+                self.db.created_by_lookup[user_id] = []
             return self.db.users[user_id]
 
     async def check_element(
