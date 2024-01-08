@@ -341,6 +341,7 @@ class Database(SavableMixin):
                             break
                     else:
                         print("Warning: Dropping elements:", unseen)
+                        self.element_lock.reader.release()
                         async with self.element_lock.writer:
                             for elem_id in unseen:
                                 assert elem_id not in self.complexities
@@ -350,6 +351,7 @@ class Database(SavableMixin):
                                 self.used_in_lookup.pop(elem_id)
                                 self.elem_id_lookup.pop(elem_id)
                                 self.found_by_lookup.pop(elem_id)
+                        await self.element_lock.reader.acquire()
                         break
 
                 self.path_lookup = {elem: set() for elem in self.elem_id_lookup}
