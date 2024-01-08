@@ -210,6 +210,15 @@ async def create_inventory(sorting_option, ctx, user):
             elements = [
                 server.db.elem_id_lookup[elem].name for elem in sorted(logged_in.inv)
             ]
+        elif sorting_option == "Tree Size":
+            elements = [
+                server.db.elem_id_lookup[elem].name
+                for elem in sorted(
+                    logged_in.inv,
+                    key=lambda element_id: len(server.db.path_lookup[element_id]),
+                    reverse=True,
+                )
+            ]
         elif sorting_option == "Complexity":
             elements = [
                 server.db.elem_id_lookup[elem].name
@@ -279,6 +288,11 @@ class InventorySortingDropdown(ui.Select):
                 label="Complexity",
                 description="Sorts by complexity",
                 emoji="🔀",
+            ),
+            SelectOption(
+                label="Tree Size",
+                description="Sorts by tree size",
+                emoji="🌲",
             ),
             SelectOption(
                 label="Creator",
