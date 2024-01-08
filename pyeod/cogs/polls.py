@@ -60,6 +60,7 @@ class Polls(commands.Cog):
             return
         server.processing_polls.add(payload.message_id)
 
+        resolve_poll = False
         delete_poll = False
         author_downvote = False
         async with server.db.poll_lock.reader:
