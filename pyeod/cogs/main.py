@@ -56,12 +56,14 @@ class Main(commands.Cog):
         error = format_traceback(err)
         await ctx.respond("⚠️ There was an error processing the command:\n" + error)
 
-    @commands.Cog.listener()#Suppress stderr printing on already handled errors
-    async def on_command_error(
-        self, ctx:commands.Context, err:commands.errors.CommandError
+    # General command error listener
+    # Listens to bridge commands even if an on_bridge_command_error listener is already present. For some reason.
+    @commands.Cog.listener()
+    async def on_command_error(  # Suppress stderr printing on already handled errors
+        self, ctx: commands.Context, err: commands.errors.CommandError
     ):
-        pass
-    
+        pass  # Handle all errors in the above listener
+
     @bridge.bridge_command(aliases=["ms"])
     async def ping(self, ctx: bridge.Context):
         """Gets the current ping between the bot and discord"""
