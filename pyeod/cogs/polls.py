@@ -130,15 +130,16 @@ class Polls(commands.Cog):
     async def clear_polls(self, ctx: bridge.Context):
         """Clears all current polls in the poll channel"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
-        if server.channels.voting_channel is not None:
-            channel = await self.bot.fetch_channel(server.channels.voting_channel)
-            for msg_id in server.poll_msg_lookup:
-                try:
-                    message = await channel.fetch_message(msg_id)
-                    await message.delete()
-                except errors.NotFound:
-                    pass
+        # Prevent new polls
         async with server.db.poll_lock.writer:
+            if server.channels.voting_channel is not None:
+                channel = await self.bot.fetch_channel(server.channels.voting_channel)
+                for msg_id in server.poll_msg_lookup:
+                    try:
+                        message = await channel.fetch_message(msg_id)
+                        await message.delete()
+                    except errors.NotFound:
+                        pass
             server.db.polls.clear()
         async with server.db.user_lock.writer:
             for user in server.db.users.values():
