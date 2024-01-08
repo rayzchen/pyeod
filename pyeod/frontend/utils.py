@@ -83,8 +83,7 @@ async def build_info_embed(
     else:
         timestamp = f"<t:{element.created}>"
 
-    path = await instance.db.get_path(element)
-    tree_size = len(path)
+    tree_size = len(instance.db.path_lookup[element.id])
 
     async with instance.db.element_lock.reader:
         complexity = instance.db.complexities[element.id]
@@ -116,7 +115,8 @@ async def build_info_embed(
         # In case they didn't use the shortest path
         progress = "100%"
     else:
-        progress = f"{len(set(path) & set(user.inv)) / len(path) * 100:.2f}%"
+        progress_set = instance.db.path_lookup[element.id] & set(user.inv)
+        progress = f"{len(progress_set) / len(path) * 100:.2f}%"
 
     fields = [
         EmbedField(f"{icon} Creator", creator, True),
