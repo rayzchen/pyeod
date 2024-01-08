@@ -352,6 +352,18 @@ class Database(SavableMixin):
                                 self.found_by_lookup.pop(elem_id)
                         break
 
+                self.path_lookup = {elem: set() for elem in self.elem_id_lookup}
+                for elem in sorted(self.complexities, key=lambda x: self.complexities[x]):
+                    for ingredient in self.min_elem_tree[elem]:
+                        if not self.path_lookup[elem]:
+                            self.path_lookup[elem] = self.path_lookup[ingredient].copy()
+                            continue
+                        if ingredient in self.path_lookup[elem]:
+                            continue
+                        for item in self.path_lookup[ingredient]:
+                            self.path_lookup[elem].add(item)
+                    self.path_lookup[elem].add(elem)
+
     def get_complexity(self, elem_id: int) -> Union[int, None]:
         """
         Get complexity of element by ID, and add to the minimum element tree.
@@ -475,6 +487,7 @@ class Database(SavableMixin):
                 self.used_in_lookup[element.id] = set()
                 self.found_by_lookup[element.id] = set()
                 self.created_by_lookup[element.author.id].append(element.id)
+                self.path_lookup[element.id] = set(await self.get_path(element))
 
     async def has_element(self, element: str) -> bool:
         async with self.element_lock.reader:
