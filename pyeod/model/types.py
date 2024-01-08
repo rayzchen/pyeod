@@ -489,7 +489,6 @@ class Database(SavableMixin):
                 self.used_in_lookup[element.id] = set()
                 self.found_by_lookup[element.id] = set()
                 self.created_by_lookup[element.author.id].append(element.id)
-                self.path_lookup[element.id] = set(await self.get_path(element))
 
     async def has_element(self, element: str) -> bool:
         async with self.element_lock.reader:
@@ -523,6 +522,7 @@ class Database(SavableMixin):
                     "Failed getting complexity",
                     "No combo found with existing complexity",
                 )
+            self.path_lookup[result.id] = set(await self.get_path(result))
         else:
             await self.update_element_info(result, sorted_combo)
         async with self.element_lock.writer:
