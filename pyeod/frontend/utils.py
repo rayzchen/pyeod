@@ -113,10 +113,10 @@ async def build_info_embed(
 
     if element.id in user.inv:
         # In case they didn't use the shortest path
-        progress = "100%"
+        progress = "100.00%"
     else:
         progress_set = instance.db.path_lookup[element.id] & set(user.inv)
-        progress = f"{len(progress_set) / len(path) * 100:.2f}%"
+        progress = f"{len(progress_set) / tree_size * 100:.2f}%"
 
     fields = [
         EmbedField(f"{icon} Creator", creator, True),
