@@ -128,7 +128,9 @@ class Base(commands.Cog):
                 await msg.reply(f"🔴 Element ID **{notfound[0]}** doesn't exist!")
             else:
                 id_list = [f"**{elem_id}**" for elem_id in notfound]
-                await msg.reply(f"🔴 Element IDs {format_list(id_list, 'and')} don't exist!")
+                await msg.reply(
+                    f"\U0001F534 Element IDs {format_list(id_list, 'and')} don't exist!"
+                )
             return
 
         try:
@@ -200,6 +202,18 @@ class Base(commands.Cog):
         if "<@" in name:
             await msg.reply("🔴 Element names cannot contain **<@**!")
             return
+        # Allow users to do potential dumb formatting shit, but also allow normal use of these strings
+        # Backslash escape all fucked up discord shit
+        if "</" in name:
+            name.replace("</", "\\</")
+        if "<#" in name:
+            name.replace("<#", "\\<#")
+        if "_ _" in name:
+            name.replace("_ _", "\\_ _")
+        if "```" in name:
+            name.replace("```", "\\```")
+        if "<:" in name:
+            name.replace("<:", "\\<:")
 
         poll = await server.suggest_element(user, combo, name)
 

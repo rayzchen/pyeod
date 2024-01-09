@@ -116,6 +116,7 @@ class Config(commands.Cog):
             file = File(stream, filename=str(guild_id) + ".eod")
             await ctx.respond("🤖 Old instance backup:", file=file)
 
+
     @bridge.bridge_command()
     @bridge.guild_only()
     @bridge.has_permissions(manage_channels=True)
