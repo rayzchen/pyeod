@@ -170,7 +170,7 @@ class Config(commands.Cog):
             f"Number of elements: {len(all_ids)}",
             f"Max ID: {max(all_ids)}",
             f"Number of missing IDs: {len(missing_ids)}",
-            f"Missing IDs: {missing_ids}"
+            f"Missing IDs: {sorted(missing_ids)}"
         ]
         await ctx.respond("\n".join(lines))
 
