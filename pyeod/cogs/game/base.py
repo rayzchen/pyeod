@@ -214,6 +214,8 @@ class Base(commands.Cog):
             name.replace("```", "\\```")
         if "<:" in name:
             name.replace("<:", "\\<:")
+        if "\u200C" in name:  # ZWNJ
+            name.replace("\u200C", "")
 
         poll = await server.suggest_element(user, combo, name)
 
