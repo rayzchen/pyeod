@@ -71,19 +71,25 @@ class DiscordGameInstance(GameInstance):
 
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "DiscordGameInstance":
-        lookup = {}
-        for id, poll_idx in data.get("poll_msg_lookup", {}).items():
-            lookup[id] = data.get("db").polls[poll_idx]
+        db = data.get("db")
+        lookup = data.get("poll_msg_lookup", {})
+        if len(lookup) == len(db.polls):
+            for id, poll_idx in lookup.items():
+                lookup[id] = db.polls[poll_idx]
+        else:
+            lookup = {}
+            db.polls.clear()
         if "channels" in data:
+            channels = data.get("channels")
             channel_list = ChannelList(
-                data.get("channels").get("news"),
-                data.get("channels").get("voting"),
-                data.get("channels").get("play"),
+                channels.get("news"),
+                channels.get("voting"),
+                channels.get("play"),
             )
         else:
             channel_list = ChannelList()
         return DiscordGameInstance(
-            data.get("db"),
+            db,
             data.get("vote_req", 4),
             data.get("poll_limit", 20),
             channel_list,
