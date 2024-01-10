@@ -159,6 +159,24 @@ class Config(commands.Cog):
     @bridge.bridge_command(guild_ids=[config.MAIN_SERVER])
     @bridge.has_permissions(manage_guild=True)
     @bridge.guild_only()
+    async def missing_ids(self, ctx: bridge.Context):
+        server = InstanceManager.current.get_or_create(ctx.guild.id)
+
+        async with server.db.element_lock.reader:
+            all_ids = set(server.db.elem_id_lookup)
+        correct_ids = set(range(1, max(all_ids) + 1))
+        missing_ids = correct_ids - all_ids
+        lines = [
+            f"Number of elements: {len(all_ids)}",
+            f"Max ID: {max(all_ids)}",
+            f"Number of missing IDs: {len(missing_ids)}",
+            f"Missing IDs: {missing_ids}"
+        ]
+        await ctx.respond("\n".join(lines))
+
+    @bridge.bridge_command(guild_ids=[config.MAIN_SERVER])
+    @bridge.has_permissions(manage_guild=True)
+    @bridge.guild_only()
     async def active_servers(self, ctx: bridge.Context):
         """Servers with the bot added"""
         if ctx.author.id not in config.SERVER_CONTROL_USERS:
