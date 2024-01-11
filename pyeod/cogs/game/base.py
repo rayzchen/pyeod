@@ -216,6 +216,8 @@ class Base(commands.Cog):
             name = name.replace("|", "\\|")
         if "```" in name:
             name = name.replace("```", "\\```")
+        if "*" in name:
+            name = name.replace("*", "\\*")
         if "<:" in name:
             name = name.replace("<:", "\\<:")
         if "\u200C" in name:  # ZWNJ
