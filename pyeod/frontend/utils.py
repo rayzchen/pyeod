@@ -166,10 +166,10 @@ def generate_embed_list(
     title: str,
     limit: int,
     color: int = config.EMBED_COLOR,
-    thumbnail:str = "",
+    thumbnail:str = None,
 ) -> List[Embed]:
     if not lines:
-        embeds = [Embed(title=title, color=color)]
+        embeds = [Embed(title=title, color=color, thumbnail=thumbnail)]
         return embeds
 
     embeds: List[Embed] = []

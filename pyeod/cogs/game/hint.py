@@ -68,7 +68,7 @@ class Hint(commands.Cog):
 
         limit = get_page_limit(server, ctx.channel.id)
         embeds = generate_embed_list(
-            lines, f"Hints for {element.name} ({len(lines)})", limit, element.color
+            lines, f"Hints for {element.name} ({len(lines)})", limit, element.color, element.image
         )
         if element.id in user.inv:
             footer = "📫 You have this"
@@ -119,7 +119,7 @@ class Hint(commands.Cog):
 
         limit = get_page_limit(server, ctx.channel.id)
         embeds = generate_embed_list(
-            lines, f"Hints for {elem.name} ({len(lines)})", limit, elem.color
+            lines, f"Hints for {elem.name} ({len(lines)})", limit, elem.color, elem.image
         )
         if elem.id in user.inv:
             footer = "📫 You have this"
