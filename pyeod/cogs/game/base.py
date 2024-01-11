@@ -204,18 +204,26 @@ class Base(commands.Cog):
             return
         # Allow users to do potential dumb formatting shit, but also allow normal use of these strings
         # Backslash escape all fucked up discord shit
+        if "\\" in name:
+            name = name.replace("\\", "\\\\")
         if "</" in name:
-            name.replace("</", "\\</")
+            name = name.replace("</", "\\</")
         if "<#" in name:
-            name.replace("<#", "\\<#")
-        if "_ _" in name:
-            name.replace("_ _", "\\_ _")
+            name = name.replace("<#", "\\<#")
+        if "_" in name:
+            name = name.replace("_", "\\_")
+        if "|" in name:
+            name = name.replace("|", "\\|")
         if "```" in name:
-            name.replace("```", "\\```")
+            name = name.replace("```", "\\```")
         if "<:" in name:
-            name.replace("<:", "\\<:")
+            name = name.replace("<:", "\\<:")
         if "\u200C" in name:  # ZWNJ
-            name.replace("\u200C", "")
+            name = name.replace("\u200C", "")
+        
+        if len(name) > 256:
+            await msg.reply("🔴 Element names cannot be longer than 256 character!")
+            return
 
         poll = await server.suggest_element(user, combo, name)
 
