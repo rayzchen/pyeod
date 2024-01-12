@@ -55,6 +55,7 @@ class Info(commands.Cog):
                     "🔴 Please separate the element and the mark with a | !"
                 )
                 return
+            marked_element = split_msg[0].strip()
             mark = split_msg[1].strip()
         if not await server.db.has_element(marked_element):
             await ctx.respond("🔴 Not a valid element!")
@@ -93,9 +94,10 @@ class Info(commands.Cog):
         async with aiohttp.ClientSession() as session:
             try:
                 async with session.head(url, allow_redirects=True) as response:
-                    if 200 <= response.status < 300 and response.headers[
-                        "Content-Type"
-                    ] in config.IMAGE_TYPES:
+                    if (
+                        200 <= response.status < 300
+                        and response.headers["Content-Type"] in config.IMAGE_TYPES
+                    ):
                         return True
                     else:
                         return False
@@ -114,6 +116,7 @@ class Info(commands.Cog):
         if not ctx.is_app:
             if not ctx.message.attachments:
                 element, image_link = element.rsplit("|", 1)
+                element = element.strip()
                 if not await self.check_image_link(image_link.strip()):
                     await ctx.respond("🔴 Invalid image link!")
                     return
@@ -239,7 +242,7 @@ class Info(commands.Cog):
                     await self.bot.fetch_user(id)
                 except NotFound:
                     await ctx.respond(
-                        "🔴 Please only enter valid users, using the @<user> syntax separated by spaces!"
+                        "\U0001F534 Please only enter valid users, using the @<user> syntax separated by spaces!"
                     )
                     return
                 extra_authors.append(id)
@@ -256,7 +259,7 @@ class Info(commands.Cog):
 
         if len(authors) == 0:
             await ctx.respond(
-                "🔴 Please make sure you entered a valid user created element and valid users!"
+                "\U0001F534 Please make sure you entered a valid user created element and valid users!"
             )
             return
         if len(authors) + len(elem.extra_authors) > 10:
@@ -327,7 +330,7 @@ class Info(commands.Cog):
                     await self.bot.fetch_user(id)
                 except NotFound:
                     await ctx.respond(
-                        "🔴 Please only enter valid users, using the @<user> syntax separated by spaces!"
+                        "\U0001F534 Please only enter valid users, using the @<user> syntax separated by spaces!"
                     )
                     return
                 extra_authors.append(id)
@@ -344,7 +347,7 @@ class Info(commands.Cog):
 
         if len(authors) == 0:
             await ctx.respond(
-                "🔴 Please make sure you entered a valid user created element and valid users already in the collaboration!"
+                "\U0001F534 Please make sure you entered a valid user created element and valid users already in the collaboration!"
             )
             return
         poll = await server.suggest_poll(RemoveCollabPoll(user, elem, tuple(authors)))
