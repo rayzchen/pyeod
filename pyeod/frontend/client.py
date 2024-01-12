@@ -86,6 +86,21 @@ async def create_leaderboard(sorting_option, ctx, user):
             find_value = lambda user: user.votes_cast_count
         elif sorting_option == "Achievements Earned":
             find_value = lambda user: len(user.achievements)
+        # TODO - Check how inefficient these are is and make better if it's bad
+        elif sorting_option == "Elements Marked":
+            markers = [i.marker for i in server.db.elem_id_lookup.values() if i.marker]
+            find_value = lambda user: markers.count(user)
+        elif sorting_option == "Elements Imaged":
+            imagers = [i.imager for i in server.db.elem_id_lookup.values() if i.imager]
+            find_value = lambda user: imagers.count(user)
+        elif sorting_option == "Elements Colored":
+            colorers = [
+                i.colorer for i in server.db.elem_id_lookup.values() if i.colorer
+            ]
+            find_value = lambda user: colorers.count(user)
+        elif sorting_option == "Elements Iconed":
+            iconers = [i.iconer for i in server.db.elem_id_lookup.values() if i.iconer]
+            find_value = lambda user: iconers.count(user)
         else:
             raise GameError("Invalid sort", "Failed to find sort function")
 
@@ -99,9 +114,13 @@ async def create_leaderboard(sorting_option, ctx, user):
             if logged_in is not None and user_id == logged_in.id:
                 user_index = i
                 user_inv = player_value
-                lines.append(f"{i}\. {server.get_icon(user.icon)} <@{user_id}> *You* - {player_value:,}")
+                lines.append(
+                    f"{i}\. {server.get_icon(user.icon)} <@{user_id}> *You* - {player_value:,}"
+                )
             else:
-                lines.append(f"{i}\. {server.get_icon(user.icon)} <@{user_id}> - {player_value:,}")
+                lines.append(
+                    f"{i}\. {server.get_icon(user.icon)} <@{user_id}> - {player_value:,}"
+                )
 
     limit = get_page_limit(server, ctx.channel.id)
     pages = generate_embed_list(lines, title, limit)
@@ -127,7 +146,7 @@ class SortingDropdown(ui.Select):
             ),
             SelectOption(
                 label="Elements Suggested",
-                description="Sorts by number of new suggested elements",
+                description="Sorts by new suggested elements",
                 emoji="🪄",
             ),
             SelectOption(
@@ -137,13 +156,33 @@ class SortingDropdown(ui.Select):
             ),
             SelectOption(
                 label="Votes Cast",
-                description="Sorts by amount of times voted",
+                description="Sorts by times voted",
                 emoji="🗳️",
             ),
             SelectOption(
                 label="Achievements Earned",
-                description="Sorts by amount of achievements earned",
+                description="Sorts by achievements earned",
                 emoji="🌟",
+            ),
+            SelectOption(
+                label="Elements Marked",
+                description="Sorts by elements marked",
+                emoji="🗣️",
+            ),
+            SelectOption(
+                label="Elements Imaged",
+                description="Sorts by elements imaged",
+                emoji="🖼️",
+            ),
+            SelectOption(
+                label="Elements Colored",
+                description="Sorts by elements colored",
+                emoji="🎨",
+            ),
+            SelectOption(
+                label="Elements Iconed",
+                description="Sorts by elements iconed",
+                emoji="📍",
             ),
             # Add more options as needed
         ]
