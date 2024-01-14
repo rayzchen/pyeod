@@ -202,6 +202,7 @@ async def achievement_achievement_progress(instance, user):
     async with instance.db.user_lock.reader, instance.db.element_lock.reader:
         await cache_element_info()
         await cache_element_stats()
+        print("caching")
         achievement_amount = len(user.achievements)
         return ((achievement_amount // 10 + 1) * 10, achievement_amount)
 
