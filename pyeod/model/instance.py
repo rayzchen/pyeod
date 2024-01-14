@@ -175,9 +175,10 @@ class GameInstance(SavableMixin):
         achievement_ids.append(achievement_ids.pop(0))  # move first achievement to end
         for achievement_id in achievement_ids:
             achievement_data = achievements[achievement_id]
-            returned_tier = int(await achievement_data["req_func"](self, user))
+            returned_tier = await achievement_data["req_func"](self, user)
             if returned_tier is None:
                 continue
+            returned_tier = int(returned_tier)
             if [achievement_id, returned_tier] not in user_achievements:
                 user_achievements.append([achievement_id, returned_tier])
                 new_achievements.append([achievement_id, returned_tier])
