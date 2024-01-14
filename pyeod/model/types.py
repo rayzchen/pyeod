@@ -193,6 +193,9 @@ class User(SavableMixin):
             data.get("achievements", []),
             data.get("icon", 0),
         )
+        for i in user.achievements:
+            i[0] = int(i[0])
+            i[1] = int(i[1])
         loader.users[user.id] = user
         return user
 
@@ -355,7 +358,9 @@ class Database(SavableMixin):
                         break
 
                 self.path_lookup = {elem: set() for elem in self.elem_id_lookup}
-                for elem in sorted(self.complexities, key=lambda x: self.complexities[x]):
+                for elem in sorted(
+                    self.complexities, key=lambda x: self.complexities[x]
+                ):
                     for ingredient in self.min_elem_tree[elem]:
                         if not self.path_lookup[elem]:
                             self.path_lookup[elem] = self.path_lookup[ingredient].copy()

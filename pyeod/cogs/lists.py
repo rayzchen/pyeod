@@ -91,12 +91,14 @@ class Lists(commands.Cog):
                 )
                 match item[0]:
                     case 11:
-                        progress_string = f"(your highest: {achievement_progress[1]:,})"
+                        progress_string = (
+                            f"(your highest: {achievement_progress[1]:,.2f})"
+                        )
                         achievement_counting = await server.get_achievement_item_name(
                             item
                         )
                         achievements_progress.append(
-                            f"**{achievement_name}**\n{progress_string:,.2f} You need an element with a {achievement_counting} of {achievement_progress[0]}\n"
+                            f"**{achievement_name}**\n{progress_string} You need an element with a {achievement_counting} of {achievement_progress[0]}\n"
                         )
                     case 9 | 10:  # Catch the tree size, tier, and difficulty achievements
                         progress_string = f"(your highest: {achievement_progress[1]:,})"
@@ -104,9 +106,9 @@ class Lists(commands.Cog):
                             item
                         )
                         achievements_progress.append(
-                            f"**{achievement_name}**\n{progress_string:,} You need an element with a {achievement_counting} of {achievement_progress[0]}\n"
+                            f"**{achievement_name}**\n{progress_string} You need an element with a {achievement_counting} of {achievement_progress[0]}\n"
                         )
-                    case 3:#No leaderboard achievement progress
+                    case 3:  # No leaderboard achievement progress
                         pass
                     case _:
                         progress_string = (
