@@ -324,9 +324,9 @@ class InventorySortingDropdown(ui.Select):
                 emoji="📅",
             ),
             SelectOption(
-                label="Complexity",
-                description="Sorts by complexity",
-                emoji="🔀",
+                label="Tier",
+                description="Sorts by tier",
+                emoji="📶",
             ),
             SelectOption(
                 label="Tree Size",
