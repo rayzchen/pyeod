@@ -6,13 +6,15 @@ __all__ = [
     "create_leaderboard",
     "InventoryPaginator",
     "create_inventory",
+    "create_element_leaderboard",
+    "ElementLeaderboardPaginator",
 ]
 
 from .utils import get_page_limit, generate_embed_list
 from pyeod.model import Poll
 from pyeod.errors import InternalError, GameError
 from pyeod.frontend.model import DiscordGameInstance, InstanceManager
-from pyeod.utils import format_list
+from pyeod.utils import format_list, calculate_difficulty
 from discord import (
     ButtonStyle,
     Embed,
@@ -372,6 +374,126 @@ class InventoryPaginator(FooterPaginator):
 
     def add_menu(self):
         self.menu = InventorySortingDropdown()
+        self.menu.paginator = self
+        self.add_item(self.menu)
+
+
+async def create_element_leaderboard(sorting_option, ctx, user):
+    server = InstanceManager.current.get_or_create(ctx.guild.id)
+    # Don't add new user to db
+    if user.id in server.db.users:
+        logged_in = await server.login_user(user.id)
+    else:
+        logged_in = None
+
+    # Handle the interaction here
+    async with server.db.user_lock.reader:
+        lines = []
+        user_index = -1
+        user_inv = 0
+        i = 0
+        find_value = None
+        title = "Highest " + sorting_option
+        if sorting_option == "Tier":
+            find_value = lambda element: server.db.complexities[element.id]
+        elif sorting_option == "Tree Size":
+            find_value = lambda element: len(server.db.path_lookup[element.id])
+        elif sorting_option == "Difficulty":
+            find_value = lambda element: calculate_difficulty(
+                len(server.db.path_lookup[element.id]),
+                server.db.complexities[element.id],
+            )
+        elif sorting_option == "Used In":
+            find_value = lambda element: len(server.db.used_in_lookup[element.id])
+            title = "Most Used"
+        else:
+            raise GameError("Invalid sort", "Failed to find sort function")
+
+        for element_name, element in sorted(
+            server.db.elements.items(),
+            key=lambda pair: find_value(pair[1]),
+            reverse=True,
+        ):
+            i += 1
+            element_value = find_value(element)
+            if logged_in is not None and element.id in logged_in.inv:
+                if sorting_option != "Difficulty":
+                    lines.append(
+                        f"{i}\. 📫 **{element.name}** - {element_value:,} *You have this*"
+                    )
+                else:
+                    lines.append(
+                        f"{i}\. 📫 **{element.name}** - {element_value:,.2f} *You have this*"
+                    )
+            else:
+                if sorting_option != "Difficulty":
+                    lines.append(f"{i}\. 📭 **{element.name}** - {element_value:,}")
+                else:
+                    lines.append(f"{i}\. 📭 **{element.name}** - {element_value:,.2f}")
+
+    limit = get_page_limit(server, ctx.channel.id)
+    pages = generate_embed_list(lines, title, limit)
+    return pages
+
+
+class ElementLeaderboardSortingDropdown(ui.Select):
+    def __init__(self):
+        self.sorting_option = "Elements Made"
+        options = [
+            SelectOption(
+                label="Difficulty",
+                description="Sorts by difficulty",
+                emoji="📛",
+            ),
+            SelectOption(
+                label="Tier",
+                description="Sorts by tier",
+                emoji="📶",
+            ),
+            SelectOption(
+                label="Tree Size",
+                description="Sorts by tree size",
+                emoji="🌲",
+            ),
+            SelectOption(
+                label="Used In",
+                description="Sorts by amount of combos an element is used in",
+                emoji="🧰",
+            ),
+            # Add more options as needed
+        ]
+        super().__init__(
+            placeholder="Choose a sorting option...",
+            min_values=1,
+            max_values=1,
+            options=options,
+        )
+
+    async def callback(self, interaction: Interaction):
+        ctx = self.paginator.ctx
+        user = self.paginator.target_user
+
+        pages = await create_element_leaderboard(self.values[0], ctx, user)
+
+        self.paginator.pages = pages
+        self.paginator.current_page = 0
+
+        await self.paginator.goto_page(
+            self.paginator.current_page, interaction=interaction
+        )
+
+
+class ElementLeaderboardPaginator(FooterPaginator):
+    def __init__(
+        self, page_list, ctx, user, footer_text: str = "", loop: bool = True
+    ) -> None:
+        super(ElementLeaderboardPaginator, self).__init__(page_list, footer_text, loop)
+        self.show_menu = True
+        self.ctx = ctx
+        self.target_user = user
+
+    def add_menu(self):
+        self.menu = ElementLeaderboardSortingDropdown()
         self.menu.paginator = self
         self.add_item(self.menu)
 

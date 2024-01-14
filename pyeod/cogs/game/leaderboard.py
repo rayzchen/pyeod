@@ -3,9 +3,9 @@ from pyeod.frontend import (
     ElementalBot,
     LeaderboardPaginator,
     InstanceManager,
-    generate_embed_list,
-    get_page_limit,
     create_leaderboard,
+    create_element_leaderboard,
+    ElementLeaderboardPaginator,
 )
 from discord import User
 from discord.ext import bridge, commands
@@ -20,7 +20,7 @@ class Leaderboard(commands.Cog):
     @bridge.guild_only()
     async def lb(self, ctx: bridge.Context, *, user: Optional[User] = None):
         """Shows the leaderboard of who has the most elements
-Has other sorting options available"""
+        Has other sorting options available"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if user is None:
             user = ctx.author
@@ -28,6 +28,20 @@ Has other sorting options available"""
         pages = await create_leaderboard("Elements Made", ctx, user)
 
         paginator = LeaderboardPaginator(pages, ctx, user)
+        await paginator.respond(ctx)
+
+    @bridge.bridge_command(aliases=["element_leaderboard", "elb"])
+    @bridge.guild_only()
+    async def element_lb(self, ctx: bridge.Context, *, user: Optional[User] = None):
+        """Shows the leaderboard of elements with the highest difficulty
+        Has other sorting options available"""
+        server = InstanceManager.current.get_or_create(ctx.guild.id)
+        if user is None:
+            user = ctx.author
+
+        pages = await create_element_leaderboard("Difficulty", ctx, user)
+
+        paginator = ElementLeaderboardPaginator(pages, ctx, user)
         await paginator.respond(ctx)
 
 
