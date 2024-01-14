@@ -29,7 +29,7 @@ def get_nearest_boundary(boundaries, value):
     for boundary in boundaries:
         if value < boundary:
             return (boundary, value)
-    return ((value // boundaries[-1] + 1) * boundaries[-1], value)
+    return (int((value // boundaries[-1] + 1) * boundaries[-1]), value)
 
 
 async def cache_element_stats(instance, user):
@@ -225,7 +225,7 @@ async def element_ids_in_a_row_check(instance, user):
         while highest_in_a_row < len(user.inv):
             id_to_check += 1
             # Missing Element Ids
-            if instance.db.element_id_lookup.get(id_to_check) is None:
+            if instance.db.elem_id_lookup.get(id_to_check) is None:
                 continue
             if sorted(user.inv)[highest_in_a_row] != id_to_check:
                 break
@@ -240,7 +240,7 @@ async def element_ids_in_a_row_progress(instance, user):
         while highest_in_a_row < len(user.inv):
             id_to_check += 1
             # Missing Element Ids
-            if instance.db.element_id_lookup.get(id_to_check) is None:
+            if instance.db.elem_id_lookup.get(id_to_check) is None:
                 continue
             if sorted(user.inv)[highest_in_a_row] != id_to_check:
                 break
