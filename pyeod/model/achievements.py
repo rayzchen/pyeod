@@ -191,8 +191,8 @@ async def leaderboard_pos_progress(instance, user):
 
 async def achievement_achievement_check(instance, user):#Hijack achievements to cache shit
     async with instance.db.user_lock.reader, instance.db.element_lock.reader:
-        await cache_element_info()
-        await cache_element_stats()
+        await cache_element_info(instance, user)
+        await cache_element_stats(instance, user)
         achievement_amount = len(user.achievements)
         if achievement_amount > 0:
             return achievement_amount // 10
@@ -200,9 +200,8 @@ async def achievement_achievement_check(instance, user):#Hijack achievements to 
 
 async def achievement_achievement_progress(instance, user):
     async with instance.db.user_lock.reader, instance.db.element_lock.reader:
-        await cache_element_info()
-        await cache_element_stats()
-        print("caching")
+        await cache_element_info(instance, user)
+        await cache_element_stats(instance, user)
         achievement_amount = len(user.achievements)
         return ((achievement_amount // 10 + 1) * 10, achievement_amount)
 
