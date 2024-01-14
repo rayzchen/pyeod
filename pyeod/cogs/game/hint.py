@@ -68,7 +68,11 @@ class Hint(commands.Cog):
 
         limit = get_page_limit(server, ctx.channel.id)
         embeds = generate_embed_list(
-            lines, f"Hints for {element.name} ({len(lines)})", limit, element.color, element.image
+            lines,
+            f"Hints for {element.name} ({len(lines)})",
+            limit,
+            element.color,
+            element.image,
         )
         if element.id in user.inv:
             footer = "📫 You have this"
@@ -115,7 +119,9 @@ class Hint(commands.Cog):
                     elem_id = int(id_str)
                     async with server.db.element_lock.reader:
                         if elem_id not in server.db.elem_id_lookup:
-                            await ctx.respond(f"🔴 Element ID **{elem_id}** doesn't exist!")
+                            await ctx.respond(
+                                f"🔴 Element ID **{elem_id}** doesn't exist!"
+                            )
                             return
                         elem = server.db.elem_id_lookup[elem_id]
                 else:
@@ -131,7 +137,11 @@ class Hint(commands.Cog):
 
         limit = get_page_limit(server, ctx.channel.id)
         embeds = generate_embed_list(
-            lines, f"Hints for {elem.name} ({len(lines)})", limit, elem.color, elem.image
+            lines,
+            f"Hints for {elem.name} ({len(lines)})",
+            limit,
+            elem.color,
+            elem.image,
         )
         if elem.id in user.inv:
             footer = "📫 You have this"
