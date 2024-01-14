@@ -171,14 +171,12 @@ class GameInstance(SavableMixin):
         user_achievements: List[List[int]] = user.achievements
         new_achievements: List[List[int]] = []
         achievement_ids = list(achievements)
-        await achievements[-1]["req_func"](self, user)#Run check func to cache things
         achievement_ids.append(achievement_ids.pop(0))  # move first achievement to end
         for achievement_id in achievement_ids:
             achievement_data = achievements[achievement_id]
             returned_tier = await achievement_data["req_func"](self, user)
             if returned_tier is None:
-                continue
-            returned_tier = int(returned_tier)
+                continue  # user doesn't have this achievement
             if [achievement_id, returned_tier] not in user_achievements:
                 user_achievements.append([achievement_id, returned_tier])
                 new_achievements.append([achievement_id, returned_tier])
@@ -193,12 +191,12 @@ class GameInstance(SavableMixin):
 
     async def get_achievement_name(self, achievement: Union[List[int], None]) -> str:
         if achievement is None:
-            return "Default"
+            return None
         name = ""
         achievement_data = achievements[achievement[0]]
-        try:
+        if achievement[1] in achievement_data["names"]:
             name = achievement_data["names"][achievement[1]]
-        except IndexError:
+        else:
             if achievement_data["default"] != None:
                 name = f"{achievement_data['default']} {int_to_roman(achievement[1] - len(achievement_data['names']) + 1)}"
             else:
@@ -221,7 +219,9 @@ class GameInstance(SavableMixin):
     async def get_achievement_progress(self, achievement: List[int], user: User) -> int:
         return await achievements[achievement[0]]["progress_func"](self, user)
 
-    async def get_achievement_item_name(self, achievement: List[int], amount: int = 1) -> str:
+    async def get_achievement_item_name(
+        self, achievement: List[int], amount: int = 1
+    ) -> str:
         items = achievements[achievement[0]]["items"]
         return items if amount == 1 else f"{items}s"
 
