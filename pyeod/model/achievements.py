@@ -570,7 +570,7 @@ achievements = {
         ],
         "req_func": mark_check,
         "progress_func": mark_progress,
-        "items": "Marked Elements",
+        "items": "Marked Element",
         "default": "Novelist",
     },
     6: {
@@ -589,7 +589,7 @@ achievements = {
         ],
         "req_func": image_check,
         "progress_func": image_progress,
-        "items": "Imaged Elements",
+        "items": "Imaged Element",
         "default": "Photographer",
     },
     7: {
@@ -608,7 +608,7 @@ achievements = {
         ],
         "req_func": color_check,
         "progress_func": color_progress,
-        "items": "Colored Elements",
+        "items": "Colored Element",
         "default": "Artist",
     },
     8: {
@@ -627,7 +627,7 @@ achievements = {
         ],
         "req_func": icon_check,
         "progress_func": icon_progress,
-        "items": "Iconed Elements",
+        "items": "Iconed Element",
         "default": "Symbolist",
     },
     9: {

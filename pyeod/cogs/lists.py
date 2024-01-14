@@ -90,12 +90,24 @@ class Lists(commands.Cog):
                     item, logged_in
                 )
                 match item[0]:
-                    case 9 | 10 | 11:  # Catch the tree size, tier, and difficulty achievements
+                    case 11:
                         progress_string = f"(your highest: {achievement_progress[1]:,})"
-                        achievement_counting = await server.get_achievement_item_name(item)
-                        achievements_progress.append(
-                            f"**{achievement_name}**\n{progress_string} You need an element with a {achievement_counting} of {achievement_progress[0]}\n"
+                        achievement_counting = await server.get_achievement_item_name(
+                            item
                         )
+                        achievements_progress.append(
+                            f"**{achievement_name}**\n{progress_string:,.2f} You need an element with a {achievement_counting} of {achievement_progress[0]}\n"
+                        )
+                    case 9 | 10:  # Catch the tree size, tier, and difficulty achievements
+                        progress_string = f"(your highest: {achievement_progress[1]:,})"
+                        achievement_counting = await server.get_achievement_item_name(
+                            item
+                        )
+                        achievements_progress.append(
+                            f"**{achievement_name}**\n{progress_string:,} You need an element with a {achievement_counting} of {achievement_progress[0]}\n"
+                        )
+                    case 3:#No leaderboard achievement progress
+                        pass
                     case _:
                         progress_string = (
                             f"({achievement_progress[1]:,}/{achievement_progress[0]:,})"
