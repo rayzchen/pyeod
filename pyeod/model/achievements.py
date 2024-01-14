@@ -32,6 +32,45 @@ def get_nearest_boundary(boundaries, value):
     return ((value // boundaries[-1] + 1) * boundaries[-1], value)
 
 
+async def cache_element_stats(instance, user):
+    if user.id not in element_stats_cache:
+        element_stats_cache[user.id] = {
+            "last_checked_inv_pos": 0,
+            "highest_complexity": 0,
+            "highest_tree_size": 0,
+            "highest_difficulty": 0,
+        }
+    for element_id in user.inv[element_stats_cache[user.id]["last_checked_inv_pos"] :]:
+        complexity = instance.db.complexities[element_id]
+        if complexity > element_stats_cache[user.id]["highest_complexity"]:
+            element_stats_cache[user.id]["highest_complexity"] = complexity
+        tree_size = len(instance.db.path_lookup[element_id])
+        if tree_size > element_stats_cache[user.id]["highest_tree_size"]:
+            element_stats_cache[user.id]["highest_tree_size"] = tree_size
+        difficulty = calculate_difficulty(tree_size, complexity)
+        if difficulty > element_stats_cache[user.id]["highest_difficulty"]:
+            element_stats_cache[user.id]["highest_difficulty"] = difficulty
+    element_stats_cache[user.id]["last_checked_inv_pos"] = len(user.inv) - 1
+
+
+async def cache_element_info(instance, user):
+    element_info_cache[user.id] = {
+        "elements_imaged": 0,
+        "elements_colored": 0,
+        "elements_iconed": 0,
+        "elements_marked": 0,
+    }
+    for element in instance.db.elements.values():
+        if element.imager == user:
+            element_info_cache[user.id]["elements_imaged"] += 1
+        if element.colorer == user:
+            element_info_cache[user.id]["elements_colored"] += 1
+        if element.iconer == user:
+            element_info_cache[user.id]["elements_iconed"] += 1
+        if element.marker == user:
+            element_info_cache[user.id]["elements_marked"] += 1
+
+
 elements_collected_boundaries = [
     25,
     50,
@@ -150,15 +189,19 @@ async def leaderboard_pos_progress(instance, user):
         return (10, leaderboard_position)
 
 
-async def achievement_achievement_check(instance, user):
-    async with instance.db.user_lock.reader:
+async def achievement_achievement_check(instance, user):#Hijack achievements to cache shit
+    async with instance.db.user_lock.reader, instance.db.element_lock.reader:
+        await cache_element_info()
+        await cache_element_stats()
         achievement_amount = len(user.achievements)
         if achievement_amount > 0:
             return achievement_amount // 10
 
 
 async def achievement_achievement_progress(instance, user):
-    async with instance.db.user_lock.reader:
+    async with instance.db.user_lock.reader, instance.db.element_lock.reader:
+        await cache_element_info()
+        await cache_element_stats()
         achievement_amount = len(user.achievements)
         return ((achievement_amount // 10 + 1) * 10, achievement_amount)
 
@@ -210,21 +253,6 @@ editable_element_info_boundaries = [
 
 async def mark_check(instance, user):
     async with instance.db.user_lock.reader:
-        element_info_cache[user.id] = {
-            "elements_imaged": 0,
-            "elements_colored": 0,
-            "elements_iconed": 0,
-            "elements_marked": 0,
-        }
-        for element in instance.db.elements.values():
-            if element.imager == user:
-                element_info_cache[user.id]["elements_imaged"] += 1
-            if element.colorer == user:
-                element_info_cache[user.id]["elements_colored"] += 1
-            if element.iconer == user:
-                element_info_cache[user.id]["elements_iconed"] += 1
-            if element.marker == user:
-                element_info_cache[user.id]["elements_marked"] += 1
         return boundary_list_check(
             editable_element_info_boundaries,
             element_info_cache[user.id]["elements_marked"],
@@ -233,21 +261,6 @@ async def mark_check(instance, user):
 
 async def mark_progress(instance, user):
     async with instance.db.user_lock.reader:
-        element_info_cache[user.id] = {
-            "elements_imaged": 0,
-            "elements_colored": 0,
-            "elements_iconed": 0,
-            "elements_marked": 0,
-        }
-        for element in instance.db.elements.values():
-            if element.imager == user:
-                element_info_cache[user.id]["elements_imaged"] += 1
-            if element.colorer == user:
-                element_info_cache[user.id]["elements_colored"] += 1
-            if element.iconer == user:
-                element_info_cache[user.id]["elements_iconed"] += 1
-            if element.marker == user:
-                element_info_cache[user.id]["elements_marked"] += 1
         return get_nearest_boundary(
             editable_element_info_boundaries,
             element_info_cache[user.id]["elements_marked"],
@@ -328,26 +341,6 @@ element_complexity_boundaries = [
 
 async def complexity_check(instance, user):
     async with instance.db.user_lock.reader, instance.db.element_lock.reader:
-        if (
-            user.id not in element_stats_cache
-        ):  # Hijack complexity to cache so only 1 inv sweep is done
-            element_stats_cache[user.id] = {
-                "last_checked_inv_pos": 0,
-                "highest_complexity": 0,
-                "highest_tree_size": 0,
-                "highest_difficulty": 0,
-            }
-        for element_id in user.inv[element_stats_cache[user.id]["last_checked_inv_pos"] :]:
-            complexity = instance.db.complexities[element_id]
-            if complexity > element_stats_cache[user.id]["highest_complexity"]:
-                element_stats_cache[user.id]["highest_complexity"] = complexity
-            tree_size = len(instance.db.path_lookup[element_id])
-            if tree_size > element_stats_cache[user.id]["highest_tree_size"]:
-                element_stats_cache[user.id]["highest_tree_size"] = tree_size
-            difficulty = calculate_difficulty(tree_size, complexity)
-            if difficulty > element_stats_cache[user.id]["highest_difficulty"]:
-                element_stats_cache[user.id]["highest_difficulty"] = difficulty
-        element_stats_cache[user.id]["last_checked_inv_pos"] = len(user.inv) - 1
         return boundary_list_check(
             element_complexity_boundaries,
             element_stats_cache[user.id]["highest_complexity"],
@@ -356,26 +349,6 @@ async def complexity_check(instance, user):
 
 async def complexity_progress(instance, user):
     async with instance.db.user_lock.reader, instance.db.element_lock.reader:
-        if (
-            user.id not in element_stats_cache
-        ):  # Hijack complexity to cache so only 1 inv sweep is done
-            element_stats_cache[user.id] = {
-                "last_checked_inv_pos": 0,
-                "highest_complexity": 0,
-                "highest_tree_size": 0,
-                "highest_difficulty": 0,
-            }
-        for element_id in user.inv[element_stats_cache[user.id]["last_checked_inv_pos"] :]:
-            complexity = instance.db.complexities[element_id]
-            if complexity > element_stats_cache[user.id]["highest_complexity"]:
-                element_stats_cache[user.id]["highest_complexity"] = complexity
-            tree_size = len(instance.db.path_lookup[element_id])
-            if tree_size > element_stats_cache[user.id]["highest_tree_size"]:
-                element_stats_cache[user.id]["highest_tree_size"] = tree_size
-            difficulty = calculate_difficulty(tree_size, complexity)
-            if difficulty > element_stats_cache[user.id]["highest_difficulty"]:
-                element_stats_cache[user.id]["highest_difficulty"] = difficulty
-        element_stats_cache[user.id]["last_checked_inv_pos"] = len(user.inv) - 1
         return get_nearest_boundary(
             element_complexity_boundaries,
             element_stats_cache[user.id]["highest_complexity"],
