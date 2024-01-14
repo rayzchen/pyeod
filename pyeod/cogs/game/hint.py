@@ -107,7 +107,19 @@ class Hint(commands.Cog):
 
                 elem = server.db.elem_id_lookup[random.choice(list(choices))]
             else:
-                elem = await server.check_element(element)
+                if element.startswith("#"):
+                    id_str = element[1:].strip()
+                    if not id_str.isdecimal():
+                        await ctx.respond(f"🔴 Element ID **{id_str}** doesn't exist!")
+                        return
+                    elem_id = int(id_str)
+                    async with server.db.element_lock.reader:
+                        if elem_id not in server.db.elem_id_lookup:
+                            await ctx.respond(f"🔴 Element ID **{elem_id}** doesn't exist!")
+                            return
+                        elem = server.db.elem_id_lookup[elem_id]
+                else:
+                    elem = await server.check_element(element)
 
             lines = []
             for combo in server.db.combo_lookup[elem.id]:
