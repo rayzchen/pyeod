@@ -89,23 +89,35 @@ class Lists(commands.Cog):
                 achievement_progress = await server.get_achievement_progress(
                     item, logged_in
                 )
-                progress_string = f"({achievement_progress[1]:,}/{achievement_progress[0]:,})"
-                difference = achievement_progress[0] - achievement_progress[1]
-                achievement_counting = await server.get_achievement_item_name(
-                    item, difference
-                )
-                if difference < 0:
-                    # leaderboard
-                    progress_string = f"({achievement_progress[1]})"
-                    difference = achievement_progress[1] - achievement_progress[0]
-                if achievement_name is not None:
-                    achievements_progress.append(
-                        f"**{achievement_name}**\n{progress_string} You are {difference} {achievement_counting} away from gaining this achievement\n"
-                    )
-                else:
-                    achievements_progress.append(
-                        f"**{await server.get_achievement_name([item[0], item[1]])}**\nYou have reached the max achievement\n"
-                    )
+                match item[0]:
+                    case 9 | 10 | 11:  # Catch the tree size, tier, and difficulty achievements
+                        progress_string = f"(your highest: {achievement_progress[1]:,})"
+                        achievement_counting = await server.get_achievement_item_name(item)
+                        achievements_progress.append(
+                            f"**{achievement_name}**\n{progress_string} You need an element with a {achievement_counting} of {achievement_progress[0]}\n"
+                        )
+                    case _:
+                        progress_string = (
+                            f"({achievement_progress[1]:,}/{achievement_progress[0]:,})"
+                        )
+                        difference = achievement_progress[0] - achievement_progress[1]
+                        achievement_counting = await server.get_achievement_item_name(
+                            item, difference
+                        )
+                        if difference < 0:
+                            # leaderboard
+                            progress_string = f"({achievement_progress[1]})"
+                            difference = (
+                                achievement_progress[1] - achievement_progress[0]
+                            )
+                        if achievement_name is not None:
+                            achievements_progress.append(
+                                f"**{achievement_name}**\n{progress_string} You are {difference} {achievement_counting} away from gaining this achievement\n"
+                            )
+                        else:
+                            achievements_progress.append(
+                                f"**{await server.get_achievement_name([item[0], item[1]])}**\nYou have reached the max achievement\n"
+                            )
 
         title = user.display_name + f"'s Achievement progress"
         limit = get_page_limit(server, ctx.channel.id)
