@@ -196,6 +196,7 @@ class GameInstance(SavableMixin):
         name = ""
         achievement_data = achievements[achievement[0]]
         try:
+            print(achievement)
             name = achievement_data["names"][achievement[1]]
         except IndexError:
             if achievement_data["default"] != None:
