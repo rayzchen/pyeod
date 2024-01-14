@@ -189,7 +189,9 @@ async def leaderboard_pos_progress(instance, user):
         return (10, leaderboard_position)
 
 
-async def achievement_achievement_check(instance, user):#Hijack achievements to cache shit
+async def achievement_achievement_check(
+    instance, user
+):  # Hijack achievements to cache shit
     async with instance.db.user_lock.reader, instance.db.element_lock.reader:
         await cache_element_info(instance, user)
         await cache_element_stats(instance, user)
@@ -218,22 +220,32 @@ element_ids_in_a_row_boundaries = [
 
 async def element_ids_in_a_row_check(instance, user):
     async with instance.db.user_lock.reader:
-        for i, element_id in enumerate(sorted(user.inv)):
-            if i != element_id - 1:
+        highest_in_a_row = 0
+        id_to_check = 0
+        while highest_in_a_row < len(user.inv):
+            id_to_check += 1
+            # Missing Element Ids
+            if instance.db.element_id_lookup.get(id_to_check) is None:
+                continue
+            if sorted(user.inv)[highest_in_a_row] != id_to_check:
                 break
-        else:
-            i += 1
-        return boundary_list_check(element_ids_in_a_row_boundaries, i)
+            highest_in_a_row += 1
+        return boundary_list_check(element_ids_in_a_row_boundaries, highest_in_a_row)
 
 
 async def element_ids_in_a_row_progress(instance, user):
     async with instance.db.user_lock.reader:
-        for i, element_id in enumerate(sorted(user.inv)):
-            if i != element_id - 1:
+        highest_in_a_row = 0
+        id_to_check = 0
+        while highest_in_a_row < len(user.inv):
+            id_to_check += 1
+            # Missing Element Ids
+            if instance.db.element_id_lookup.get(id_to_check) is None:
+                continue
+            if sorted(user.inv)[highest_in_a_row] != id_to_check:
                 break
-        else:
-            i += 1
-        return get_nearest_boundary(element_ids_in_a_row_boundaries, i)
+            highest_in_a_row += 1
+        return get_nearest_boundary(element_ids_in_a_row_boundaries, highest_in_a_row)
 
 
 editable_element_info_boundaries = [
