@@ -18,7 +18,7 @@ element_info_cache = {}
 
 def boundary_list_check(boundaries, value):
     if value >= boundaries[-1]:
-        return len(boundaries) - 1 + value // boundaries[-1]
+        return int(len(boundaries) - 1 + value // boundaries[-1])
     for i in range(len(boundaries) - 2, -1, -1):  # Iterate backwards from 2nd last
         if value >= boundaries[i]:
             return i
