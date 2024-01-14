@@ -171,6 +171,7 @@ class GameInstance(SavableMixin):
         user_achievements: List[List[int]] = user.achievements
         new_achievements: List[List[int]] = []
         achievement_ids = list(achievements)
+        await achievements[-1]["req_func"](self, user)#Run check func to cache things
         achievement_ids.append(achievement_ids.pop(0))  # move first achievement to end
         for achievement_id in achievement_ids:
             achievement_data = achievements[achievement_id]
