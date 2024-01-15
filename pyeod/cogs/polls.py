@@ -107,6 +107,9 @@ class Polls(commands.Cog):
                             user.votes_cast_count += 1
 
                     delete_poll = True
+            else:
+                async with server.db.user_lock.writer:#Remove active poll from user count
+                    (await server.login_user(payload.user_id)).active_polls -= 1
             if delete_poll:
                 await message.delete()
                 async with server.db.poll_lock.writer:
