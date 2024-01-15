@@ -193,6 +193,9 @@ class User(SavableMixin):
             data.get("achievements", []),
             data.get("icon", 0),
         )
+        for i in user.achievements:
+            i[0] = int(i[0])
+            i[1] = int(i[1])
         loader.users[user.id] = user
         return user
 
