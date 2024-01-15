@@ -74,8 +74,8 @@ class Polls(commands.Cog):
             if not author_downvote:
                 upvotes = get(message.reactions, emoji="\U0001F53C")
                 downvotes = get(message.reactions, emoji="\U0001F53D")
-
-                poll.votes = upvotes.count - downvotes.count
+                
+                poll.votes = (upvotes.count if upvotes else 0) - (downvotes.count if downvotes else 0)
                 try:
                     resolve_poll = await server.check_single_poll(poll)
                 except InternalError as e:
