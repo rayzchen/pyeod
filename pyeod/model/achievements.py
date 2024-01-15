@@ -699,6 +699,8 @@ achievements = {
 # emoji: str = the emoji to display by the user
 # req: List[int] = the achievement and tier required for that icon to be used
 
+# TODO - Change this to a list
+
 user_icons = {
     0: {"emoji": "👤", "req": None},  # The default icon available to everyone
     1: {"emoji": "🔝", "req": [3, 3]},
@@ -857,4 +859,18 @@ user_icons = {
     150: {"emoji": "🧌", "req": [11, 18]},
     151: {"emoji": "🧛", "req": [11, 18]},
     152: {"emoji": "🧟", "req": [11, 18]},
+    153: {"emoji": "🎇", "req": [-1, 7]},
+    154: {"emoji": "🎆", "req": [-1, 8]},
+    155: {"emoji": "🌃", "req": [-1, 9]},
+    156: {"emoji": "🌉", "req": [-1, 10]},
+    157: {"emoji": "🚀", "req": [-1, 11]},
+    158: {"emoji": "🛰️", "req": [-1, 12]},
+    159: {"emoji": "🛸", "req": [-1, 13]},
+    160: {"emoji": "🧑‍🚀", "req": [-1, 14]},
+    161: {"emoji": "🌑", "req": [-1, 15]},
+    162: {"emoji": "👽", "req": [-1, 16]},
+    163: {"emoji": "👾", "req": [-1, 17]},
+    164: {"emoji": "🤩", "req": [-1, 18]},
+    165: {"emoji": "💫", "req": [-1, 19]},
+    166: {"emoji": "💮", "req": [-1, 20]},
 }
