@@ -260,7 +260,7 @@ async def create_inventory(sorting_option, ctx, user):
                     reverse=True,
                 )
             ]
-        elif sorting_option == "Complexity":
+        elif sorting_option == "Tier":
             elements = [
                 server.db.elem_id_lookup[elem].name
                 for elem in sorted(
