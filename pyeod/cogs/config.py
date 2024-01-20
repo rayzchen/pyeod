@@ -322,8 +322,13 @@ class Config(commands.Cog):
             server.db.elements.pop(old_name.lower())
             server.db.elements[name.lower()] = element
         await ctx.respond(
-            f"🤖 Renamed element #{elem_id} ({old_name}) to {name} successfully!"
+            f"🤖 Renamed element #{elem_id} (**{old_name}**) to **{name}** successfully!"
         )
+        if server.channels.news_channel is not None:
+            channel = await self.bot.fetch_channel(server.channels.news_channel)
+            await channel.send(
+                f"🤖 Renamed element #{elem_id} (**{old_name}**) to **{name}**"
+            )
 
     @bridge.bridge_command()
     @bridge.guild_only()
