@@ -39,7 +39,7 @@ class Leaderboard(commands.Cog):
         if user is None:
             user = ctx.author
 
-        pages = await create_element_leaderboard("Difficulty", ctx, user)
+        pages = await create_element_leaderboard("Tree Size", ctx, user)
 
         paginator = ElementLeaderboardPaginator(pages, ctx, user)
         await paginator.respond(ctx)

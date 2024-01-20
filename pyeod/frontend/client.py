@@ -389,8 +389,6 @@ async def create_element_leaderboard(sorting_option, ctx, user):
     # Handle the interaction here
     async with server.db.user_lock.reader:
         lines = []
-        user_index = -1
-        user_inv = 0
         i = 0
         find_value = None
         title = "Highest " + sorting_option
@@ -403,9 +401,15 @@ async def create_element_leaderboard(sorting_option, ctx, user):
                 len(server.db.path_lookup[element.id]),
                 server.db.complexities[element.id],
             )
+        elif sorting_option == "Made With":
+            find_value = lambda element: len(server.db.combo_lookup[element.id])
+            title = "Most Combos"
         elif sorting_option == "Used In":
             find_value = lambda element: len(server.db.used_in_lookup[element.id])
             title = "Most Used"
+        elif sorting_option == "Found By":
+            find_value = lambda element: len(server.db.found_by_lookup[element.id])
+            title = "Most Found"
         else:
             raise GameError("Invalid sort", "Failed to find sort function")
 
@@ -456,9 +460,19 @@ class ElementLeaderboardSortingDropdown(ui.Select):
                 emoji="🌲",
             ),
             SelectOption(
+                label="Made With",
+                description="Sorts by number of combos for an element",
+                emoji="🔨",
+            ),
+            SelectOption(
                 label="Used In",
-                description="Sorts by amount of combos an element is used in",
+                description="Sorts by number of combos an element is used in",
                 emoji="🧰",
+            ),
+            SelectOption(
+                label="Found By",
+                description="Sorts by number of users an element has been found by",
+                emoji="🔍",
             ),
             # Add more options as needed
         ]
