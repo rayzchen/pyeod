@@ -147,7 +147,7 @@ class Polls(commands.Cog):
             if resolve_poll:
                 for user_id in list(voters) + [poll.author.id]:
                     user = await server.login_user(user_id)
-                    await server.get_achievements(user)
+                    await self.bot.award_achievements(server, user=user)
         except Exception as e:
             if isinstance(e, errors.NotFound):
                 return

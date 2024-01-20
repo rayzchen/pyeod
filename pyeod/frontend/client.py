@@ -11,7 +11,7 @@ __all__ = [
 ]
 
 from .utils import get_page_limit, generate_embed_list
-from pyeod.model import Poll
+from pyeod.model import Poll, User
 from pyeod.errors import InternalError, GameError
 from pyeod.frontend.model import DiscordGameInstance, InstanceManager
 from pyeod.utils import format_list, calculate_difficulty
@@ -538,16 +538,18 @@ class ElementalBot(bridge.AutoShardedBot):
             await poll_msg.add_reaction("\U0001F53C")  # ⬆️ Emoji
             await poll_msg.add_reaction("\U0001F53D")
 
-    async def award_achievements(self, server: DiscordGameInstance, msg: Message):
-        user = await server.login_user(msg.author.id)
+    async def award_achievements(self, server: DiscordGameInstance, msg: Message = None, user: User = None):
+        if msg is not None:
+            user = await server.login_user(msg.author.id)
         new_achievements = await server.get_achievements(user)
 
         unlocked_icons = []
 
         for achievement in new_achievements:
-            await msg.reply(
-                f"🌟 Achievement unlocked: **{await server.get_achievement_name(achievement)}**"
-            )
+            if msg is not None:
+                await msg.reply(
+                    f"🌟 Achievement unlocked: **{await server.get_achievement_name(achievement)}**"
+                )
             if server.channels.news_channel is not None:
                 news_channel = await self.fetch_channel(server.channels.news_channel)
                 await news_channel.send(
@@ -558,7 +560,7 @@ class ElementalBot(bridge.AutoShardedBot):
                 for icon in await server.get_unlocked_icons(achievement)
             ]
 
-        if unlocked_icons:
+        if msg is not None and unlocked_icons:
             if len(unlocked_icons) == 1:
                 await msg.reply(f"✨ Icon unlocked: {unlocked_icons[0]}")
             else:
