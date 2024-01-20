@@ -13,7 +13,7 @@ from pyeod.errors import InternalError
 from pyeod.frontend.model import DiscordGameInstance
 from pyeod.model import ColorPoll, Element, GameInstance, User
 from pyeod.utils import calculate_difficulty
-from discord import Embed, EmbedField, File
+from discord import Embed, EmbedField, File, EmbedFooter
 from io import BytesIO, StringIO
 from typing import Optional, List, Union
 import gzip
@@ -166,7 +166,8 @@ def generate_embed_list(
     title: str,
     limit: int,
     color: int = config.EMBED_COLOR,
-    thumbnail:str = None,
+    thumbnail: str = None,
+    footer: str = None,
 ) -> List[Embed]:
     if not lines:
         embeds = [Embed(title=title, color=color, thumbnail=thumbnail)]
@@ -179,7 +180,8 @@ def generate_embed_list(
                 title=title,
                 description="\n".join(lines[i * limit : i * limit + limit]),
                 color=color,
-                thumbnail=thumbnail
+                thumbnail=thumbnail,
+                footer=EmbedFooter(footer),
             )
         )
     return embeds

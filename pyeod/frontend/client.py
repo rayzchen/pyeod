@@ -25,6 +25,7 @@ from discord import (
     SelectOption,
 )
 from discord.ext import bridge, pages
+import random
 
 
 class FooterPaginator(pages.Paginator):
@@ -58,6 +59,8 @@ class FooterPaginator(pages.Paginator):
             footer = f"Page {self.current_page + 1}/{self.page_count + 1}"
             if self.footer_text:
                 footer += " • " + self.footer_text
+            elif page.footer.text:
+                footer += " • " + page.footer.text
             page.set_footer(text=footer)
         return buttons
 
@@ -289,11 +292,24 @@ async def create_inventory(sorting_option, ctx, user):
                     else 0,
                 )
             ]
+        elif sorting_option == "Random":
+            elements = [server.db.elem_id_lookup[elem].name for elem in logged_in.inv]
+            random.shuffle(elements)
+        elif sorting_option == "Length":
+            elements = sorted(
+                [server.db.elem_id_lookup[elem].name for elem in logged_in.inv],
+                key=lambda x: len(x)
+            )
 
     title = user.display_name + f"'s Inventory ({len(elements)})"
 
     limit = get_page_limit(server, ctx.channel.id)
-    return generate_embed_list(elements, title, limit)
+    return generate_embed_list(
+        elements,
+        title,
+        limit,
+        footer="Sorting by " + sorting_option
+    )
 
 
 class InventorySortingDropdown(ui.Select):
@@ -339,6 +355,16 @@ class InventorySortingDropdown(ui.Select):
                 label="Creator",
                 description="Sorts by who created the element",
                 emoji="✍",
+            ),
+            SelectOption(
+                label="Random",
+                description="Randomly shuffles your inventory",
+                emoji="🎲",
+            ),
+            SelectOption(
+                label="Length",
+                description="Sorts by element name length",
+                emoji="\u2194",
             ),
             # Add more options as needed
         ]
