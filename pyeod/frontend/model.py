@@ -52,6 +52,8 @@ class DiscordGameInstance(GameInstance):
             self.poll_msg_lookup = {}
         else:
             self.poll_msg_lookup = poll_msg_lookup
+        self.upvoters = {id: set() for id in self.poll_msg_lookup}
+        self.downvoters = {id: set() for id in self.poll_msg_lookup}
         self.processing_polls = set()
 
     def convert_to_dict(self, data: dict) -> None:

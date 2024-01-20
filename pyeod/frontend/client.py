@@ -531,6 +531,8 @@ class ElementalBot(bridge.AutoShardedBot):
                 embed=await server.convert_poll_to_embed(poll)
             )
             server.poll_msg_lookup[poll_msg.id] = poll
+            server.upvoters[poll_msg.id] = set()
+            server.downvoters[poll_msg.id] = set()
         await msg.reply(suggestion_message)
         if server.vote_req != 0:  # Adding reactions after just feels snappier
             await poll_msg.add_reaction("\U0001F53C")  # ⬆️ Emoji

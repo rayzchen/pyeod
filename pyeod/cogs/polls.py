@@ -8,6 +8,9 @@ import traceback
 
 
 class Polls(commands.Cog):
+    UPVOTE = "\U0001F53C"
+    DOWNVOTE = "\U0001F53D"
+
     def __init__(self, bot: ElementalBot):
         self.bot = bot
         # self.check_polls.start()  # prevent double poll accepting
@@ -40,6 +43,27 @@ class Polls(commands.Cog):
     #             await self.resolve_poll(message, server, news_channel)
 
     @commands.Cog.listener()
+    async def on_raw_reaction_remove(self, payload):
+        if payload.guild_id not in InstanceManager.current.instances:
+            return
+        server = InstanceManager.current.instances[payload.guild_id]
+        if server.channels.voting_channel != payload.channel_id:
+            return
+        if payload.user_id == self.bot.user.id:
+            return
+        if str(payload.emoji) not in [Polls.UPVOTE, Polls.DOWNVOTE]:
+            return
+        if payload.message_id not in server.poll_msg_lookup:
+            channel = await self.bot.fetch_channel(payload.channel_id)
+            message = await channel.fetch_message(payload.message_id)
+            if message.author.id == self.bot.user.id:
+                await message.delete()
+            return
+
+        if payload.user_id in server.voters[payload.message_id]:
+            server.voters[payload.message_id].remove(payload.user_id)
+
+    @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
         if payload.guild_id not in InstanceManager.current.instances:
             return
@@ -48,42 +72,54 @@ class Polls(commands.Cog):
             return
         if payload.user_id == self.bot.user.id:
             return
+        if str(payload.emoji) not in [Polls.UPVOTE, Polls.DOWNVOTE]:
+            return
         if payload.message_id not in server.poll_msg_lookup:
             channel = await self.bot.fetch_channel(payload.channel_id)
             message = await channel.fetch_message(payload.message_id)
             if message.author.id == self.bot.user.id:
                 await message.delete()
             return
-        if str(payload.emoji) not in ["\U0001F53C", "\U0001F53D"]:
-            return
+
+        if str(payload.emoji) == Polls.UPVOTE:
+            server.upvoters[payload.message_id].add(payload.user_id)
+        else:
+            server.downvoters[payload.message_id].add(payload.user_id)
         if payload.message_id in server.processing_polls:
             return
         server.processing_polls.add(payload.message_id)
+
+        voters = server.upvoters[payload.message_id] ^ server.downvoters[payload.message_id]
 
         resolve_poll = False
         delete_poll = False
         author_downvote = False
         async with server.db.poll_lock.reader:
             poll = server.poll_msg_lookup[payload.message_id]
-            if payload.user_id == poll.author.id and str(payload.emoji) == "\U0001F53D":
-                delete_poll = True
+            if payload.user_id == poll.author.id and str(payload.emoji) == Polls.DOWNVOTE:
                 author_downvote = True
         try:
             channel = await self.bot.fetch_channel(payload.channel_id)
             message = await channel.fetch_message(payload.message_id)
-            if not author_downvote:
-                upvotes = get(message.reactions, emoji="\U0001F53C")
-                downvotes = get(message.reactions, emoji="\U0001F53D")
-                
-                poll.votes = (upvotes.count if upvotes else 0) - (downvotes.count if downvotes else 0)
+            if author_downvote:
+                async with server.db.user_lock.writer:
+                    # Decrease active poll count
+                    author = await server.login_user(payload.user_id)
+                    author.active_polls -= 1
+            else:
+                # upvotes = get(message.reactions, emoji=Polls.UPVOTE)
+                # downvotes = get(message.reactions, emoji=Polls.DOWNVOTE)
+
+                # poll.votes = (upvotes.count if upvotes else 0) - (downvotes.count if downvotes else 0)
+                poll.votes = len(server.upvoters[payload.message_id]) - len(server.downvoters[payload.message_id])
                 try:
                     resolve_poll = await server.check_single_poll(poll)
                 except InternalError as e:
                     if e.type == "Combo exists":
                         resolve_poll = False
-                        delete_poll = True
                     else:
                         raise
+
                 if resolve_poll:
                     if server.channels.news_channel is not None:
                         news_channel = await self.bot.fetch_channel(
@@ -97,32 +133,24 @@ class Polls(commands.Cog):
                         else:
                             await news_channel.send(news_message)
 
-                    upvoters = set(u.id for u in await upvotes.users().flatten())
-                    downvoters = set(u.id for u in await downvotes.users().flatten())
-
-                    voters = upvoters ^ downvoters
                     async with server.db.user_lock.writer:
                         for voter in voters:
                             user = await server.login_user(voter)
                             user.votes_cast_count += 1
 
-                    delete_poll = True
-            else:
-                async with server.db.user_lock.writer:#Remove active poll from user count
-                    (await server.login_user(payload.user_id)).active_polls -= 1
-            if delete_poll:
-                await message.delete()
-                async with server.db.poll_lock.writer:
-                    server.poll_msg_lookup.pop(payload.message_id)
-                if resolve_poll:
-                    for user_id in list(voters) + [poll.author.id]:
-                        user = await server.login_user(user_id)
-                        await server.get_achievements(user)
+            # Author deleted, or poll resolved
+            await message.delete()
+            async with server.db.poll_lock.writer:
+                server.poll_msg_lookup.pop(payload.message_id)
+                server.upvoters.pop(payload.message_id)
+                server.downvoters.pop(payload.message_id)
+            if resolve_poll:
+                for user_id in list(voters) + [poll.author.id]:
+                    user = await server.login_user(user_id)
+                    await server.get_achievements(user)
         except Exception as e:
             if isinstance(e, errors.NotFound):
                 return
-            # TODO: handle exceptions properly
-            # Just break out of the loop if the above code breaks
             print("Ignored exception in resolve_poll")
             traceback.print_exception(type(e), e, e.__traceback__)
             return
@@ -145,6 +173,9 @@ class Polls(commands.Cog):
                         await message.delete()
                     except errors.NotFound:
                         pass
+                server.poll_msg_lookup.clear()
+                server.upvoters.clear()
+                server.downvoters.clear()
             server.db.polls.clear()
         async with server.db.user_lock.writer:
             for user in server.db.users.values():
