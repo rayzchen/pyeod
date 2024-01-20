@@ -147,7 +147,7 @@ class Hint(commands.Cog):
             footer = "📫 You have this"
         else:
             footer = "📭 You don't have this"
-        paginator = FooterPaginator(embeds, footer, False)
+        paginator = FooterPaginator(embeds, footer)
         await paginator.respond(ctx)
 
     @bridge.bridge_command(aliases=["p", "invhint", "ih"])
@@ -193,7 +193,7 @@ class Hint(commands.Cog):
             footer = "📫 You have this"
         else:
             footer = "📭 You don't have this"
-        paginator = FooterPaginator(embeds, footer, False)
+        paginator = FooterPaginator(embeds, footer)
         await paginator.respond(ctx)
 
 
