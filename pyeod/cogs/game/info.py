@@ -26,16 +26,14 @@ class Info(commands.Cog):
         self.bot = bot
 
     def check_color(self, color: str) -> bool:
-        if not color.startswith("#"):
-            return False
-        if not len(color) == 7:
+        if not len(color) == 6:
             return False
         numbers = "0123456789abcdef"
-        if not all(x.lower() in numbers for x in color[1:]):
+        if not all(x.lower() in numbers for x in color):
             return False
         return True
 
-    @bridge.bridge_command(aliases=["c", "comment", "note"])
+    @bridge.bridge_command(aliases=["m", "comment", "note"])
     @bridge.guild_only()
     @option_decorator("marked_element", autocomplete=autocomplete_elements)
     async def mark(self, ctx: bridge.Context, *, marked_element: str, mark: str = ""):
@@ -70,7 +68,7 @@ class Info(commands.Cog):
             server, poll, ctx, f"🗳️ Suggested a new mark for {element.name}!"
         )
 
-    @bridge.bridge_command()
+    @bridge.bridge_command(aliases=["c"])
     @bridge.guild_only()
     @option_decorator("element", autocomplete=autocomplete_elements)
     async def color(self, ctx: bridge.Context, *, element: str, color: str = ""):
@@ -81,10 +79,13 @@ class Info(commands.Cog):
             element, color = element.rsplit("|", 1)
         user = await server.login_user(ctx.author.id)
         elem = await server.check_element(element.strip())
-        if not self.check_color(color.strip()):
+        color = color.strip()
+        if color.startswith("#"):
+            color = color[1:]
+        if not self.check_color(color):
             await ctx.respond("🔴 Invalid hex code!")
             return
-        poll = await server.suggest_poll(ColorPoll(user, elem, color.strip()))
+        poll = await server.suggest_poll(ColorPoll(user, elem, "#" + color))
 
         await self.bot.add_poll(
             server, poll, ctx, f"🗳️ Suggested a new color for {elem.name}!"
