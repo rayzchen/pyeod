@@ -60,8 +60,12 @@ class Polls(commands.Cog):
                 await message.delete()
             return
 
-        if payload.user_id in server.voters[payload.message_id]:
-            server.voters[payload.message_id].remove(payload.user_id)
+        if str(payload.emoji) == Polls.UPVOTE:
+            if payload.user_id in server.upvoters[payload.message_id]:
+                server.upvoters[payload.message_id].remove(payload.user_id)
+        else:
+            if payload.user_id in server.downvoters[payload.message_id]:
+                server.downvoters[payload.message_id].remove(payload.user_id)
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
@@ -98,6 +102,12 @@ class Polls(commands.Cog):
             poll = server.poll_msg_lookup[payload.message_id]
             if payload.user_id == poll.author.id and str(payload.emoji) == Polls.DOWNVOTE:
                 author_downvote = True
+        total_vote_count = len(server.upvoters[payload.message_id]) - len(server.downvoters[payload.message_id])
+        if not author_downvote and abs(total_vote_count) < server.vote_req:
+            # Quit early
+            server.processing_polls.remove(payload.message_id)
+            return
+
         try:
             channel = await self.bot.fetch_channel(payload.channel_id)
             message = await channel.fetch_message(payload.message_id)
@@ -111,7 +121,7 @@ class Polls(commands.Cog):
                 # downvotes = get(message.reactions, emoji=Polls.DOWNVOTE)
 
                 # poll.votes = (upvotes.count if upvotes else 0) - (downvotes.count if downvotes else 0)
-                poll.votes = len(server.upvoters[payload.message_id]) - len(server.downvoters[payload.message_id])
+                poll.votes = total_vote_count
                 try:
                     resolve_poll = await server.check_single_poll(poll)
                 except InternalError as e:
