@@ -59,7 +59,7 @@ class FooterPaginator(pages.Paginator):
             footer = f"Page {self.current_page + 1}/{self.page_count + 1}"
             if self.footer_text:
                 footer += " • " + self.footer_text
-            elif page.footer.text and not page.footer.text.startswith("Page "):
+            elif page.footer is not None and not page.footer.text.startswith("Page "):
                 self.footer_text = page.footer.text
                 footer += " • " + page.footer.text
             page.set_footer(text=footer)

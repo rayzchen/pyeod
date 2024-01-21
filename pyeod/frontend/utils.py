@@ -167,12 +167,16 @@ def generate_embed_list(
     limit: int,
     color: int = config.EMBED_COLOR,
     thumbnail: str = None,
-    footer: str = None,
+    footer: str = "",
 ) -> List[Embed]:
     if not lines:
         embeds = [Embed(title=title, color=color, thumbnail=thumbnail)]
         return embeds
 
+    if footer:
+        footer_object = EmbedFooter(footer)
+    else:
+        footer_object = None
     embeds: List[Embed] = []
     for i in range(math.ceil(len(lines) / limit)):
         embeds.append(
@@ -181,7 +185,7 @@ def generate_embed_list(
                 description="\n".join(lines[i * limit : i * limit + limit]),
                 color=color,
                 thumbnail=thumbnail,
-                footer=EmbedFooter(footer),
+                footer=footer_object,
             )
         )
     return embeds
