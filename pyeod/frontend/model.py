@@ -38,12 +38,13 @@ class DiscordGameInstance(GameInstance):
         db: Optional[Database] = None,
         vote_req: int = 0,
         poll_limit: int = 21,
+        combo_limit: int = 21,
         channels: Optional[ChannelList] = None,
         # active_polls: Optional[Dict[int, Poll]] = [],
         poll_msg_lookup: Optional[Dict[int, Poll]] = None,
         starter_elements: Optional[Tuple[Element, ...]] = None,
     ) -> None:
-        super().__init__(db, vote_req, poll_limit, starter_elements)
+        super().__init__(db, vote_req, poll_limit, combo_limit, starter_elements)
         if channels is None:
             self.channels = ChannelList()
         else:
@@ -93,7 +94,8 @@ class DiscordGameInstance(GameInstance):
         return DiscordGameInstance(
             db,
             data.get("vote_req", 4),
-            data.get("poll_limit", 20),
+            data.get("poll_limit", 32),
+            data.get("combo_limit", 21),
             channel_list,
             lookup,
         )

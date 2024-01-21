@@ -54,6 +54,7 @@ class Base(commands.Cog):
         if msg.channel.id not in server.channels.play_channels:
             return
         user = await server.login_user(msg.author.id)
+        print(server.combo_limit)
 
         try:
             if user.last_element is not None:
@@ -68,7 +69,7 @@ class Base(commands.Cog):
                 if msg.content.startswith("*"):
                     name, count = get_multiplier(msg.content, last_element_name)
                     if name.lower() in server.db.elements:
-                        if count > 21:
+                        if count > server.combo_limit:
                             raise GameError("Too many elements")
                         elements = [name] * count
                 if not len(elements):
@@ -82,15 +83,15 @@ class Base(commands.Cog):
                         continue
                     if item.startswith("*"):
                         name, count = get_multiplier(item, last_element_name)
-                        if len(elements) + count > 21:
+                        if len(elements) + count > server.combo_limit:
                             raise GameError("Too many elements")
                         elements += [name] * count
                     else:
-                        if len(elements) + 1 > 21:
+                        if len(elements) + 1 > server.combo_limit:
                             raise GameError("Too many elements")
                         elements.append(item)
         except GameError:
-            await msg.reply("🔴 You cannot combine more than 21 elements!")
+            await msg.reply(f"🔴 You cannot combine more than {server.combo_limit} elements!")
             return
 
         if msg.content.startswith("+") and "\n" not in msg.content:
@@ -109,8 +110,8 @@ class Base(commands.Cog):
 
         if len(elements) < 2:
             return
-        if len(elements) > 21:
-            await msg.reply("🔴 You cannot combine more than 21 elements!")
+        if len(elements) > server.combo_limit:
+            await msg.reply(f"🔴 You cannot combine more than {server.combo_limit} elements!")
             return
 
         notfound = []
@@ -129,7 +130,7 @@ class Base(commands.Cog):
             else:
                 id_list = [f"**{elem_id}**" for elem_id in notfound]
                 await msg.reply(
-                    f"\U0001F534 Element IDs {format_list(id_list, 'and')} don't exist!"
+                    f"🔴 Element IDs {format_list(id_list, 'and')} don't exist!"
                 )
             return
 
@@ -207,7 +208,7 @@ class Base(commands.Cog):
         for bad_string in ["\\", "</", "<#", "_", "|", "```", "*", ">", "<:"]:
             name = name.replace(bad_string, f"\\{bad_string}")
         name = name.replace("\u200C", "")# ZWNJ
-        
+
         if len(name) > 256:
             await msg.reply("🔴 Element names cannot be longer than 256 character!")
             return
@@ -280,7 +281,7 @@ class Base(commands.Cog):
         self, ctx: bridge.Context, number_of_elements: int = 2
     ):
         """Combines random elements from your inventory"""
-        if not (1 < number_of_elements <= 21):
+        if not (1 < number_of_elements <= server.combo_limit):
             await ctx.respond("🔴 Invalid number of elements!")
             return
         server = InstanceManager.current.get_or_create(ctx.guild.id)

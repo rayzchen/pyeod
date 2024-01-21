@@ -22,7 +22,8 @@ class GameInstance(SavableMixin):
         self,
         db: Optional[Database] = None,
         vote_req: int = 4,
-        poll_limit: int = 21,
+        poll_limit: int = 32,
+        combo_limit: int = 21,
         starter_elements: Optional[Tuple[Element, ...]] = None,
     ) -> None:
         if db is None:
@@ -33,6 +34,7 @@ class GameInstance(SavableMixin):
             self.db = db
         self.vote_req = vote_req
         self.poll_limit = poll_limit
+        self.combo_limit = combo_limit
 
     # Deprecate this function?
     async def normalize_starter(self, element: Element) -> Element:
@@ -253,11 +255,15 @@ class GameInstance(SavableMixin):
         data["db"] = self.db
         data["vote_req"] = self.vote_req
         data["poll_limit"] = self.poll_limit
+        data["combo_limit"] = self.combo_limit
 
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "GameInstance":
         return GameInstance(
-            data.get("db"), data.get("vote_req", 4), data.get("poll_limit", 20)
+            data.get("db"),
+            data.get("vote_req", 4),
+            data.get("poll_limit", 32),
+            data.get("combo_limit", 21),
         )
 
 

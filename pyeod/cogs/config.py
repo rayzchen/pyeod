@@ -339,6 +339,24 @@ class Config(commands.Cog):
         server.vote_req = vote_req
         await ctx.respond(f"🤖 Successfully set the vote requirement to {vote_req}")
 
+    @bridge.bridge_command()
+    @bridge.guild_only()
+    @bridge.has_permissions(manage_channels=True)
+    async def set_poll_limit(self, ctx: bridge.Context, poll_limit: int):
+        server = InstanceManager.current.get_or_create(ctx.guild.id)
+
+        server.poll_limit = poll_limit
+        await ctx.respond(f"🤖 Successfully set the vote requirement to {poll_limit}")
+
+    @bridge.bridge_command()
+    @bridge.guild_only()
+    @bridge.has_permissions(manage_channels=True)
+    async def set_combo_limit(self, ctx: bridge.Context, combo_limit: int):
+        server = InstanceManager.current.get_or_create(ctx.guild.id)
+
+        server.combo_limit = combo_limit
+        await ctx.respond(f"🤖 Successfully set the combo limit to {combo_limit}")
+
 
 def setup(client):
     client.add_cog(Config(client))
