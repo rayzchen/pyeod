@@ -3,6 +3,8 @@ __all__ = [
     "User",
     "Poll",
     "Database",
+    "Category",
+    "ElementCategory",
 ]
 
 
@@ -267,14 +269,24 @@ class ElementCategory(Category):
 
     def __init__(self, name: str, elements: Tuple[Element, ...]) -> None:
         self.name = name
-        self.elements = elements
+        self.elements = list(elements)
 
     async def has_element(self, element: Element, database: "Database") -> bool:
         return element in self.elements
 
     async def get_elements(self, database: "Database") -> Tuple[Element, ...]:
         # Faster and less redundant, tuples are immutable anyways
-        return self.elements
+        return tuple(self.elements)
+
+    def convert_to_dict(self, data: dict) -> None:
+        data["name"] = self.name
+        data["elements"] = [e.id for e in self.elements]
+
+    @staticmethod
+    def convert_from_dict(loader, data: dict) -> "ElementCategory":
+        elements = [loader.elem_id_lookup[e] for e in data.get("elements")]
+        return ElementCategory(data.get("name"), elements)
+
 
 class Database(SavableMixin):
     # TODO: requires __slots__? only one instance of Database per GameInstance
@@ -410,7 +422,7 @@ class Database(SavableMixin):
                 self.category_lookup: Dict[int, List[str]] = {elem: [] for elem in self.elem_id_lookup}
                 for elem in self.elements.values():
                     for category in self.categories.values():
-                        if await category.has_element(elem):
+                        if await category.has_element(elem, self):
                             self.category_lookup[elem.id].append(category.name)
 
     def get_complexity(self, elem_id: int) -> Union[int, None]:
