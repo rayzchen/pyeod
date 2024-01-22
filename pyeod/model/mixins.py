@@ -148,6 +148,10 @@ class IntKeySavableMixinMapping(PlainSavableMixinMapping[int, VT]):
         "Database.categories": 71,
         "ElementCategory.name": 72,
         "ElementCategory.elements": 73,
+        "AddCategoryPoll.category": 74,
+        "AddCategoryPoll.elements": 75,
+        "RemoveCategoryPoll.category": 76,
+        "RemoveCategoryPoll.elements": 77,
     }
 
     def get(self, key: str, default: VT = None) -> VT:

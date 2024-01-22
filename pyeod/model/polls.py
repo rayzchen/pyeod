@@ -6,11 +6,13 @@ __all__ = [
     "IconPoll",
     "AddCollabPoll",
     "RemoveCollabPoll",
+    "AddCategoryPoll",
+    "RemoveCategoryPoll",
 ]
 
 
 from pyeod.errors import InternalError, GameError
-from pyeod.model.types import Element, Poll, User, Database
+from pyeod.model.types import Element, Poll, User, Database, ElementCategory
 from discord import Embed  # I have sinned but our news message structure is weird
 from typing import Tuple, Union
 import time
@@ -556,6 +558,178 @@ class RemoveCollabPoll(Poll):
             loader.users[data.get("author")],
             loader.elem_id_lookup[data.get("element")],
             tuple(loader.users[i] for i in data.get("extra_authors")),
+        )
+        poll.votes = data.get("votes", 0)
+        poll.creation_time = data.get("creation_time", round(time.time()))
+        return poll
+
+
+class AddCategoryPoll(Poll):
+    __slots__ = (
+        "author",
+        "votes",
+        "accepted",
+        "creation_time",
+        "category",
+        "elements",
+    )
+
+    def __init__(
+        self, author: User, category: str, elements: Tuple[Element, ...]
+    ) -> None:
+        super(AddCategoryPoll, self).__init__(author)
+        self.category = category
+        self.elements = elements
+
+    async def resolve(self, database: Database) -> Tuple[Element, ...]:
+        # Extra lookup table checks in case of mismatch
+        async with database.category_lock.reader:
+            if self.category.lower() not in database.categories:
+                database.categories[self.category] = ElementCategory(self.category, self.elements)
+                for element in self.elements:
+                    if self.category not in database.category_lookup[element.id]:
+                        database.category_lookup[element.id].append(category.name)
+            else:
+                category = database.categories[self.category.lower()]
+                if not isinstance(category, ElementCategory):
+                    return
+                for element in self.elements:
+                    if element not in category.elements:
+                        category.elements.append(element)
+                    if category.name not in database.category_lookup[element.id]:
+                        database.category_lookup[element.id].append(category.name)
+
+    async def get_news_message(self, instance: "GameInstance") -> str:
+        msg = ""
+        if self.accepted:
+            msg += "📂 "
+            msg += f"Added **{len(self.elements)}** element"
+            if len(self.elements) > 1:
+                msg += "s"
+            msg += f" to category **{self.category}** (Lasted **{self.get_time()}** • "
+            msg += f"By {instance.get_icon(self.author.icon)} <@{self.author.id}>)"
+        else:
+            msg += "❌ Poll Rejected - "
+            msg += "Add to category "
+            msg += f"**{self.category}** (Lasted **{self.get_time()}** • "
+            msg += f"By {instance.get_icon(self.author.icon)} <@{self.author.id}>) "
+        return msg
+
+    def get_title(self) -> str:
+        return "Categorize"
+
+    def get_description(self) -> str:
+        text = f"**{self.category}**\n\n"
+        text += f"Elements:"
+        for element in self.elements[:10]:
+            text += f"\n**{element.name}**"
+        if len(self.elements) > 10:
+            text += f"\nand {len(self.elements) - 10} more..."
+        text += f"\n\nSuggested by <@{self.author.id}>"
+        return text
+
+    def convert_to_dict(self, data: dict) -> None:
+        data["author"] = self.author.id
+        data["votes"] = self.votes
+        data["category"] = self.category
+        data["elements"] = [e.id for e in self.elements]
+        data["creation_time"] = self.creation_time
+
+    @staticmethod
+    def convert_from_dict(loader, data: dict) -> "AddCategoryPoll":
+        poll = AddCategoryPoll(
+            loader.users[data.get("author")],
+            data.get("category"),
+            tuple(loader.elem_id_lookup[e] for e in data.get("elements")),
+        )
+        poll.votes = data.get("votes", 0)
+        poll.creation_time = data.get("creation_time", round(time.time()))
+        return poll
+
+
+class RemoveCategoryPoll(Poll):
+    __slots__ = (
+        "author",
+        "votes",
+        "accepted",
+        "creation_time",
+        "category",
+        "elements",
+        "deleted",  # not a saved attribute
+    )
+
+    def __init__(
+        self, author: User, category: str, elements: Tuple[Element, ...]
+    ) -> None:
+        super(RemoveCategoryPoll, self).__init__(author)
+        self.elements = elements
+        self.category = category
+        self.deleted = False
+
+    async def resolve(self, database: Database) -> Tuple[Element, ...]:
+        async with database.category_lock.reader:
+            if self.category.lower() not in database.categories:
+                return
+            category = database.categories[self.category.lower()]
+            if not isinstance(category, ElementCategory):
+                return
+            for element in self.elements:
+                if element in category.elements:
+                    category.elements.remove(element)
+                if category.name in database.category_lookup[element.id]:
+                    database.category_lookup[element.id].remove(category.name)
+            if not category.elements:
+                self.deleted = True
+                database.categories.pop(self.category.lower())
+
+    async def get_news_message(self, instance: "GameInstance") -> str:
+        msg = ""
+        if self.accepted:
+            if self.deleted:
+                msg += "📂 "
+                msg += f"Deleted category **{self.category}**"
+                msg += f" (Lasted **{self.get_time()}** • "
+                msg += f"By {instance.get_icon(self.author.icon)} <@{self.author.id}>)"
+            else:
+                msg += "📂 "
+                msg += f"Removed **{len(self.elements)}** element"
+                if len(self.elements) > 1:
+                    msg += "s"
+                msg += f" from category **{self.category}** (Lasted **{self.get_time()}** • "
+                msg += f"By {instance.get_icon(self.author.icon)} <@{self.author.id}>)"
+        else:
+            msg += "❌ Poll Rejected - "
+            msg += "Remove from category "
+            msg += f"**{self.category}** (Lasted **{self.get_time()}** • "
+            msg += f"By {instance.get_icon(self.author.icon)} <@{self.author.id}>) "
+        return msg
+
+    def get_title(self) -> str:
+        return "Uncategorize"
+
+    def get_description(self) -> str:
+        text = f"**{self.category}**\n\n"
+        text += f"Elements:"
+        for element in self.elements[:10]:
+            text += f"\n**{element.name}**"
+        if len(self.elements) > 10:
+            text += f"\nand {len(self.elements) - 10} more..."
+        text += f"\n\nSuggested by <@{self.author.id}>"
+        return text
+
+    def convert_to_dict(self, data: dict) -> None:
+        data["author"] = self.author.id
+        data["votes"] = self.votes
+        data["category"] = self.category
+        data["elements"] = [e.id for e in self.elements]
+        data["creation_time"] = self.creation_time
+
+    @staticmethod
+    def convert_from_dict(loader, data: dict) -> "RemoveCategoryPoll":
+        poll = RemoveCategoryPoll(
+            loader.users[data.get("author")],
+            data.get("category"),
+            tuple(loader.elem_id_lookup[e] for e in data.get("elements")),
         )
         poll.votes = data.get("votes", 0)
         poll.creation_time = data.get("creation_time", round(time.time()))

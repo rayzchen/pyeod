@@ -119,14 +119,15 @@ async def build_info_embed(
         progress_set = instance.db.path_lookup[element.id] & set(user.inv)
         progress = f"{len(progress_set) / tree_size * 100:.2f}%"
 
-    if len(instance.db.category_lookup[element.id]) < 4:
-        if not instance.db.category_lookup[element.id]:
+    categories = sorted(instance.db.category_lookup[element.id])
+    if len(categories) < 4:
+        if not categories:
             category_list = "N/A"
         else:
-            category_list = ", ".join(instance.db.category_lookup[element.id])
+            category_list = ", ".join(categories)
     else:
-        category_list = ", ".join(instance.db.category_lookup[element.id][:4])
-        category_list += " and " + str(len(instance.db.category_lookup[element.id]) - 3) + " more..."
+        category_list = ", ".join(categories[:3])
+        category_list += " and " + str(len(categories) - 3) + " more..."
 
     fields = [
         EmbedField(f"{icon} Creator", creator, True),

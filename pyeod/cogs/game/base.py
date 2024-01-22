@@ -275,7 +275,7 @@ class Base(commands.Cog):
         # Only required methods of ctx is .author, .channel and .reply
         await self.suggest_element(server, element_name, ctx, autocapitalize)
 
-    @bridge.bridge_command(aliases=["rc"])
+    @bridge.bridge_command(aliases=["rcom"])
     @bridge.guild_only()
     async def random_combination(
         self, ctx: bridge.Context, number_of_elements: int = 2

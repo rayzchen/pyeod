@@ -2,6 +2,7 @@ __all__ = [
     "FooterPaginator",
     "ElementalBot",
     "autocomplete_elements",
+    "autocomplete_categories",
     "LeaderboardPaginator",
     "create_leaderboard",
     "InventoryPaginator",
@@ -617,4 +618,14 @@ async def autocomplete_elements(ctx: AutocompleteContext):
         for element in server.db.elements:
             if ctx.value.lower() in element:
                 names.append(server.db.elements[element].name)
+        return names
+
+
+async def autocomplete_categories(ctx: AutocompleteContext):
+    server = InstanceManager.current.get_or_create(ctx.interaction.guild.id)
+    names = []
+    async with server.db.category_lock.reader:
+        for category in server.db.categories:
+            if ctx.value.lower() in category:
+                names.append(server.db.categories[category].name)
         return names
