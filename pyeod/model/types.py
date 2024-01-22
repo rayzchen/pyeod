@@ -244,6 +244,38 @@ class Poll(SavableMixin):
         pass
 
 
+class Category(SavableMixin):
+    __slots__ = ("name")
+
+    def __init__(self, name: str) -> None:
+        self.name = name
+
+    @abstractmethod
+    async def has_element(self, element: Element, database: "Database") -> bool:
+        pass
+
+    async def get_elements(self, database: "Database") -> Tuple[Element, ...]:
+        elements = []
+        for element in database.elements.items():
+            if await self.has_element(element, database):
+                elements.append(element)
+        return tuple(elements)
+
+
+class ElementCategory(Category):
+    __slots__ = ("name", "elements")
+
+    def __init__(self, name: str, elements: Tuple[Element, ...]) -> None:
+        self.name = name
+        self.elements = elements
+
+    async def has_element(self, element: Element, database: "Database") -> bool:
+        return element in self.elements
+
+    async def get_elements(self, database: "Database") -> Tuple[Element, ...]:
+        # Faster and less redundant, tuples are immutable anyways
+        return self.elements
+
 class Database(SavableMixin):
     # TODO: requires __slots__? only one instance of Database per GameInstance
 
@@ -254,15 +286,18 @@ class Database(SavableMixin):
         combos: Dict[Tuple[int, ...], Element],
         users: Dict[int, User],
         polls: List[Poll],
+        categories: Dict[int, Category],
     ) -> None:
         self.elements = elements
         self.starters = starters
         self.combos = combos
         self.users = users
         self.polls = polls
+        self.categories = categories
 
         self.complexity_lock = RWLock()
         self.element_lock = RWLock()  # covers both elements and combos
+        self.category_lock = RWLock()
         self.user_lock = RWLock()
         self.poll_lock = RWLock()
 
@@ -370,6 +405,13 @@ class Database(SavableMixin):
                         for item in self.path_lookup[ingredient]:
                             self.path_lookup[elem].add(item)
                     self.path_lookup[elem].add(elem)
+
+            async with self.category_lock.writer:
+                self.category_lookup: Dict[int, List[str]] = {elem: [] for elem in self.elem_id_lookup}
+                for elem in self.elements.values():
+                    for category in self.categories.values():
+                        if await category.has_element(elem):
+                            self.category_lookup[elem.id].append(category.name)
 
     def get_complexity(self, elem_id: int) -> Union[int, None]:
         """
@@ -545,29 +587,31 @@ class Database(SavableMixin):
             combos[combo_ids] = self.combos[combo].id
         data["combos"] = combos
         data["polls"] = self.polls
+        data["categories"] = list(self.categories.values())
 
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "Database":
         starters = tuple(loader.elem_id_lookup[elem] for elem in data.get("starters"))
         combos = {}
-        for combo_ids in data.get("combos"):
+        for combo_ids, combo_result in data.get("combos").items():
             key = tuple(int(id) for id in combo_ids.split(","))
-            if data.get("combos")[combo_ids] in loader.elem_id_lookup:
-                combos[key] = loader.elem_id_lookup[data.get("combos")[combo_ids]]
+            if combo_result in loader.elem_id_lookup:
+                combos[key] = loader.elem_id_lookup[combo_result]
             else:
                 print(
                     "Warning: dropping combo",
                     key,
                     "for element",
-                    data.get("combos")[combo_ids],
+                    combo_result,
                 )
-        users = {int(id): user for id, user in data.get("users").items()}
-
-        polls = [poll for poll in data.get("polls") if poll is not None]
+        users = {int(id): user for id, user in data.get("users", []).items()}
+        polls = [poll for poll in data.get("polls", []) if poll is not None]
+        categories = {cat.name.lower(): cat for cat in data.get("categories", [])}
         return Database(
             {elem.name.lower(): elem for elem in data.get("elements")},
             starters,
             combos,
             users,
             polls,
+            categories,
         )

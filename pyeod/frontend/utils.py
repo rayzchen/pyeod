@@ -119,6 +119,15 @@ async def build_info_embed(
         progress_set = instance.db.path_lookup[element.id] & set(user.inv)
         progress = f"{len(progress_set) / tree_size * 100:.2f}%"
 
+    if len(instance.db.category_lookup[element.id]) < 4:
+        if not instance.db.category_lookup[element.id]:
+            category_list = "N/A"
+        else:
+            category_list = ", ".join(instance.db.category_lookup[element.id])
+    else:
+        category_list = ", ".join(instance.db.category_lookup[element.id][:4])
+        category_list += " and " + str(len(instance.db.category_lookup[element.id]) - 3) + " more..."
+
     fields = [
         EmbedField(f"{icon} Creator", creator, True),
         EmbedField("👥 Collaborators", collaborators, True)
@@ -141,7 +150,7 @@ async def build_info_embed(
         EmbedField("🖼️ Imager", imager, True) if element.imager else None,
         EmbedField("📍 Iconer", iconer, True) if element.iconer else None,
         EmbedField("📊 Progress", progress, True),
-        EmbedField("📂 Categories", "N/A", False),
+        EmbedField("📂 Categories", category_list, False),
     ]
 
     embed = Embed(

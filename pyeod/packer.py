@@ -94,6 +94,7 @@ def save_instance(instance: GameInstance, filename: str) -> multiprocessing.Proc
     instance2.db.combos = old_db.combos
     instance2.db.users = old_db.users
     instance2.db.polls = old_db.polls
+    instance2.db.categories = old_db.categories
     process = multiprocessing.Process(
         target=multiprocess_save, args=(instance2, filename)
     )

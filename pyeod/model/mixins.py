@@ -144,6 +144,10 @@ class IntKeySavableMixinMapping(PlainSavableMixinMapping[int, VT]):
         "User.votes_cast_count": 67,
         "User.achievements": 68,
         "User.icon": 69,
+        "DiscordGameInstance.combo_limit": 70,
+        "Database.categories": 71,
+        "ElementCategory.name": 72,
+        "ElementCategory.elements": 73,
     }
 
     def get(self, key: str, default: VT = None) -> VT:
