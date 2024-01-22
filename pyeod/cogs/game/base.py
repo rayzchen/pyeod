@@ -54,7 +54,6 @@ class Base(commands.Cog):
         if msg.channel.id not in server.channels.play_channels:
             return
         user = await server.login_user(msg.author.id)
-        print(server.combo_limit)
 
         try:
             if user.last_element is not None:
@@ -150,7 +149,8 @@ class Base(commands.Cog):
                 await msg.reply(
                     "🟥 Not a combo! Use **!s <element_name>** to suggest an element"
                 )
-            raise
+            else:
+                raise
         await self.bot.award_achievements(server, msg)
 
     async def suggest_element(
@@ -295,6 +295,8 @@ class Base(commands.Cog):
                 description += (
                     f"🟦 You made **{g.meta['element'].name}**, but you already have it!"
                 )
+            else:
+                raise
         description += "\n> \u200c"  # ZWNJ
         embed = Embed(
             title="Random Combo", description=description, color=config.EMBED_COLOR
