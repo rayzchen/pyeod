@@ -165,13 +165,14 @@ class Categories(commands.Cog):
                 return
             category = server.db.categories[category_name]
             total = 0
-            for element in category.elements:
+            elements = category.get_elements(server.db)
+            for element in elements:
                 if element.id in user.inv:
                     total += 1
-            progress = total / len(category.elements)
-            title = f"{category.name} ({len(category.elements)}, {progress:.2f}%)"
+            progress = total / len(elements)
+            title = f"{category.name} ({len(elements)}, {progress:.2f}%)"
             paginator = await ElementPaginator.create(
-                "Alphabetical", ctx, ctx.author, category.elements, title, True
+                "Alphabetical", ctx, ctx.author, elements, title, True
             )
             await paginator.respond(ctx)
 
