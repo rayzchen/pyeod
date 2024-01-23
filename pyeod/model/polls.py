@@ -623,10 +623,10 @@ class AddCategoryPoll(Poll):
     def get_description(self) -> str:
         text = f"**{self.category}**\n\n"
         text += f"Elements:"
-        for element in self.elements[:10]:
+        for element in sorted(self.elements, key=lambda elem: elem.id)[:15]:
             text += f"\n**{element.name}**"
-        if len(self.elements) > 10:
-            text += f"\nand {len(self.elements) - 10} more..."
+        if len(self.elements) > 15:
+            text += f"\nand {len(self.elements) - 15} more..."
         text += f"\n\nSuggested by <@{self.author.id}>"
         return text
 
@@ -712,10 +712,10 @@ class RemoveCategoryPoll(Poll):
     def get_description(self) -> str:
         text = f"**{self.category}**\n\n"
         text += f"Elements:"
-        for element in self.elements[:10]:
+        for element in sorted(self.elements, key=lambda elem: elem.id)[:15]:
             text += f"\n**{element.name}**"
-        if len(self.elements) > 10:
-            text += f"\nand {len(self.elements) - 10} more..."
+        if len(self.elements) > 15:
+            text += f"\nand {len(self.elements) - 15} more..."
         text += f"\n\nSuggested by <@{self.author.id}>"
         return text
 
