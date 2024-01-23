@@ -557,6 +557,7 @@ class ElementalBot(bridge.AutoShardedBot):
         msg: Message,
         suggestion_message: str,
     ):
+        await msg.reply(suggestion_message)
         if server.vote_req == 0:
             await server.check_single_poll(poll)
             if server.channels.news_channel is None:
@@ -584,8 +585,6 @@ class ElementalBot(bridge.AutoShardedBot):
             server.poll_msg_lookup[poll_msg.id] = poll
             server.upvoters[poll_msg.id] = set()
             server.downvoters[poll_msg.id] = set()
-        await msg.reply(suggestion_message)
-        if server.vote_req != 0:  # Adding reactions after just feels snappier
             await poll_msg.add_reaction("\U0001F53C")  # ⬆️ Emoji
             await poll_msg.add_reaction("\U0001F53D")
 

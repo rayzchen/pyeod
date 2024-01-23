@@ -40,16 +40,36 @@ class Main(commands.Cog):
             err, (commands.errors.CommandInvokeError, ApplicationCommandInvokeError)
         ):
             err = err.original
+        handled = True
         if isinstance(err, GameError):
             if err.type == "Not an element":
                 await ctx.respond(f"🔴 Element **{err.meta['name']}** doesn't exist!")
-                return
+            elif err.type == "Do not exist":
+                err.meta["user"].last_element = None
+                err.meta["user"].last_combo = ()
+                element_list = [f"**{elem}**" for elem in err.meta["elements"]]
+                if len(element_list) == 1:
+                    await ctx.respond(f"🔴 Element {element_list[0]} doesn't exist!")
+                else:
+                    await ctx.respond(
+                        f"🔴 Elements {format_list(element_list, 'and')} don't exist!"
+                    )
+            elif err.type == "Not in inv":
+                err.meta["user"].last_element = None
+                err.meta["user"].last_combo = ()
+                element_list = [f"**{elem.name}**" for elem in err.meta["elements"]]
+                await ctx.respond(f"🔴 You don't have {format_list(element_list)}!")
+            else:
+                handled = False
         elif isinstance(err, InternalError):
             if err.type == "Complexity lock":
                 await ctx.respond(
                     f"🔴 Complexity calculations ongoing, cannot access element data"
                 )
-                return
+            else:
+                handled = False
+        if handled:
+            return
 
         lines = traceback.format_exception(type(err), err, err.__traceback__)
         sys.stderr.write("".join(lines))

@@ -149,21 +149,8 @@ class Base(commands.Cog):
                 await msg.reply(
                     "🟥 Not a combo! Use **!s <element_name>** to suggest an element"
                 )
-            elif g.type == "Do not exist":
-                user.last_element = None
-                user.last_combo = ()
-                element_list = [f"**{elem}**" for elem in g.meta["elements"]]
-                if len(element_list) == 1:
-                    await msg.reply(f"🔴 Element {element_list[0]} doesn't exist!")
-                else:
-                    await msg.reply(
-                        f"🔴 Elements {format_list(element_list, 'and')} don't exist!"
-                    )
-            elif g.type == "Not in inv":
-                user.last_element = None
-                user.last_combo = ()
-                element_list = [f"**{elem.name}**" for elem in g.meta["elements"]]
-                await msg.reply(f"🔴 You don't have {format_list(element_list)}!")
+            else:
+                raise
         await self.bot.award_achievements(server, msg)
 
     async def suggest_element(
@@ -308,6 +295,8 @@ class Base(commands.Cog):
                 description += (
                     f"🟦 You made **{g.meta['element'].name}**, but you already have it!"
                 )
+            else:
+                raise
         description += "\n> \u200c"  # ZWNJ
         embed = Embed(
             title="Random Combo", description=description, color=config.EMBED_COLOR

@@ -96,7 +96,6 @@ class Polls(commands.Cog):
         voters = server.upvoters[payload.message_id] ^ server.downvoters[payload.message_id]
 
         resolve_poll = False
-        delete_poll = False
         author_downvote = False
         async with server.db.poll_lock.reader:
             poll = server.poll_msg_lookup[payload.message_id]
@@ -111,6 +110,11 @@ class Polls(commands.Cog):
         try:
             channel = await self.bot.fetch_channel(payload.channel_id)
             message = await channel.fetch_message(payload.message_id)
+            await message.delete()
+            async with server.db.poll_lock.writer:
+                server.poll_msg_lookup.pop(payload.message_id)
+                server.upvoters.pop(payload.message_id)
+                server.downvoters.pop(payload.message_id)
             if author_downvote:
                 async with server.db.user_lock.writer:
                     # Decrease active poll count
@@ -149,11 +153,6 @@ class Polls(commands.Cog):
                             user.votes_cast_count += 1
 
             # Author deleted, or poll resolved
-            await message.delete()
-            async with server.db.poll_lock.writer:
-                server.poll_msg_lookup.pop(payload.message_id)
-                server.upvoters.pop(payload.message_id)
-                server.downvoters.pop(payload.message_id)
             if resolve_poll:
                 for user_id in list(voters) + [poll.author.id]:
                     user = await server.login_user(user_id)
