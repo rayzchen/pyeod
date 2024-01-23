@@ -45,8 +45,9 @@ class Main(commands.Cog):
             if err.type == "Not an element":
                 await ctx.respond(f"🔴 Element **{err.meta['name']}** doesn't exist!")
             elif err.type == "Do not exist":
-                err.meta["user"].last_element = None
-                err.meta["user"].last_combo = ()
+                if err.meta["user"] is not None:
+                    err.meta["user"].last_element = None
+                    err.meta["user"].last_combo = ()
                 element_list = [f"**{elem}**" for elem in err.meta["elements"]]
                 if len(element_list) == 1:
                     await ctx.respond(f"🔴 Element {element_list[0]} doesn't exist!")
