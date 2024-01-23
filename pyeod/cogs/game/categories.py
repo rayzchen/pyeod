@@ -47,6 +47,12 @@ class Categories(commands.Cog):
                         f"🔴 Cannot add elements to category **{category}**!"
                     )
                     return
+            elif len(category) > 256:
+                await ctx.respond("🔴 Category names cannot be longer than 256 characters!")
+                return
+            elif "|" in category:
+                await ctx.respond("🔴 Category names cannot contain | !")
+                return
 
         user = await server.login_user(ctx.author.id)
         elements = await server.check_elements(element_list)
