@@ -155,9 +155,9 @@ class Categories(commands.Cog):
         if not category:
             lines = []
             async with server.db.category_lock.reader:
-                for name, category in server.db.categories.items():
+                for category in server.db.categories.values():
                     if not isinstance(category, ElementCategory):
-                        lines.append(name)
+                        lines.append(category.name)
                     else:
                         total = 0
                         for element in category.elements:
@@ -165,9 +165,9 @@ class Categories(commands.Cog):
                                 total += 1
                         percentage = total / len(category.elements) * 100
                         if percentage == 100:
-                            lines.append(f"{name} {obtain_emoji(True)}")
+                            lines.append(f"{category.name} {obtain_emoji(True)}")
                         else:
-                            lines.append(f"{name} ({percentage:.2f}%)")
+                            lines.append(f"{category.name} ({percentage:.2f}%)")
 
             limit = get_page_limit(server, ctx.channel.id)
             embeds = generate_embed_list(
