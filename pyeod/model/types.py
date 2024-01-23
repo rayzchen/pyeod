@@ -373,6 +373,13 @@ class Database(SavableMixin):
         self.user_lock.reader.release()
         self.poll_lock.reader.release()
 
+    def set_starter_infos(self) -> None:
+        for elem in self.starters:
+            self.complexities[elem.id] = 0
+            self.min_elem_tree[elem.id] = ()
+        self.path_lookup = {elem.id: {elem.id} for elem in self.starters}
+        self.category_lookup = {elem.id: [] for elem in self.starters}
+
     async def calculate_infos(self) -> None:
         async with self.complexity_lock.writer:
             async with self.element_lock.reader:
@@ -535,10 +542,9 @@ class Database(SavableMixin):
             combos={},
             users={},
             polls=[],
+            categories={},
         )
-        for elem in database.starters:
-            database.complexities[elem.id] = 0
-            database.min_elem_tree[elem.id] = ()
+        database.set_starter_infos()
         return database
 
     async def add_element(self, element: Element):
