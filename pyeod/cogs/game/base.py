@@ -54,7 +54,6 @@ class Base(commands.Cog):
         if msg.channel.id not in server.channels.play_channels:
             return
         user = await server.login_user(msg.author.id)
-        print(server.combo_limit)
 
         try:
             if user.last_element is not None:

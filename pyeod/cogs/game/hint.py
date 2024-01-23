@@ -7,6 +7,7 @@ from pyeod.frontend import (
     get_page_limit,
     autocomplete_elements,
 )
+from pyeod.utils import obtain_emoji
 from discord.ext import bridge, commands
 from discord.commands import option as option_decorator
 from typing import Optional
@@ -16,12 +17,6 @@ import random
 class Hint(commands.Cog):
     def __init__(self, bot: ElementalBot):
         self.bot = bot
-
-    def get_emoji(self, obtainable):
-        if obtainable:
-            return "<:eodCheck:1139996144093646989>"
-        else:
-            return "❌"
 
     def obfuscate(self, name):
         punctuation = " .*()-!+"
@@ -64,7 +59,7 @@ class Hint(commands.Cog):
                 names = [server.db.elem_id_lookup[elem].name for elem in combo]
                 names.sort()
                 names[-1] = self.obfuscate(names[-1])
-                lines.append(self.get_emoji(tick) + " " + " + ".join(names))
+                lines.append(obtain_emoji(tick) + " " + " + ".join(names))
 
         limit = get_page_limit(server, ctx.channel.id)
         embeds = generate_embed_list(
@@ -133,7 +128,7 @@ class Hint(commands.Cog):
                 names = [server.db.elem_id_lookup[elem].name for elem in combo]
                 names.sort()
                 names[-1] = self.obfuscate(names[-1])
-                lines.append(self.get_emoji(tick) + " " + " + ".join(names))
+                lines.append(obtain_emoji(tick) + " " + " + ".join(names))
 
         limit = get_page_limit(server, ctx.channel.id)
         embeds = generate_embed_list(
@@ -171,12 +166,12 @@ class Hint(commands.Cog):
             for combo in sorted(server.db.used_in_lookup[elem.id], key=sorter):
                 result = server.db.combos[combo]
                 tick = result.id in user.inv
-                line = self.get_emoji(tick) + " " + result.name
+                line = obtain_emoji(tick) + " " + result.name
                 if line not in lines:
                     # In case multiple combos use this element for the same result
-                    lines.append(self.get_emoji(tick) + " " + result.name)
+                    lines.append(obtain_emoji(tick) + " " + result.name)
 
-        unobtained_emoji = self.get_emoji(False)
+        unobtained_emoji = obtain_emoji(False)
         unobtained_lines = []
         for line in lines:
             if line.startswith(unobtained_emoji):

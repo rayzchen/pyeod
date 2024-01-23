@@ -5,8 +5,7 @@ from pyeod.frontend import (
     InstanceManager,
     generate_embed_list,
     get_page_limit,
-    create_inventory,
-    InventoryPaginator,
+    ElementPaginator,
 )
 from pyeod import config
 from discord import User, Embed, EmbedField
@@ -26,10 +25,14 @@ class Lists(commands.Cog):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if user is None:
             user = ctx.author
+        elif user.id not in server.db.users:
+            await ctx.respond("🔴 User not found!")
+            return
 
-        pages = await create_inventory("Found", ctx, user)
-
-        paginator = InventoryPaginator(pages, ctx, user)
+        logged_in = await server.login_user(user.id)
+        inv = [server.db.elem_id_lookup[e] for e in logged_in.inv]
+        title = user.display_name + f"'s Inventory ({len(inv)})"
+        paginator = await ElementPaginator.create("Found", ctx, user, inv, title)
         await paginator.respond(ctx)
 
     @bridge.bridge_command()

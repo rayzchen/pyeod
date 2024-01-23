@@ -28,6 +28,13 @@ def format_list(items: list, final_sep: str = "or") -> str:
     return f"{', '.join(map(str, items[:-1]))}, {final_sep} {items[-1]}"
 
 
+def obtain_emoji(obtainable):
+    if obtainable:
+        return "<:eodCheck:1139996144093646989>"
+    else:
+        return "❌"
+
+
 def int_to_roman(num: int) -> str:
     # Mapping of Roman numerals (in Unicode) to their corresponding integer values
     val_syms = [

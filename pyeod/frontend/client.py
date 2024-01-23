@@ -5,8 +5,7 @@ __all__ = [
     "autocomplete_categories",
     "LeaderboardPaginator",
     "create_leaderboard",
-    "InventoryPaginator",
-    "create_inventory",
+    "ElementPaginator",
     "create_element_leaderboard",
     "ElementLeaderboardPaginator",
 ]
@@ -15,7 +14,7 @@ from .utils import get_page_limit, generate_embed_list
 from pyeod.model import Poll, User
 from pyeod.errors import InternalError, GameError
 from pyeod.frontend.model import DiscordGameInstance, InstanceManager
-from pyeod.utils import format_list, calculate_difficulty
+from pyeod.utils import format_list, calculate_difficulty, obtain_emoji
 from discord import (
     ButtonStyle,
     Embed,
@@ -60,9 +59,9 @@ class FooterPaginator(pages.Paginator):
             footer = f"Page {self.current_page + 1}/{self.page_count + 1}"
             if self.footer_text:
                 footer += " • " + self.footer_text
-            elif page.footer is not None and not page.footer.text.startswith("Page "):
-                self.footer_text = page.footer.text
-                footer += " • " + page.footer.text
+            # elif page.footer is not None and not page.footer.text.startswith("Page "):
+            #     self.footer_text = page.footer.text
+            #     footer += " • " + page.footer.text
             page.set_footer(text=footer)
         return buttons
 
@@ -84,7 +83,7 @@ async def create_leaderboard(sorting_option, ctx, user):
         find_value = None
         title = "Top " + sorting_option
         if sorting_option == "Elements Made":
-            find_value = lambda user: len(user.inv)
+            find_value = lambda user: len(logged_in.inv)
         elif sorting_option == "Elements Suggested":
             find_value = lambda user: len(server.db.created_by_lookup[user.id])
         elif sorting_option == "Combos Suggested":
@@ -229,94 +228,9 @@ class LeaderboardPaginator(FooterPaginator):
         self.add_item(self.menu)
 
 
-async def create_inventory(sorting_option, ctx, user):
-    server = InstanceManager.current.get_or_create(ctx.guild.id)
-
-    if user.id not in server.db.users:
-        # If user was None, this shouldn't run
-        await ctx.respond("🔴 User not found!")
-        return
-
-    logged_in = await server.login_user(user.id)
-    async with server.db.element_lock.reader:
-        if sorting_option == "Found":
-            elements = [server.db.elem_id_lookup[elem].name for elem in logged_in.inv]
-        elif sorting_option == "Alphabetical":
-            elements = sorted(
-                [server.db.elem_id_lookup[elem].name for elem in logged_in.inv]
-            )
-        elif sorting_option == "Created":
-            elements = [
-                server.db.elem_id_lookup[elem].name
-                for elem in logged_in.inv
-                if server.db.elem_id_lookup[elem].author != None
-                and server.db.elem_id_lookup[elem].author.id == user.id
-            ]
-        elif sorting_option == "ID":
-            elements = [
-                server.db.elem_id_lookup[elem].name for elem in sorted(logged_in.inv)
-            ]
-        elif sorting_option == "Tree Size":
-            elements = [
-                server.db.elem_id_lookup[elem].name
-                for elem in sorted(
-                    logged_in.inv,
-                    key=lambda element_id: len(server.db.path_lookup[element_id]),
-                    reverse=True,
-                )
-            ]
-        elif sorting_option == "Tier":
-            elements = [
-                server.db.elem_id_lookup[elem].name
-                for elem in sorted(
-                    logged_in.inv,
-                    key=lambda element_id: server.db.complexities[element_id],
-                    reverse=True,
-                )
-            ]
-        elif sorting_option == "Time Created":
-            elements = [
-                server.db.elem_id_lookup[elem].name
-                for elem in sorted(
-                    logged_in.inv,
-                    key=lambda element_id: server.db.elem_id_lookup[element_id].created,
-                )
-            ]
-        elif sorting_option == "Creator":
-            elements = [
-                server.db.elem_id_lookup[elem].name
-                for elem in sorted(
-                    logged_in.inv,
-                    key=lambda element_id: server.db.elem_id_lookup[
-                        element_id
-                    ].author.id
-                    if server.db.elem_id_lookup[element_id].author
-                    else 0,
-                )
-            ]
-        elif sorting_option == "Random":
-            elements = [server.db.elem_id_lookup[elem].name for elem in logged_in.inv]
-            random.shuffle(elements)
-        elif sorting_option == "Length":
-            elements = sorted(
-                [server.db.elem_id_lookup[elem].name for elem in logged_in.inv],
-                key=lambda x: len(x)
-            )
-
-    title = user.display_name + f"'s Inventory ({len(elements)})"
-
-    limit = get_page_limit(server, ctx.channel.id)
-    return generate_embed_list(
-        elements,
-        title,
-        limit,
-        footer="Sorting by " + sorting_option
-    )
-
-
-class InventorySortingDropdown(ui.Select):
+class ElementListMenu(ui.Select):
     def __init__(self):
-        self.sorting_option = "Elements Made"
+        self.sorting_option = "Found"
         options = [
             SelectOption(
                 label="Found",
@@ -378,32 +292,129 @@ class InventorySortingDropdown(ui.Select):
         )
 
     async def callback(self, interaction: Interaction):
-        ctx = self.paginator.ctx
-        user = self.paginator.target_user
-
-        pages = await create_inventory(self.values[0], ctx, user)
-
-        self.paginator.pages = pages
-        self.paginator.current_page = 0
-
-        await self.paginator.goto_page(
-            self.paginator.current_page, interaction=interaction
-        )
+        self.sorting_option = self.values[0]
+        await self.paginator.regenerate(interaction)
 
 
-class InventoryPaginator(FooterPaginator):
+class ElementPaginator(FooterPaginator):
     def __init__(
-        self, page_list, ctx, user, footer_text: str = "", loop: bool = True
+        self, page_list, ctx, user, elements, title: str, check: bool, footer_text: str = "", loop: bool = True
     ) -> None:
-        super(InventoryPaginator, self).__init__(page_list, footer_text, loop)
+        super(ElementPaginator, self).__init__(page_list, footer_text, loop)
         self.show_menu = True
         self.ctx = ctx
         self.target_user = user
+        self.elements = elements
+        self.title = title
+        self.check = check
+        self.footer_text = "Sorting by Found"
 
     def add_menu(self):
-        self.menu = InventorySortingDropdown()
+        self.menu = ElementListMenu()
         self.menu.paginator = self
         self.add_item(self.menu)
+
+    async def regenerate(self, interaction):
+        pages = await ElementPaginator.generate_pages(
+            self.menu.sorting_option,
+            self.ctx,
+            self.target_user,
+            self.elements,
+            self.title,
+            self.check
+        )
+
+        self.current_page = 0
+        self.footer_text = "Sorting by " + self.menu.sorting_option
+
+        await self.update(
+            pages=pages,
+            interaction=interaction,
+            show_indicator=False,
+            author_check=False,
+            use_default_buttons=False,
+            loop_pages=self.loop_pages,
+            custom_buttons=self.custom_buttons,
+        )
+
+    @staticmethod
+    async def generate_pages(sorting_option, ctx, user, elements, title, check=False):
+        server = InstanceManager.current.get_or_create(ctx.guild.id)
+        logged_in = await server.login_user(user.id)
+        async with server.db.element_lock.reader:
+            if sorting_option == "Found":
+                elements = [elem.name for elem in elements]
+            elif sorting_option == "Alphabetical":
+                elements = sorted([elem.name for elem in elements])
+            elif sorting_option == "Created":
+                elements = [
+                    elem.name for elem in elements
+                    if elem.author is not None and elem.author.id == user.id
+                ]
+            elif sorting_option == "ID":
+                elements = [elem.name for elem in sorted(elements, key=lambda elem: elem.id)]
+            elif sorting_option == "Tree Size":
+                elements = [
+                    elem.name for elem in sorted(
+                        elements,
+                        key=lambda elem: len(server.db.path_lookup[elem.id]),
+                        reverse=True,
+                    )
+                ]
+            elif sorting_option == "Tier":
+                elements = [
+                    elem.name for elem in sorted(
+                        elements,
+                        key=lambda elem: server.db.complexities[elem.id],
+                        reverse=True,
+                    )
+                ]
+            elif sorting_option == "Time Created":
+                elements = [
+                    elem.name for elem in sorted(
+                        elements,
+                        key=lambda elem: elem.created,
+                    )
+                ]
+            elif sorting_option == "Creator":
+                elements = [
+                    elem.name for elem in sorted(
+                        elements,
+                        key=lambda elem: elem.author.id if elem.author else 0,
+                    )
+                ]
+            elif sorting_option == "Random":
+                elements = [elem.name for elem in elements]
+                random.shuffle(elements)
+            elif sorting_option == "Length":
+                elements = sorted(
+                    [elem.name for elem in elements],
+                    key=lambda x: len(x)
+                )
+
+            if check:
+                obtained = []
+                unobtained = []
+                for elem in elements:
+                    if server.db.elements[elem.lower()].id in logged_in.inv:
+                        obtained.append(elem + " " + obtain_emoji(True))
+                    else:
+                        unobtained.append(elem + " " + obtain_emoji(False))
+                elements = obtained + unobtained
+
+        limit = get_page_limit(server, ctx.channel.id)
+        return generate_embed_list(
+            elements,
+            title,
+            limit,
+            footer="Sorting by " + sorting_option
+        )
+
+    @staticmethod
+    async def create(sorting_option, ctx, user, elements, title, check=False, footer_text: str = "", loop: bool = True):
+        pages = await ElementPaginator.generate_pages(sorting_option, ctx, user, elements, title, check)
+        paginator = ElementPaginator(pages, ctx, user, elements, title, check, footer_text, loop)
+        return paginator
 
 
 async def create_element_leaderboard(sorting_option, ctx, user):
