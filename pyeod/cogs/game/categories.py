@@ -12,7 +12,7 @@ from pyeod.frontend import (
     parse_element_list,
 )
 from pyeod.model import AddCategoryPoll, ElementCategory, RemoveCategoryPoll
-from pyeod.utils import format_list
+from pyeod.utils import format_list, obtain_emoji
 from discord.commands import option as option_decorator
 from discord.ext import bridge, commands
 
@@ -165,7 +165,7 @@ class Categories(commands.Cog):
                 return
             category = server.db.categories[category_name]
             total = 0
-            elements = category.get_elements(server.db)
+            elements = await category.get_elements(server.db)
             for element in elements:
                 if element.id in user.inv:
                     total += 1

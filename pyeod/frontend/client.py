@@ -583,7 +583,6 @@ class ElementalBot(bridge.AutoShardedBot):
                 await news_channel.send(news_message[0], embed=news_message[1])
             else:
                 await news_channel.send(news_message)
-            await news_channel.send(await poll.get_news_message(server))
         else:
             if server.channels.voting_channel is None:
                 raise InternalError(
