@@ -8,13 +8,13 @@ __all__ = [
 ]
 
 
-from pyeod.errors import InternalError, GameError
+from pyeod.errors import GameError, InternalError
 from pyeod.model.mixins import SavableMixin
+from aiorwlock import RWLock
 from abc import abstractmethod
 from typing import Dict, List, Tuple, Union, Optional
 import time
 import colorsys
-from aiorwlock import RWLock
 
 
 class Element(SavableMixin):
@@ -247,7 +247,7 @@ class Poll(SavableMixin):
 
 
 class Category(SavableMixin):
-    __slots__ = ("name")
+    __slots__ = "name"
 
     def __init__(self, name: str) -> None:
         self.name = name
@@ -419,7 +419,9 @@ class Database(SavableMixin):
                     self.path_lookup[elem].add(elem)
 
             async with self.category_lock.writer:
-                self.category_lookup: Dict[int, List[str]] = {elem: [] for elem in self.elem_id_lookup}
+                self.category_lookup: Dict[int, List[str]] = {
+                    elem: [] for elem in self.elem_id_lookup
+                }
                 for elem in self.elements.values():
                     for category in self.categories.values():
                         if await category.has_element(elem, self):

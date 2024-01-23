@@ -11,8 +11,8 @@ __all__ = [
 ]
 
 
-from pyeod.errors import InternalError, GameError
-from pyeod.model.types import Element, Poll, User, Database, ElementCategory
+from pyeod.errors import GameError, InternalError
+from pyeod.model.types import Database, Element, ElementCategory, Poll, User
 from discord import Embed  # I have sinned but our news message structure is weird
 from typing import Tuple, Union
 import time
@@ -85,7 +85,9 @@ class ElementPoll(Poll):
                 else:
                     msg += "Element"
                 msg += f" - **{self.result}** (Lasted **{self.get_time()}** • "
-                msg += f"By {instance.get_icon(self.author.icon)} <@{self.author.id}>) - "
+                msg += (
+                    f"By {instance.get_icon(self.author.icon)} <@{self.author.id}>) - "
+                )
                 if self.exists:
                     msg += "Combination "
                     msg += f"**\\#{len(instance.db.combos) + 1}**"
@@ -585,7 +587,9 @@ class AddCategoryPoll(Poll):
         # Extra lookup table checks in case of mismatch
         async with database.category_lock.reader:
             if self.category.lower() not in database.categories:
-                database.categories[self.category] = ElementCategory(self.category, self.elements)
+                database.categories[self.category] = ElementCategory(
+                    self.category, self.elements
+                )
                 for element in self.elements:
                     if self.category not in database.category_lookup[element.id]:
                         database.category_lookup[element.id].append(self.category)

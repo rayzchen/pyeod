@@ -1,19 +1,19 @@
 from pyeod import config
 from pyeod.errors import GameError, InternalError
 from pyeod.frontend import DiscordGameInstance, ElementalBot, InstanceManager
-from pyeod.utils import format_traceback, format_list
-from discord import DiscordException, ButtonStyle, CheckFailure, Embed
-from discord.errors import ApplicationCommandInvokeError
+from pyeod.utils import format_list, format_traceback
+from discord import ButtonStyle, CheckFailure, DiscordException, Embed
 from discord.commands import ApplicationContext
-from discord.ext import bridge, commands, tasks, pages
+from discord.errors import ApplicationCommandInvokeError
+from discord.ext import bridge, commands, pages, tasks
 import discord
 import io
 import os
 import sys
-import traceback
-import subprocess
 import typing
 import inspect
+import traceback
+import subprocess
 
 
 class Main(commands.Cog):

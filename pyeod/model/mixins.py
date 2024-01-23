@@ -9,7 +9,7 @@ __all__ = [
 
 
 from abc import ABCMeta, abstractmethod
-from typing import TypeVar, Dict, Generic, Optional
+from typing import Dict, Generic, TypeVar, Optional
 import gzip
 
 
@@ -168,6 +168,7 @@ class IntKeySavableMixinMapping(PlainSavableMixinMapping[int, VT]):
             return self.indicator
         type = self.mapping[self.indicator]
         return self.KEYS[type + "." + key]
+
 
 class CompressedIntKeySavableMixinMapping(IntKeySavableMixinMapping[VT]):
     indicator = "\x07CIT\x07"  # \x07 untypable as elem name

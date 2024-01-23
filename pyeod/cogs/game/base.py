@@ -1,14 +1,14 @@
+from pyeod import config
 from pyeod.errors import GameError
 from pyeod.frontend import (
     DiscordGameInstance,
     ElementalBot,
     InstanceManager,
     build_info_embed,
-    parse_element_list,
     get_multiplier,
+    parse_element_list,
 )
 from pyeod.utils import format_list
-from pyeod import config
 from discord import Embed, Message
 from discord.commands import option as option_decorator
 from discord.ext import bridge, commands
@@ -90,7 +90,9 @@ class Base(commands.Cog):
                             raise GameError("Too many elements")
                         elements.append(item)
         except GameError:
-            await msg.reply(f"🔴 You cannot combine more than {server.combo_limit} elements!")
+            await msg.reply(
+                f"🔴 You cannot combine more than {server.combo_limit} elements!"
+            )
             return
 
         if msg.content.startswith("+") and "\n" not in msg.content:
@@ -110,7 +112,9 @@ class Base(commands.Cog):
         if len(elements) < 2:
             return
         if len(elements) > server.combo_limit:
-            await msg.reply(f"🔴 You cannot combine more than {server.combo_limit} elements!")
+            await msg.reply(
+                f"🔴 You cannot combine more than {server.combo_limit} elements!"
+            )
             return
 
         notfound = []
@@ -193,7 +197,7 @@ class Base(commands.Cog):
         # Backslash escape all fucked up discord shit
         for bad_string in ["\\", "</", "<#", "_", "|", "```", "*", ">", "<:"]:
             name = name.replace(bad_string, f"\\{bad_string}")
-        name = name.replace("\u200C", "")# ZWNJ
+        name = name.replace("\u200C", "")  # ZWNJ
 
         if len(name) > 256:
             await msg.reply("🔴 Element names cannot be longer than 256 character!")

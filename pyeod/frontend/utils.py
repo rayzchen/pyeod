@@ -13,9 +13,9 @@ from pyeod.errors import InternalError
 from pyeod.frontend.model import DiscordGameInstance
 from pyeod.model import ColorPoll, Element, GameInstance, User
 from pyeod.utils import calculate_difficulty
-from discord import Embed, EmbedField, File, EmbedFooter
+from discord import Embed, EmbedField, EmbedFooter, File
 from io import BytesIO, StringIO
-from typing import Optional, List, Union
+from typing import List, Union, Optional
 import gzip
 import math
 

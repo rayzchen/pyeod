@@ -1,11 +1,11 @@
 from pyeod.frontend import (
     DiscordGameInstance,
     ElementalBot,
-    LeaderboardPaginator,
-    InstanceManager,
-    create_leaderboard,
-    create_element_leaderboard,
     ElementLeaderboardPaginator,
+    InstanceManager,
+    LeaderboardPaginator,
+    create_element_leaderboard,
+    create_leaderboard,
 )
 from discord import User
 from discord.ext import bridge, commands

@@ -8,7 +8,6 @@ The only thing that should be exported is the
 
 from pyeod.utils import calculate_difficulty
 
-
 __all__ = ["achievements", "user_icons"]
 
 # TODO Cache more shit so achievement check doesn't bog element making

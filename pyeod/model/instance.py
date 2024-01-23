@@ -7,7 +7,8 @@ from pyeod.model.mixins import SavableMixin
 from pyeod.model.polls import ElementPoll
 from pyeod.model.types import Database, Element, Poll, User
 from pyeod.utils import int_to_roman
-from typing import List, Tuple, Optional, Union
+from typing import List, Tuple, Union, Optional
+import asyncio
 import copy
 
 AIR = Element("Air", id=1, color=0x99E5DC)
@@ -173,7 +174,7 @@ class GameInstance(SavableMixin):
         user_achievements: List[List[int]] = user.achievements
         new_achievements: List[List[int]] = []
         achievement_ids = list(achievements)
-        await achievements[-1]["req_func"](self, user)#Run check func to cache things
+        await achievements[-1]["req_func"](self, user)  # Run check func to cache things
         achievement_ids.append(achievement_ids.pop(0))  # move first achievement to end
         for achievement_id in achievement_ids:
             achievement_data = achievements[achievement_id]
@@ -223,7 +224,9 @@ class GameInstance(SavableMixin):
     async def get_achievement_progress(self, achievement: List[int], user: User) -> int:
         return await achievements[achievement[0]]["progress_func"](self, user)
 
-    async def get_achievement_item_name(self, achievement: List[int], amount: int = 1) -> str:
+    async def get_achievement_item_name(
+        self, achievement: List[int], amount: int = 1
+    ) -> str:
         items = achievements[achievement[0]]["items"]
         return items if amount == 1 else f"{items}s"
 

@@ -3,13 +3,13 @@ from pyeod.frontend import (
     ElementalBot,
     FooterPaginator,
     InstanceManager,
+    autocomplete_elements,
     generate_embed_list,
     get_page_limit,
-    autocomplete_elements,
 )
 from pyeod.utils import obtain_emoji
-from discord.ext import bridge, commands
 from discord.commands import option as option_decorator
+from discord.ext import bridge, commands
 from typing import Optional
 import random
 

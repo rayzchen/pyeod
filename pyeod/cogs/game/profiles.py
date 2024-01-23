@@ -1,12 +1,9 @@
-from pyeod.frontend import (
-    ElementalBot,
-    InstanceManager,
-)
-from discord import User, Embed
+from pyeod import config
+from pyeod.frontend import ElementalBot, InstanceManager
+from pyeod.model.types import GameError
+from discord import Embed, User
 from discord.ext import bridge, commands
 from typing import Optional
-from pyeod import config
-from pyeod.model.types import GameError
 
 
 class Profiles(commands.Cog):
@@ -26,7 +23,9 @@ class Profiles(commands.Cog):
 
         embed = Embed(title=user.display_name, color=config.EMBED_COLOR)
         embed.add_field(
-            name=f"{server.get_icon(logged_in.icon)} User", value=user.mention, inline=False
+            name=f"{server.get_icon(logged_in.icon)} User",
+            value=user.mention,
+            inline=False,
         )
         leaderboard_position = (
             sorted(

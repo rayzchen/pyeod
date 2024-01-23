@@ -5,14 +5,14 @@ from pyeod.model import (
     AddCollabPoll,
     ColorPoll,
     Database,
-    ElementCategory,
+    DefaultSavableMixinMapping,
     Element,
+    ElementCategory,
     ElementPoll,
     GameInstance,
     IconPoll,
     ImagePoll,
     MarkPoll,
-    DefaultSavableMixinMapping,
     RemoveCategoryPoll,
     RemoveCollabPoll,
     SavableMixin,
@@ -43,7 +43,7 @@ types: List[Type[SavableMixin]] = [
     ImagePoll,
     IconPoll,
     AddCategoryPoll,
-    RemoveCategoryPoll
+    RemoveCategoryPoll,
 ]
 type_dict: Dict[str, Type[SavableMixin]] = {t.__name__: t for t in types}
 
@@ -133,9 +133,7 @@ def load_instance(file: str) -> GameInstance:
     del loader, hook, data
 
     def wrapper(loop):
-        task1 = asyncio.run_coroutine_threadsafe(
-            instance.db.check_colors(), loop=loop
-        )
+        task1 = asyncio.run_coroutine_threadsafe(instance.db.check_colors(), loop=loop)
         task2 = asyncio.run_coroutine_threadsafe(
             instance.db.check_suggested_combos(), loop=loop
         )
@@ -172,9 +170,7 @@ async def test_function():
     dump = simplejson.dumps(game, default=convert_to_dict)
     loader = InstanceLoader()
     hook = functools.partial(convert_from_dict, loader, DefaultSavableMixinMapping)
-    loaded_game = simplejson.loads(
-        dump, object_hook=hook, object_pairs_hook=pair_hook
-    )
+    loaded_game = simplejson.loads(dump, object_hook=hook, object_pairs_hook=pair_hook)
     dump2 = simplejson.dumps(loaded_game, default=convert_to_dict)
     print(dump)
     print(dump2)

@@ -3,11 +3,11 @@ from pyeod.frontend import (
     DiscordGameInstance,
     ElementalBot,
     InstanceManager,
-    prepare_file,
     autocomplete_elements,
+    prepare_file,
 )
-from discord.ext import bridge, commands
 from discord.commands import option as option_decorator
+from discord.ext import bridge, commands
 import io
 
 
@@ -20,7 +20,7 @@ class Path(commands.Cog):
     @option_decorator("element", autocomplete=autocomplete_elements)
     async def path(self, ctx: bridge.Context, *, element: str) -> None:
         """Gives the step by step element creation towards a certain element.
-Ie. !path mud would `water+earth=mud`"""
+        Ie. !path mud would `water+earth=mud`"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if server.db.complexity_lock.reader.locked:
             raise InternalError("Complexity lock", "Complexity calculations in process")

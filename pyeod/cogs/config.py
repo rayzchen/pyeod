@@ -1,36 +1,36 @@
 from pyeod import config
-from pyeod.utils import format_list
+from pyeod.errors import GameError
 from pyeod.frontend import (
     DiscordGameInstance,
     ElementalBot,
-    InstanceManager,
-    prepare_file,
-    generate_embed_list,
     FooterPaginator,
+    InstanceManager,
+    generate_embed_list,
+    prepare_file,
 )
-from pyeod.errors import GameError
 from pyeod.packer import load_instance, save_instance
+from pyeod.utils import format_list
 from discord import (
     Attachment,
+    ButtonStyle,
+    CheckFailure,
     Embed,
     File,
+    Member,
     Message,
     TextChannel,
     default_permissions,
-    Member,
-    CheckFailure,
-    ButtonStyle,
 )
+from discord.ext import bridge, commands, pages, tasks
 import discord
-from discord.ext import bridge, commands, tasks, pages
 from typing import Optional
 import io
 import os
 import glob
 import time
+import typing
 import asyncio
 import inspect
-import typing
 
 
 class Config(commands.Cog):
@@ -116,7 +116,6 @@ class Config(commands.Cog):
             file = File(stream, filename=str(guild_id) + ".eod")
             await ctx.respond("🤖 Old instance backup:", file=file)
 
-
     @bridge.bridge_command()
     @bridge.guild_only()
     @bridge.has_permissions(manage_channels=True)
@@ -170,7 +169,7 @@ class Config(commands.Cog):
             f"Number of elements: {len(all_ids)}",
             f"Max ID: {max(all_ids)}",
             f"Number of missing IDs: {len(missing_ids)}",
-            f"Missing IDs: {sorted(missing_ids)}"
+            f"Missing IDs: {sorted(missing_ids)}",
         ]
         await ctx.respond("\n".join(lines))
 

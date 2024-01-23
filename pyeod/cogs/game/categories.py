@@ -1,21 +1,20 @@
+from pyeod import config
 from pyeod.frontend import (
     DiscordGameInstance,
     ElementalBot,
-    InstanceManager,
-    autocomplete_elements,
-    autocomplete_categories,
-    parse_element_list,
     ElementPaginator,
-    get_page_limit,
-    generate_embed_list,
     FooterPaginator,
+    InstanceManager,
+    autocomplete_categories,
+    autocomplete_elements,
+    generate_embed_list,
+    get_page_limit,
+    parse_element_list,
 )
-from pyeod import config
-from pyeod.model import ElementCategory, AddCategoryPoll, RemoveCategoryPoll
+from pyeod.model import AddCategoryPoll, ElementCategory, RemoveCategoryPoll
 from pyeod.utils import format_list
-
-from discord.ext import bridge, commands
 from discord.commands import option as option_decorator
+from discord.ext import bridge, commands
 
 
 class Categories(commands.Cog):
@@ -41,8 +40,12 @@ class Categories(commands.Cog):
         async with server.db.category_lock.reader:
             if category.lower() in server.db.categories:
                 category = server.db.categories[category.lower()].name
-                if not isinstance(server.db.categories[category.lower()], ElementCategory):
-                    await ctx.respond(f"🔴 Cannot add elements to category **{category}**!")
+                if not isinstance(
+                    server.db.categories[category.lower()], ElementCategory
+                ):
+                    await ctx.respond(
+                        f"🔴 Cannot add elements to category **{category}**!"
+                    )
                     return
 
         user = await server.login_user(ctx.author.id)
@@ -55,7 +58,10 @@ class Categories(commands.Cog):
         else:
             element_text = f"**{len(elements)}** elements"
         await self.bot.add_poll(
-            server, poll, ctx, f"📂 Suggested to add {element_text} to category **{category}**!"
+            server,
+            poll,
+            ctx,
+            f"📂 Suggested to add {element_text} to category **{category}**!",
         )
 
     @bridge.bridge_command(aliases=["rc"])
@@ -77,8 +83,12 @@ class Categories(commands.Cog):
         async with server.db.category_lock.reader:
             if category.lower() in server.db.categories:
                 category = server.db.categories[category.lower()].name
-                if not isinstance(server.db.categories[category.lower()], ElementCategory):
-                    await ctx.respond(f"🔴 Cannot remove elements from category **{category}**!")
+                if not isinstance(
+                    server.db.categories[category.lower()], ElementCategory
+                ):
+                    await ctx.respond(
+                        f"🔴 Cannot remove elements from category **{category}**!"
+                    )
                     return
             else:
                 await ctx.respond(f"🔴 Category **{category}** doesn't exist!")
@@ -89,10 +99,16 @@ class Categories(commands.Cog):
         elements = tuple(sorted(elements, key=lambda e: e.id))
         async with server.db.category_lock.reader:
             if category.lower() in server.db.categories:
-                filtered_elements = [e for e in elements if e in server.db.categories[category.lower()].elements]
+                filtered_elements = [
+                    e
+                    for e in elements
+                    if e in server.db.categories[category.lower()].elements
+                ]
                 if len(filtered_elements) == 0:
                     element_list = format_list([f"**{e.name}**" for e in elements])
-                    await ctx.respond(f"🔴 Category **{category}** does not contain **{element_list}**!")
+                    await ctx.respond(
+                        f"🔴 Category **{category}** does not contain **{element_list}**!"
+                    )
                     return
                 elements = filtered_elements
         poll = await server.suggest_poll(RemoveCategoryPoll(user, category, elements))
@@ -102,7 +118,10 @@ class Categories(commands.Cog):
         else:
             element_text = f"**{len(elements)}** elements"
         await self.bot.add_poll(
-            server, poll, ctx, f"📂 Suggested to remove {element_text} from category **{category}**!"
+            server,
+            poll,
+            ctx,
+            f"📂 Suggested to remove {element_text} from category **{category}**!",
         )
 
     @bridge.bridge_command(aliases=["cat"])
@@ -151,7 +170,9 @@ class Categories(commands.Cog):
                     total += 1
             progress = total / len(category.elements)
             title = f"{category.name} ({len(category.elements)}, {progress:.2f}%)"
-            paginator = await ElementPaginator.create("Alphabetical", ctx, ctx.author, category.elements, title, True)
+            paginator = await ElementPaginator.create(
+                "Alphabetical", ctx, ctx.author, category.elements, title, True
+            )
             await paginator.respond(ctx)
 
 

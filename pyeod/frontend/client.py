@@ -10,19 +10,19 @@ __all__ = [
     "ElementLeaderboardPaginator",
 ]
 
-from pyeod.frontend.utils import get_page_limit, generate_embed_list
-from pyeod.model import Poll, User
-from pyeod.errors import InternalError, GameError
+from pyeod.errors import GameError, InternalError
 from pyeod.frontend.model import DiscordGameInstance, InstanceManager
-from pyeod.utils import format_list, calculate_difficulty, obtain_emoji
+from pyeod.frontend.utils import generate_embed_list, get_page_limit
+from pyeod.model import Poll, User
+from pyeod.utils import calculate_difficulty, format_list, obtain_emoji
 from discord import (
+    AutocompleteContext,
     ButtonStyle,
     Embed,
-    Message,
-    AutocompleteContext,
-    ui,
     Interaction,
+    Message,
     SelectOption,
+    ui,
 )
 from discord.ext import bridge, pages
 import random
@@ -298,7 +298,16 @@ class ElementListMenu(ui.Select):
 
 class ElementPaginator(FooterPaginator):
     def __init__(
-        self, page_list, initial_sorting, ctx, user, elements, title: str, check: bool, footer_text: str = "", loop: bool = True
+        self,
+        page_list,
+        initial_sorting,
+        ctx,
+        user,
+        elements,
+        title: str,
+        check: bool,
+        footer_text: str = "",
+        loop: bool = True,
     ) -> None:
         super(ElementPaginator, self).__init__(page_list, footer_text, loop)
         self.initial_sorting = initial_sorting
@@ -323,7 +332,7 @@ class ElementPaginator(FooterPaginator):
             self.target_user,
             self.elements,
             self.title,
-            self.check
+            self.check,
         )
 
         self.current_page = 0
@@ -350,14 +359,18 @@ class ElementPaginator(FooterPaginator):
                 elements = sorted([elem.name for elem in elements])
             elif sorting_option == "Created":
                 elements = [
-                    elem.name for elem in elements
+                    elem.name
+                    for elem in elements
                     if elem.author is not None and elem.author.id == user.id
                 ]
             elif sorting_option == "ID":
-                elements = [elem.name for elem in sorted(elements, key=lambda elem: elem.id)]
+                elements = [
+                    elem.name for elem in sorted(elements, key=lambda elem: elem.id)
+                ]
             elif sorting_option == "Tree Size":
                 elements = [
-                    elem.name for elem in sorted(
+                    elem.name
+                    for elem in sorted(
                         elements,
                         key=lambda elem: len(server.db.path_lookup[elem.id]),
                         reverse=True,
@@ -365,7 +378,8 @@ class ElementPaginator(FooterPaginator):
                 ]
             elif sorting_option == "Tier":
                 elements = [
-                    elem.name for elem in sorted(
+                    elem.name
+                    for elem in sorted(
                         elements,
                         key=lambda elem: server.db.complexities[elem.id],
                         reverse=True,
@@ -373,14 +387,16 @@ class ElementPaginator(FooterPaginator):
                 ]
             elif sorting_option == "Time Created":
                 elements = [
-                    elem.name for elem in sorted(
+                    elem.name
+                    for elem in sorted(
                         elements,
                         key=lambda elem: elem.created,
                     )
                 ]
             elif sorting_option == "Creator":
                 elements = [
-                    elem.name for elem in sorted(
+                    elem.name
+                    for elem in sorted(
                         elements,
                         key=lambda elem: elem.author.id if elem.author else 0,
                     )
@@ -390,8 +406,7 @@ class ElementPaginator(FooterPaginator):
                 random.shuffle(elements)
             elif sorting_option == "Length":
                 elements = sorted(
-                    [elem.name for elem in elements],
-                    key=lambda x: len(x)
+                    [elem.name for elem in elements], key=lambda x: len(x)
                 )
 
             if check:
@@ -402,10 +417,7 @@ class ElementPaginator(FooterPaginator):
 
         limit = get_page_limit(server, ctx.channel.id)
         return generate_embed_list(
-            elements,
-            title,
-            limit,
-            footer="Sorting by " + sorting_option
+            elements, title, limit, footer="Sorting by " + sorting_option
         )
 
     @staticmethod
@@ -450,9 +462,9 @@ async def create_element_leaderboard(sorting_option, ctx, user):
         else:
             raise GameError("Invalid sort", "Failed to find sort function")
 
-        for element_name, element in sorted(
-            server.db.elements.items(),
-            key=lambda pair: find_value(pair[1]),
+        for element in sorted(
+            server.db.elements.values(),
+            key=lambda elem: find_value(elem),
             reverse=True,
         ):
             i += 1
@@ -588,7 +600,9 @@ class ElementalBot(bridge.AutoShardedBot):
             await poll_msg.add_reaction("\U0001F53C")  # ⬆️ Emoji
             await poll_msg.add_reaction("\U0001F53D")
 
-    async def award_achievements(self, server: DiscordGameInstance, msg: Message = None, user: User = None):
+    async def award_achievements(
+        self, server: DiscordGameInstance, msg: Message = None, user: User = None
+    ):
         if msg is not None:
             user = await server.login_user(msg.author.id)
         new_achievements = await server.get_achievements(user)

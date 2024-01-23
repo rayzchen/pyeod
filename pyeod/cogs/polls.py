@@ -1,5 +1,5 @@
-from pyeod.frontend import DiscordGameInstance, ElementalBot, InstanceManager
 from pyeod.errors import InternalError
+from pyeod.frontend import DiscordGameInstance, ElementalBot, InstanceManager
 from discord import Message, TextChannel, errors
 from discord.ext import bridge, commands, tasks
 from discord.utils import get
@@ -93,15 +93,22 @@ class Polls(commands.Cog):
             return
         server.processing_polls.add(payload.message_id)
 
-        voters = server.upvoters[payload.message_id] ^ server.downvoters[payload.message_id]
+        voters = (
+            server.upvoters[payload.message_id] ^ server.downvoters[payload.message_id]
+        )
 
         resolve_poll = False
         author_downvote = False
         async with server.db.poll_lock.reader:
             poll = server.poll_msg_lookup[payload.message_id]
-            if payload.user_id == poll.author.id and str(payload.emoji) == Polls.DOWNVOTE:
+            if (
+                payload.user_id == poll.author.id
+                and str(payload.emoji) == Polls.DOWNVOTE
+            ):
                 author_downvote = True
-        total_vote_count = len(server.upvoters[payload.message_id]) - len(server.downvoters[payload.message_id])
+        total_vote_count = len(server.upvoters[payload.message_id]) - len(
+            server.downvoters[payload.message_id]
+        )
         if not author_downvote and abs(total_vote_count) < server.vote_req:
             # Quit early
             server.processing_polls.remove(payload.message_id)

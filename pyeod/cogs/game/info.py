@@ -1,3 +1,4 @@
+from pyeod import config
 from pyeod.frontend import (
     DiscordGameInstance,
     ElementalBot,
@@ -12,10 +13,9 @@ from pyeod.model import (
     MarkPoll,
     RemoveCollabPoll,
 )
-from pyeod import config
 from discord import Attachment, NotFound, User
-from discord.ext import bridge, commands
 from discord.commands import option as option_decorator
+from discord.ext import bridge, commands
 import aiohttp
 from typing import Optional
 import re
