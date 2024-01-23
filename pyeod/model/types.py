@@ -378,7 +378,7 @@ class Database(SavableMixin):
             self.complexities[elem.id] = 0
             self.min_elem_tree[elem.id] = ()
         self.path_lookup = {elem.id: {elem.id} for elem in self.starters}
-        self.category_lookup = {elem.id: [] for elem in self.starters}
+        self.category_lookup = {elem.id: set() for elem in self.starters}
 
     async def calculate_infos(self) -> None:
         async with self.complexity_lock.writer:
@@ -426,13 +426,13 @@ class Database(SavableMixin):
                     self.path_lookup[elem].add(elem)
 
             async with self.category_lock.writer:
-                self.category_lookup: Dict[int, List[str]] = {
-                    elem: [] for elem in self.elem_id_lookup
+                self.category_lookup: Dict[int, set] = {
+                    elem: set() for elem in self.elem_id_lookup
                 }
                 for elem in self.elements.values():
                     for category in self.categories.values():
                         if await category.has_element(elem, self):
-                            self.category_lookup[elem.id].append(category.name)
+                            self.category_lookup[elem.id].add(category.name)
 
     def get_complexity(self, elem_id: int) -> Union[int, None]:
         """

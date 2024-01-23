@@ -591,8 +591,7 @@ class AddCategoryPoll(Poll):
                     self.category, self.elements
                 )
                 for element in self.elements:
-                    if self.category not in database.category_lookup[element.id]:
-                        database.category_lookup[element.id].append(self.category)
+                    database.category_lookup[element.id].add(self.category)
             else:
                 category = database.categories[self.category.lower()]
                 if not isinstance(category, ElementCategory):
@@ -600,8 +599,7 @@ class AddCategoryPoll(Poll):
                 for element in self.elements:
                     if element not in category.elements:
                         category.elements.append(element)
-                    if category.name not in database.category_lookup[element.id]:
-                        database.category_lookup[element.id].append(category.name)
+                    database.category_lookup[element.id].add(category.name)
 
     async def get_news_message(self, instance: "GameInstance") -> str:
         msg = ""
