@@ -556,6 +556,11 @@ class Database(SavableMixin):
                 self.used_in_lookup[element.id] = set()
                 self.found_by_lookup[element.id] = set()
                 self.created_by_lookup[element.author.id].append(element.id)
+        async with self.category_lock.writer:
+            for category in self.categories.values():
+                if not isinstance(category, ElementCategory):
+                    if category.has_element(element):
+                        self.category_lookup[element].add(category.name)
 
     async def has_element(self, element: str) -> bool:
         async with self.element_lock.reader:
