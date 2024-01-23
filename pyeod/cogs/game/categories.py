@@ -147,7 +147,7 @@ class Categories(commands.Cog):
     @bridge.bridge_command(aliases=["cat"])
     @bridge.guild_only()
     @option_decorator("category", autocomplete=autocomplete_categories)
-    async def category(self, ctx: bridge.Context, category: str = ""):
+    async def category(self, ctx: bridge.Context, *, category: str = ""):
         """Lists all categories, or lists all elements of a category"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         user = await server.login_user(ctx.author.id)
