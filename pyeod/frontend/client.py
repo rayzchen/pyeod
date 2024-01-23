@@ -252,11 +252,11 @@ class ElementListMenu(ui.Select):
                 description="Sorts by ID",
                 emoji="#️⃣",
             ),
-            SelectOption(
-                label="Time Created",
-                description="Sorts by time the element was created",
-                emoji="📅",
-            ),
+            # SelectOption(
+            #     label="Time Created",
+            #     description="Sorts by time the element was created",
+            #     emoji="📅",
+            # ),
             SelectOption(
                 label="Tier",
                 description="Sorts by tier",
