@@ -35,6 +35,13 @@ class Categories(commands.Cog):
             element_list = parse_element_list(element_list)
         else:
             element_list = [element]
+        for i in range(len(element_list)):
+            if element_list[i].strip().startswith("#"):
+                number = element_list[i].strip().split("#", 1)[1]
+                if not number.isdecimal() or int(number) not in server.db.elem_id_lookup:
+                    await ctx.respond(f"🔴 Invalid ID: {number}!")
+                    return
+                element_list[i] = server.db.elem_id_lookup[int(number)].name
         category = category.strip()
 
         async with server.db.category_lock.reader:
@@ -84,6 +91,13 @@ class Categories(commands.Cog):
             element_list = parse_element_list(element_list)
         else:
             element_list = [element]
+        for i in range(len(element_list)):
+            if element_list[i].strip().startswith("#"):
+                number = element_list[i].strip().split("#", 1)[1]
+                if not number.isdecimal() or int(number) not in server.db.elem_id_lookup:
+                    await ctx.respond(f"🔴 Invalid ID: {number}!")
+                    return
+                element_list[i] = server.db.elem_id_lookup[int(number)].name
         category = category.strip()
 
         async with server.db.category_lock.reader:
