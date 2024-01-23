@@ -587,7 +587,7 @@ class AddCategoryPoll(Poll):
         # Extra lookup table checks in case of mismatch
         async with database.category_lock.reader:
             if self.category.lower() not in database.categories:
-                database.categories[self.category] = ElementCategory(
+                database.categories[self.category.lower()] = ElementCategory(
                     self.category, self.elements
                 )
                 for element in self.elements:
