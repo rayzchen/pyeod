@@ -10,7 +10,7 @@ __all__ = [
     "ElementLeaderboardPaginator",
 ]
 
-from .utils import get_page_limit, generate_embed_list
+from pyeod.frontend.utils import get_page_limit, generate_embed_list
 from pyeod.model import Poll, User
 from pyeod.errors import InternalError, GameError
 from pyeod.frontend.model import DiscordGameInstance, InstanceManager
@@ -83,7 +83,7 @@ async def create_leaderboard(sorting_option, ctx, user):
         find_value = None
         title = "Top " + sorting_option
         if sorting_option == "Elements Made":
-            find_value = lambda user: len(logged_in.inv)
+            find_value = lambda user: len(user.inv)
         elif sorting_option == "Elements Suggested":
             find_value = lambda user: len(server.db.created_by_lookup[user.id])
         elif sorting_option == "Combos Suggested":
@@ -274,7 +274,7 @@ class ElementListMenu(ui.Select):
             ),
             SelectOption(
                 label="Random",
-                description="Randomly shuffles your inventory",
+                description="Randomly orders all elements",
                 emoji="🎲",
             ),
             SelectOption(
@@ -298,20 +298,22 @@ class ElementListMenu(ui.Select):
 
 class ElementPaginator(FooterPaginator):
     def __init__(
-        self, page_list, ctx, user, elements, title: str, check: bool, footer_text: str = "", loop: bool = True
+        self, page_list, initial_sorting, ctx, user, elements, title: str, check: bool, footer_text: str = "", loop: bool = True
     ) -> None:
         super(ElementPaginator, self).__init__(page_list, footer_text, loop)
+        self.initial_sorting = initial_sorting
         self.show_menu = True
         self.ctx = ctx
         self.target_user = user
         self.elements = elements
         self.title = title
         self.check = check
-        self.footer_text = "Sorting by Found"
 
     def add_menu(self):
         self.menu = ElementListMenu()
         self.menu.paginator = self
+        if not self.footer_text:
+            self.footer_text = "Sorting by " + self.initial_sorting
         self.add_item(self.menu)
 
     async def regenerate(self, interaction):
@@ -338,7 +340,7 @@ class ElementPaginator(FooterPaginator):
         )
 
     @staticmethod
-    async def generate_pages(sorting_option, ctx, user, elements, title, check=False):
+    async def generate_pages(sorting_option, ctx, user, elements, title, check):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         logged_in = await server.login_user(user.id)
         async with server.db.element_lock.reader:
@@ -393,14 +395,10 @@ class ElementPaginator(FooterPaginator):
                 )
 
             if check:
-                obtained = []
-                unobtained = []
-                for elem in elements:
-                    if server.db.elements[elem.lower()].id in logged_in.inv:
-                        obtained.append(elem + " " + obtain_emoji(True))
-                    else:
-                        unobtained.append(elem + " " + obtain_emoji(False))
-                elements = obtained + unobtained
+                for i in range(len(elements)):
+                    elem = elements[i]
+                    found = server.db.elements[elem.lower()].id in logged_in.inv
+                    elements[i] = elem + " " + obtain_emoji(found)
 
         limit = get_page_limit(server, ctx.channel.id)
         return generate_embed_list(
@@ -411,9 +409,9 @@ class ElementPaginator(FooterPaginator):
         )
 
     @staticmethod
-    async def create(sorting_option, ctx, user, elements, title, check=False, footer_text: str = "", loop: bool = True):
-        pages = await ElementPaginator.generate_pages(sorting_option, ctx, user, elements, title, check)
-        paginator = ElementPaginator(pages, ctx, user, elements, title, check, footer_text, loop)
+    async def create(*args, footer_text: str = "", loop: bool = True):
+        pages = await ElementPaginator.generate_pages(*args)
+        paginator = ElementPaginator(pages, *args, footer_text, loop)
         return paginator
 
 

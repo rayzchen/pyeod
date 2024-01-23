@@ -5,7 +5,12 @@ from pyeod.frontend import (
     autocomplete_elements,
     autocomplete_categories,
     parse_element_list,
+    ElementPaginator,
+    get_page_limit,
+    generate_embed_list,
+    FooterPaginator,
 )
+from pyeod import config
 from pyeod.model import ElementCategory, AddCategoryPoll, RemoveCategoryPoll
 from pyeod.utils import format_list
 
@@ -99,6 +104,55 @@ class Categories(commands.Cog):
         await self.bot.add_poll(
             server, poll, ctx, f"📂 Suggested to remove {element_text} from category **{category}**!"
         )
+
+    @bridge.bridge_command(aliases=["cat"])
+    @bridge.guild_only()
+    @option_decorator("category", autocomplete=autocomplete_categories)
+    async def category(self, ctx: bridge.Context, category: str = ""):
+        """Lists all categories, or lists all elements of a category"""
+        server = InstanceManager.current.get_or_create(ctx.guild.id)
+        user = await server.login_user(ctx.author.id)
+
+        if not category:
+            lines = []
+            async with server.db.category_lock.reader:
+                for name, category in server.db.categories.items():
+                    if not isinstance(category, ElementCategory):
+                        lines.append(name)
+                    else:
+                        total = 0
+                        for element in category.elements:
+                            if element.id in user.inv:
+                                total += 1
+                        percentage = total / len(category.elements)
+                        if percentage == 1:
+                            lines.append(f"{name} {obtain_emoji(True)}")
+                        else:
+                            lines.append(f"{name} ({percentage:.2f}%)")
+
+            limit = get_page_limit(server, ctx.channel.id)
+            embeds = generate_embed_list(
+                lines,
+                f"All Categories ({len(server.db.categories)})",
+                limit,
+                config.EMBED_COLOR,
+            )
+            paginator = FooterPaginator(embeds)
+            await paginator.respond(ctx)
+        else:
+            category_name = category.lower()
+            if category_name not in server.db.categories:
+                await ctx.respond(f"🔴 Category **{category}** doesn't exist!")
+                return
+            category = server.db.categories[category_name]
+            total = 0
+            for element in category.elements:
+                if element.id in user.inv:
+                    total += 1
+            progress = total / len(category.elements)
+            title = f"{category.name} ({len(category.elements)}, {progress:.2f}%)"
+            paginator = await ElementPaginator.create("Alphabetical", ctx, ctx.author, category.elements, title, True)
+            await paginator.respond(ctx)
 
 
 def setup(client):

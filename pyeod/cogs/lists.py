@@ -32,7 +32,7 @@ class Lists(commands.Cog):
         logged_in = await server.login_user(user.id)
         inv = [server.db.elem_id_lookup[e] for e in logged_in.inv]
         title = user.display_name + f"'s Inventory ({len(inv)})"
-        paginator = await ElementPaginator.create("Found", ctx, user, inv, title)
+        paginator = await ElementPaginator.create("Found", ctx, user, inv, title, False)
         await paginator.respond(ctx)
 
     @bridge.bridge_command()
