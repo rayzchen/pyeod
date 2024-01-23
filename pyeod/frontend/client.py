@@ -258,6 +258,11 @@ class ElementListMenu(ui.Select):
             #     emoji="📅",
             # ),
             SelectOption(
+                label="Difficulty",
+                description="Sorts by difficulty",
+                emoji="📛",
+            ),
+            SelectOption(
                 label="Tier",
                 description="Sorts by tier",
                 emoji="📶",
@@ -373,6 +378,18 @@ class ElementPaginator(FooterPaginator):
                     for elem in sorted(
                         elements,
                         key=lambda elem: len(server.db.path_lookup[elem.id]),
+                        reverse=True,
+                    )
+                ]
+            elif sorting_option == "Difficulty":
+                elements = [
+                    elem.name
+                    for elem in sorted(
+                        elements,
+                        key=lambda elem: calculate_difficulty(
+                            len(server.db.path_lookup[elem.id]),
+                            server.db.complexities[elem.id],
+                        ),
                         reverse=True,
                     )
                 ]
