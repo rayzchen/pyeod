@@ -163,8 +163,8 @@ class Categories(commands.Cog):
                         for element in category.elements:
                             if element.id in user.inv:
                                 total += 1
-                        percentage = total / len(category.elements)
-                        if percentage == 1:
+                        percentage = total / len(category.elements) * 100
+                        if percentage == 100:
                             lines.append(f"{name} {obtain_emoji(True)}")
                         else:
                             lines.append(f"{name} ({percentage:.2f}%)")
@@ -189,7 +189,7 @@ class Categories(commands.Cog):
             for element in elements:
                 if element.id in user.inv:
                     total += 1
-            progress = total / len(elements)
+            progress = total / len(elements) * 100
             title = f"{category.name} ({len(elements)}, {progress:.2f}%)"
             paginator = await ElementPaginator.create(
                 "Alphabetical", ctx, ctx.author, elements, title, True
