@@ -200,7 +200,7 @@ class Base(commands.Cog):
         name = name.replace("\u200C", "")  # ZWNJ
 
         if len(name) > 256:
-            await msg.reply("🔴 Element names cannot be longer than 256 character!")
+            await msg.reply("🔴 Element names cannot be longer than 256 characters!")
             return
         if name == "":
             await msg.reply("🔴 Please give a valid element name!")
