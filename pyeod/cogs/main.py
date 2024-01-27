@@ -40,10 +40,11 @@ class Main(commands.Cog):
             err, (commands.errors.CommandInvokeError, ApplicationCommandInvokeError)
         ):
             err = err.original
-        handled = True
+        handled = False
         if isinstance(err, GameError):
             if err.type == "Not an element":
                 await ctx.respond(f"🔴 Element **{err.meta['name']}** doesn't exist!")
+                handled = True
             elif err.type == "Do not exist":
                 if err.meta["user"] is not None:
                     err.meta["user"].last_element = None
@@ -51,24 +52,24 @@ class Main(commands.Cog):
                 element_list = [f"**{elem}**" for elem in err.meta["elements"]]
                 if len(element_list) == 1:
                     await ctx.respond(f"🔴 Element {element_list[0]} doesn't exist!")
+                    handled = True
                 else:
                     await ctx.respond(
                         f"🔴 Elements {format_list(element_list, 'and')} don't exist!"
                     )
+                    handled = True
             elif err.type == "Not in inv":
                 err.meta["user"].last_element = None
                 err.meta["user"].last_combo = ()
                 element_list = [f"**{elem.name}**" for elem in err.meta["elements"]]
                 await ctx.respond(f"🔴 You don't have {format_list(element_list)}!")
-            else:
-                handled = False
+                handled = True
         elif isinstance(err, InternalError):
             if err.type == "Complexity lock":
                 await ctx.respond(
                     f"🔴 Complexity calculations ongoing, cannot access element data"
                 )
-            else:
-                handled = False
+                handled = True
         if handled:
             return
 
