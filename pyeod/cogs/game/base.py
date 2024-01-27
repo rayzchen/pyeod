@@ -288,12 +288,13 @@ class Base(commands.Cog):
             description += f"🆕 You made **{element.name}**!"
         except GameError as g:
             if g.type == "Not a combo":
+                print("here")
                 # Keep last combo
                 user.last_element = None
                 description += (
                     "🟥 Not a combo! Use **!s <element_name>** to suggest an element"
                 )
-            if g.type == "Already have element":
+            elif g.type == "Already have element":
                 # Keep last element
                 user.last_combo = ()
                 description += (
