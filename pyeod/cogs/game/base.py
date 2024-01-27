@@ -7,6 +7,7 @@ from pyeod.frontend import (
     build_info_embed,
     get_multiplier,
     parse_element_list,
+    autocomplete_categories,
 )
 from pyeod.utils import format_list
 from discord import Embed, Message
@@ -267,8 +268,13 @@ class Base(commands.Cog):
 
     @bridge.bridge_command(aliases=["rcom"])
     @bridge.guild_only()
+    @option_decorator("category", autocomplete=autocomplete_categories)
     async def random_combination(
-        self, ctx: bridge.Context, number_of_elements: int = 2
+        self,
+        ctx: bridge.Context,
+        number_of_elements: int = 2,
+        *,
+        category: str = None,
     ):
         """Combines random elements from your inventory"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
@@ -278,8 +284,22 @@ class Base(commands.Cog):
             await ctx.respond("🔴 Invalid number of elements!")
             return
         async with server.db.element_lock.reader:
-            for _ in range(number_of_elements):
-                combo.append(server.db.elem_id_lookup[random.choice(user.inv)].name)
+            if category is None:
+                for _ in range(number_of_elements):
+                    combo.append(server.db.elem_id_lookup[random.choice(user.inv)].name)
+            else:
+                async with server.db.category_lock.reader:
+                    if category.lower().strip() in server.db.categories:
+                        possible_elements = set(
+                            [server.db.elem_id_lookup[i] for i in user.inv]
+                        ) & set(await server.db.categories[category.lower().strip()].get_elements(server.db))
+                        combo = [
+                            random.sample(possible_elements, 1)[0].name
+                            for _ in range(number_of_elements)
+                        ]
+                    else:
+                        await ctx.respond(f"🔴 Category **{category}** doesn't exist!")
+                        return
         description = (
             f"Combined:\n> \n> **{'** + **'.join(combo)}**\n> \n\nResult:\n> \n> "
         )
