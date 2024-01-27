@@ -32,28 +32,32 @@ def get_nearest_boundary(boundaries, value):
 
 
 async def cache_element_stats(instance, user):
-    if user.id not in element_stats_cache:
-        element_stats_cache[user.id] = {
+    if id(instance) not in element_stats_cache:
+        element_stats_cache[id(instance)] = {}
+    if user.id not in element_stats_cache[id(instance)]:
+        element_stats_cache[id(instance)][user.id] = {
             "last_checked_inv_pos": 0,
             "highest_complexity": 0,
             "highest_tree_size": 0,
             "highest_difficulty": 0,
         }
-    for element_id in user.inv[element_stats_cache[user.id]["last_checked_inv_pos"] :]:
+    for element_id in user.inv[element_stats_cache[id(instance)][user.id]["last_checked_inv_pos"] :]:
         complexity = instance.db.complexities[element_id]
-        if complexity > element_stats_cache[user.id]["highest_complexity"]:
-            element_stats_cache[user.id]["highest_complexity"] = complexity
+        if complexity > element_stats_cache[id(instance)][user.id]["highest_complexity"]:
+            element_stats_cache[id(instance)][user.id]["highest_complexity"] = complexity
         tree_size = len(instance.db.path_lookup[element_id])
-        if tree_size > element_stats_cache[user.id]["highest_tree_size"]:
-            element_stats_cache[user.id]["highest_tree_size"] = tree_size
+        if tree_size > element_stats_cache[id(instance)][user.id]["highest_tree_size"]:
+            element_stats_cache[id(instance)][user.id]["highest_tree_size"] = tree_size
         difficulty = calculate_difficulty(tree_size, complexity)
-        if difficulty > element_stats_cache[user.id]["highest_difficulty"]:
-            element_stats_cache[user.id]["highest_difficulty"] = difficulty
-    element_stats_cache[user.id]["last_checked_inv_pos"] = len(user.inv) - 1
+        if difficulty > element_stats_cache[id(instance)][user.id]["highest_difficulty"]:
+            element_stats_cache[id(instance)][user.id]["highest_difficulty"] = difficulty
+    element_stats_cache[id(instance)][user.id]["last_checked_inv_pos"] = len(user.inv) - 1
 
 
 async def cache_element_info(instance, user):
-    element_info_cache[user.id] = {
+    if id(instance) not in element_info_cache:
+        element_info_cache[id(instance)] = {}
+    element_info_cache[id(instance)][user.id] = {
         "elements_imaged": 0,
         "elements_colored": 0,
         "elements_iconed": 0,
@@ -61,13 +65,13 @@ async def cache_element_info(instance, user):
     }
     for element in instance.db.elements.values():
         if element.imager == user:
-            element_info_cache[user.id]["elements_imaged"] += 1
+            element_info_cache[id(instance)][user.id]["elements_imaged"] += 1
         if element.colorer == user:
-            element_info_cache[user.id]["elements_colored"] += 1
+            element_info_cache[id(instance)][user.id]["elements_colored"] += 1
         if element.iconer == user:
-            element_info_cache[user.id]["elements_iconed"] += 1
+            element_info_cache[id(instance)][user.id]["elements_iconed"] += 1
         if element.marker == user:
-            element_info_cache[user.id]["elements_marked"] += 1
+            element_info_cache[id(instance)][user.id]["elements_marked"] += 1
 
 
 elements_collected_boundaries = [
@@ -266,7 +270,7 @@ async def mark_check(instance, user):
     async with instance.db.user_lock.reader:
         return boundary_list_check(
             editable_element_info_boundaries,
-            element_info_cache[user.id]["elements_marked"],
+            element_info_cache[id(instance)][user.id]["elements_marked"],
         )
 
 
@@ -274,7 +278,7 @@ async def mark_progress(instance, user):
     async with instance.db.user_lock.reader:
         return get_nearest_boundary(
             editable_element_info_boundaries,
-            element_info_cache[user.id]["elements_marked"],
+            element_info_cache[id(instance)][user.id]["elements_marked"],
         )
 
 
@@ -282,7 +286,7 @@ async def image_check(instance, user):
     async with instance.db.user_lock.reader:
         return boundary_list_check(
             editable_element_info_boundaries,
-            element_info_cache[user.id]["elements_imaged"],
+            element_info_cache[id(instance)][user.id]["elements_imaged"],
         )
 
 
@@ -290,7 +294,7 @@ async def image_progress(instance, user):
     async with instance.db.user_lock.reader:
         return get_nearest_boundary(
             editable_element_info_boundaries,
-            element_info_cache[user.id]["elements_imaged"],
+            element_info_cache[id(instance)][user.id]["elements_imaged"],
         )
 
 
@@ -298,7 +302,7 @@ async def color_check(instance, user):
     async with instance.db.user_lock.reader:
         return boundary_list_check(
             editable_element_info_boundaries,
-            element_info_cache[user.id]["elements_colored"],
+            element_info_cache[id(instance)][user.id]["elements_colored"],
         )
 
 
@@ -306,7 +310,7 @@ async def color_progress(instance, user):
     async with instance.db.user_lock.reader:
         return get_nearest_boundary(
             editable_element_info_boundaries,
-            element_info_cache[user.id]["elements_colored"],
+            element_info_cache[id(instance)][user.id]["elements_colored"],
         )
 
 
@@ -314,7 +318,7 @@ async def icon_check(instance, user):
     async with instance.db.user_lock.reader:
         return boundary_list_check(
             editable_element_info_boundaries,
-            element_info_cache[user.id]["elements_iconed"],
+            element_info_cache[id(instance)][user.id]["elements_iconed"],
         )
 
 
@@ -322,7 +326,7 @@ async def icon_progress(instance, user):
     async with instance.db.user_lock.reader:
         return get_nearest_boundary(
             editable_element_info_boundaries,
-            element_info_cache[user.id]["elements_iconed"],
+            element_info_cache[id(instance)][user.id]["elements_iconed"],
         )
 
 
@@ -354,7 +358,7 @@ async def complexity_check(instance, user):
     async with instance.db.user_lock.reader, instance.db.element_lock.reader:
         return boundary_list_check(
             element_complexity_boundaries,
-            element_stats_cache[user.id]["highest_complexity"],
+            element_stats_cache[id(instance)][user.id]["highest_complexity"],
         )
 
 
@@ -362,7 +366,7 @@ async def complexity_progress(instance, user):
     async with instance.db.user_lock.reader, instance.db.element_lock.reader:
         return get_nearest_boundary(
             element_complexity_boundaries,
-            element_stats_cache[user.id]["highest_complexity"],
+            element_stats_cache[id(instance)][user.id]["highest_complexity"],
         )
 
 
@@ -390,7 +394,7 @@ async def tree_size_check(instance, user):
     async with instance.db.user_lock.reader, instance.db.element_lock.reader:
         return boundary_list_check(
             element_tree_size_boundaries,
-            element_stats_cache[user.id]["highest_tree_size"],
+            element_stats_cache[id(instance)][user.id]["highest_tree_size"],
         )
 
 
@@ -398,7 +402,7 @@ async def tree_size_progress(instance, user):
     async with instance.db.user_lock.reader, instance.db.element_lock.reader:
         return get_nearest_boundary(
             element_tree_size_boundaries,
-            element_stats_cache[user.id]["highest_tree_size"],
+            element_stats_cache[id(instance)][user.id]["highest_tree_size"],
         )
 
 
@@ -428,7 +432,7 @@ async def difficulty_check(instance, user):
     async with instance.db.user_lock.reader, instance.db.element_lock.reader:
         return boundary_list_check(
             element_difficulty_boundaries,
-            element_stats_cache[user.id]["highest_difficulty"],
+            element_stats_cache[id(instance)][user.id]["highest_difficulty"],
         )
 
 
@@ -436,7 +440,7 @@ async def difficulty_progress(instance, user):
     async with instance.db.user_lock.reader, instance.db.element_lock.reader:
         return get_nearest_boundary(
             element_difficulty_boundaries,
-            element_stats_cache[user.id]["highest_difficulty"],
+            element_stats_cache[id(instance)][user.id]["highest_difficulty"],
         )
 
 
