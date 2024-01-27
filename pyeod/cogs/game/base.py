@@ -308,7 +308,6 @@ class Base(commands.Cog):
             description += f"🆕 You made **{element.name}**!"
         except GameError as g:
             if g.type == "Not a combo":
-                print("here")
                 # Keep last combo
                 user.last_element = None
                 description += (
