@@ -12,6 +12,7 @@ from pyeod.frontend import (
     parse_element_list,
 )
 from pyeod.model import AddCategoryPoll, ElementCategory, RemoveCategoryPoll
+from pyeod.model.autocats import tokenize, parse_object
 from pyeod.utils import format_list, obtain_emoji
 from discord.commands import option as option_decorator
 from discord.ext import bridge, commands
@@ -38,7 +39,10 @@ class Categories(commands.Cog):
         for i in range(len(element_list)):
             if element_list[i].strip().startswith("#"):
                 number = element_list[i].strip().split("#", 1)[1]
-                if not number.isdecimal() or int(number) not in server.db.elem_id_lookup:
+                if (
+                    not number.isdecimal()
+                    or int(number) not in server.db.elem_id_lookup
+                ):
                     await ctx.respond(f"🔴 Invalid ID: {number}!")
                     return
                 element_list[i] = server.db.elem_id_lookup[int(number)].name
@@ -55,7 +59,9 @@ class Categories(commands.Cog):
                     )
                     return
             elif len(category) > 256:
-                await ctx.respond("🔴 Category names cannot be longer than 256 characters!")
+                await ctx.respond(
+                    "🔴 Category names cannot be longer than 256 characters!"
+                )
                 return
             elif "|" in category:
                 await ctx.respond("🔴 Category names cannot contain | !")
@@ -94,7 +100,10 @@ class Categories(commands.Cog):
         for i in range(len(element_list)):
             if element_list[i].strip().startswith("#"):
                 number = element_list[i].strip().split("#", 1)[1]
-                if not number.isdecimal() or int(number) not in server.db.elem_id_lookup:
+                if (
+                    not number.isdecimal()
+                    or int(number) not in server.db.elem_id_lookup
+                ):
                     await ctx.respond(f"🔴 Invalid ID: {number}!")
                     return
                 element_list[i] = server.db.elem_id_lookup[int(number)].name
@@ -195,6 +204,30 @@ class Categories(commands.Cog):
                 "Alphabetical", ctx, ctx.author, elements, title, True
             )
             await paginator.respond(ctx)
+
+    @bridge.bridge_command(aliases=["q"])
+    @bridge.guild_only()
+    async def query(self, ctx: bridge.Context, *, query: str = ""):
+        """Lists all categories, or lists all elements of a category"""
+        server = InstanceManager.current.get_or_create(ctx.guild.id)
+        user = await server.login_user(ctx.author.id)
+        elements = []
+        #total = 0
+        async with (server.db.element_lock.reader, server.db.user_lock.reader):
+            tokens = tokenize(query)
+            for i in server.db.elements.values():
+                result = parse_object(i, tokens)
+                if result:
+                    elements.append(i)
+            for element in elements:
+                if element.id in user.inv:
+                    total += 1
+        progress = 0 / len(elements) * 100
+        title = f"{query} ({len(elements)}, {progress:.2f}%)"
+        paginator = await ElementPaginator.create(
+            "Alphabetical", ctx, ctx.author, elements, title, True
+        )
+        await paginator.respond(ctx)
 
 
 def setup(client):
