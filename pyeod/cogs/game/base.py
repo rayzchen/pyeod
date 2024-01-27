@@ -271,12 +271,12 @@ class Base(commands.Cog):
         self, ctx: bridge.Context, number_of_elements: int = 2
     ):
         """Combines random elements from your inventory"""
-        if not (1 < number_of_elements <= server.combo_limit):
-            await ctx.respond("🔴 Invalid number of elements!")
-            return
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         user = await server.login_user(ctx.author.id)
         combo = []
+        if not (1 < number_of_elements <= server.combo_limit):
+            await ctx.respond("🔴 Invalid number of elements!")
+            return
         async with server.db.element_lock.reader:
             for _ in range(number_of_elements):
                 combo.append(server.db.elem_id_lookup[random.choice(user.inv)].name)
