@@ -3,6 +3,7 @@
 pyeod/db/
 pyeod/control/stop
 pyeod/control/restart
+ErrorLogs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
