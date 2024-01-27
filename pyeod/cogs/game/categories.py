@@ -212,7 +212,7 @@ class Categories(commands.Cog):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         user = await server.login_user(ctx.author.id)
         elements = []
-        #total = 0
+        total = 0
         async with (server.db.element_lock.reader, server.db.user_lock.reader):
             tokens = tokenize(query)
             for i in server.db.elements.values():
@@ -222,7 +222,7 @@ class Categories(commands.Cog):
             for element in elements:
                 if element.id in user.inv:
                     total += 1
-        progress = 0 / len(elements) * 100
+        progress = total / len(elements) * 100
         title = f"{query} ({len(elements)}, {progress:.2f}%)"
         paginator = await ElementPaginator.create(
             "Alphabetical", ctx, ctx.author, elements, title, True
