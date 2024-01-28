@@ -2,6 +2,8 @@ import inspect
 import re
 from functools import wraps
 from copy import deepcopy
+import math
+from .types import Element
 
 user_funcs = {}
 
@@ -39,7 +41,9 @@ class CurrentObjectType:
 class CurrentObjectListSubType:
     pass
 
+
 re_cache = {}
+
 
 @user_func()
 def regex(current_object, regex_str: str):
@@ -66,6 +70,12 @@ def greater(current_object, number: float):
 def lesser(current_object, number: float):
     """Checks whether the current object is less than a number\nreturns True or False"""
     return current_object < number
+
+
+@user_func(name="floor")
+def _floor(current_object):
+    """Floors the current object\nreturns the same type as the current object"""
+    return float(math.floor(current_object))
 
 
 @user_func(name="not")
@@ -108,6 +118,12 @@ def mult(current_object, multiplication: CurrentObjectType):
 def divide(current_object, division: CurrentObjectType):
     """Divides the current object\nreturns the same type as the current object"""
     return current_object / division
+
+
+@user_func(name="%")
+def modulo(current_object, mod: CurrentObjectType):
+    """Modulos the current object\nreturns the same type as the current object"""
+    return current_object % mod
 
 
 @user_func()
@@ -189,26 +205,39 @@ class ItemToken(Token):
 
 
 class PropertyGrabToken(Token):
-    def parse(
+    async def parse(
         self,
         token_stack,
         pointer,
         current_object,
         outer_element_objects,
         element_object,
+        server,
     ):
         pointer, prop_to_grab = self.eat_token(token_stack, pointer, TextToken)
-        return pointer, getattr(current_object or element_object, prop_to_grab.text)
+        try:
+            return pointer, getattr(current_object or element_object, prop_to_grab.text)
+        except AttributeError:
+            if isinstance(element_object, Element):
+                if prop_to_grab.text == "parents":
+                    path = await server.db.get_path(element_object)
+                    elements = [
+                        server.db.elem_id_lookup[x]
+                        for x in server.db.min_elem_tree[path[-1]]
+                    ]
+                    return pointer, elements
+            raise
 
 
 class FunctionCallToken(Token):
-    def parse(
+    async def parse(
         self,
         token_stack,
         pointer,
         current_object,
         outer_element_objects,
         element_object,
+        server,
     ):
         try:
             pointer, function_name = self.eat_token(token_stack, pointer, TextToken)
@@ -217,12 +246,15 @@ class FunctionCallToken(Token):
         func = user_funcs[function_name.text]
         if "type" in func:
             pointer, _ = self.eat_token(token_stack, pointer, OpenFunctionArgToken)
-            shift, untyped_arg = parse_object(
+            shift, untyped_arg = await parse_object(
                 deepcopy(current_object),
                 token_stack[pointer + 1 :],
+                server,
                 stop_token=CloseFunctionArgToken,
                 outer_element_objects=[element_object] + outer_element_objects,
             )
+            if len(current_object) == 0:
+                return pointer+shift, False
             try:
                 if func["type"] == CurrentObjectType:
                     arg = type(current_object)(untyped_arg)
@@ -245,8 +277,8 @@ class FunctionCallToken(Token):
             func = user_funcs[function_name.text]
             try:
                 return pointer, func["func_object"](current_object)
-            except (ValueError, TypeError):  # Return None when a parsing fails
-                return pointer, None
+            except (ValueError, TypeError):
+                return pointer, False
 
 
 class OpenFunctionArgToken(Token):
@@ -323,7 +355,7 @@ token_map = {
 }
 
 
-def tokenize(script: str):
+async def tokenize(script: str):
     pattern = re.compile(r"\s+")
     script = re.sub(pattern, "", script)
     token_stack = [TextToken()]
@@ -354,11 +386,12 @@ def tokenize(script: str):
     return token_stack
 
 
-def parse_object(
+async def parse_object(
     element_object,
     token_stack: list,
+    server,
     *,
-    stop_type=None,
+    stop_type=type(None),
     stop_token=None,
     outer_element_objects=None,
 ):
@@ -367,7 +400,7 @@ def parse_object(
     current_object = None
     pointer = 0
     while pointer < len(token_stack) - 1 and (
-        stop_type is None or type(current_object) != stop_type
+        stop_type is type(None) or type(current_object) != stop_type
     ):
         token = token_stack[pointer]
         if stop_token and isinstance(token, stop_token):
@@ -395,49 +428,70 @@ def parse_object(
                     raise Exception('Expected "element" or "item"')
         elif isinstance(token, OpenMappingToken):
             new_list_object = []
+            if current_object is False:
+                current_object = []
             for item in current_object:
-                shift, returned_object = parse_object(
+                shift, returned_object = await parse_object(
                     item,
                     token_stack[pointer + 1 :],
+                    server,
                     stop_token=CloseMappingToken,
                     outer_element_objects=[element_object] + outer_element_objects,
                 )
                 new_list_object.append(returned_object)
+            if len(current_object) == 0:
+                shift = 0
+                eat_token = None
+                while not isinstance(eat_token, CloseMappingToken):
+                    shift += 1
+                    eat_token = token_stack[pointer + shift]
+            else:
+                current_object = new_list_object
             pointer += shift
-            current_object = new_list_object
         elif isinstance(token, OpenFilterToken):
             new_list_object = []
+            if current_object is False:
+                current_object = []
             for item in current_object:
-                shift, returned_object = parse_object(
+                shift, returned_object = await parse_object(
                     item,
                     token_stack[pointer + 1 :],
+                    server,
                     stop_token=CloseFilterToken,
                     outer_element_objects=[element_object] + outer_element_objects,
                 )
                 if returned_object:
                     new_list_object.append(item)
+            if len(current_object) == 0:
+                shift = 0
+                eat_token = False
+                while not isinstance(eat_token, CloseFilterToken):
+                    shift += 1
+                    eat_token = token_stack[pointer + shift]
+            else:
+                current_object = new_list_object
             pointer += shift
-            current_object = new_list_object
         elif isinstance(token, BoolOpToken):
             left = current_object
-            shift, right = parse_object(
-                element_object, token_stack[pointer + 1 :], stop_type=bool
+            shift, right = await parse_object(
+                element_object, token_stack[pointer + 1 :], server, stop_type=bool
             )
             current_object = token.parse(left, right)
             pointer += shift
         else:
-            pointer, current_object = token.parse(
+            pointer, current_object = await token.parse(
                 token_stack,
                 pointer,
                 current_object,
                 outer_element_objects,
                 element_object,
+                server,
             )
         pointer += 1
     if current_object is None:
         if isinstance(token, TextToken):
             current_object = token.text
-    if not stop_type and not stop_token:
+    if stop_type == type(None) and stop_token is None:
         return current_object
     else:
         return pointer, current_object
@@ -502,9 +556,9 @@ if __name__ == "__main__":
     print("\n-   Tokenized Form:")
     for i in tokens:
         print(i)
-    result = parse_object(e3, tokens)
+    # result = await parse_object(e3, tokens)
     print("\n-   Result:")
-    print(result)
+    # print(result)
 
     print("\n\n\n")
     print(token_list_to_string(tokens, False))

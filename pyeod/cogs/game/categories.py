@@ -12,7 +12,7 @@ from pyeod.frontend import (
     parse_element_list,
 )
 from pyeod.model import AddCategoryPoll, ElementCategory, RemoveCategoryPoll
-from pyeod.model.autocats import tokenize, parse_object
+from pyeod.model.autocats import tokenize, parse_object, token_list_to_string
 from pyeod.utils import format_list, obtain_emoji
 from discord.commands import option as option_decorator
 from discord.ext import bridge, commands
@@ -214,16 +214,16 @@ class Categories(commands.Cog):
         elements = []
         total = 0
         async with (server.db.element_lock.reader, server.db.user_lock.reader):
-            tokens = tokenize(query)
+            tokens = await tokenize(query)
             for i in server.db.elements.values():
-                result = parse_object(i, tokens)
+                result = await parse_object(i, tokens, server)
                 if result:
                     elements.append(i)
             for element in elements:
                 if element.id in user.inv:
                     total += 1
         progress = total / len(elements) * 100
-        title = f"{query} ({len(elements)}, {progress:.2f}%)"
+        title = f"{token_list_to_string(tokens)} ({len(elements)}, {progress:.2f}%)"
         paginator = await ElementPaginator.create(
             "Alphabetical", ctx, ctx.author, elements, title, True
         )
