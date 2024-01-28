@@ -578,9 +578,7 @@ class Database(SavableMixin):
     async def set_combo_result(
         self, combo: Tuple[Element, ...], result: Element
     ) -> None:
-        if self.complexity_lock.writer.locked:
-            raise InternalError("Complexity lock", "Complexity calculations in process")
-        async with self.element_lock.writer:
+        async with (self.element_lock.writer, self.complexity_lock.writer):
             sorted_combo = tuple(sorted(elem.id for elem in combo))
             if sorted_combo in self.combos:
                 raise InternalError("Combo exists", "That combo already exists")
