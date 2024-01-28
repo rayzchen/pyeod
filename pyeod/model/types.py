@@ -247,7 +247,7 @@ class Poll(SavableMixin):
 
 
 class Category(SavableMixin):
-    __slots__ = "name"
+    __slots__ = ("name")
 
     def __init__(self, name: str) -> None:
         self.name = name
@@ -257,6 +257,7 @@ class Category(SavableMixin):
         pass
 
     async def get_elements(self, database: "Database") -> Tuple[Element, ...]:
+        # in most cases, it is better to override this method
         elements = []
         for element in database.elements.items():
             if await self.has_element(element, database):
@@ -284,7 +285,9 @@ class ElementCategory(Category):
 
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "ElementCategory":
-        elements = [loader.elem_id_lookup[e] for e in data.get("elements")]
+        # python>=3.7 only
+        deduplicated = list(dict.fromkeys(data.get("elements")))
+        elements = [loader.elem_id_lookup[e] for e in deduplicated]
         return ElementCategory(data.get("name"), elements)
 
 

@@ -42,6 +42,9 @@ class Categories(commands.Cog):
                     await ctx.respond(f"🔴 Invalid ID: {number}!")
                     return
                 element_list[i] = server.db.elem_id_lookup[int(number)].name
+
+        # python>=3.7 only
+        element_list = list(dict.fromkeys(element_list))
         category = category.strip()
 
         async with server.db.category_lock.reader:
@@ -98,6 +101,9 @@ class Categories(commands.Cog):
                     await ctx.respond(f"🔴 Invalid ID: {number}!")
                     return
                 element_list[i] = server.db.elem_id_lookup[int(number)].name
+
+        # python>=3.7 only
+        element_list = list(dict.fromkeys(element_list))
         category = category.strip()
 
         async with server.db.category_lock.reader:
