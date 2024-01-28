@@ -4,6 +4,8 @@ from functools import wraps
 from copy import deepcopy
 import math
 from .types import Element
+from .instance import GameInstance
+from ..utils import calculate_difficulty
 
 user_funcs = {}
 
@@ -212,21 +214,42 @@ class PropertyGrabToken(Token):
         current_object,
         outer_element_objects,
         element_object,
-        server,
+        server: GameInstance,
     ):
         pointer, prop_to_grab = self.eat_token(token_stack, pointer, TextToken)
         try:
             return pointer, getattr(current_object or element_object, prop_to_grab.text)
         except AttributeError:
             if isinstance(element_object, Element):
-                if prop_to_grab.text == "parents":
-                    path = await server.db.get_path(element_object)
-                    elements = [
-                        server.db.elem_id_lookup[x]
-                        for x in server.db.min_elem_tree[path[-1]]
-                    ]
-                    return pointer, elements
-            raise
+                match prop_to_grab.text:
+                    case "parents":
+                        elements = []
+                        for combo, combo_result in server.db.combos.items():
+                            if combo_result == element_object:
+                                for element_id in combo:
+                                    if element_id not in elements:
+                                        elements.append(element_id)
+                        return pointer, [server.db.elem_id_lookup[i] for i in elements]
+                    case "products":
+                        return pointer, [
+                            server.db.combos[i]
+                            for i in server.db.used_in_lookup[element_object.id]
+                        ]
+                    case "tier":
+                        async with server.db.complexity_lock.reader:
+                            return pointer, server.db.get_complexity(element_object.id)
+                    case "tree_size":
+                        return pointer, len(server.db.path_lookup[element_object.id])
+                    case "difficulty":
+                        async with server.db.complexity_lock.reader:
+                            calculate_difficulty(
+                                len(server.db.path_lookup[element_object.id]),
+                                server.db.get_complexity(element_object.id),
+                            )
+                    case "categories":
+                        return [server.db.categories[i] for i in server.db.category_lookup[element_object.id]]
+                    case _:
+                        raise
 
 
 class FunctionCallToken(Token):
@@ -253,8 +276,8 @@ class FunctionCallToken(Token):
                 stop_token=CloseFunctionArgToken,
                 outer_element_objects=[element_object] + outer_element_objects,
             )
-            if len(current_object) == 0:
-                return pointer+shift, False
+            if isinstance(current_object, list) and len(current_object) == 0:
+                return pointer + shift, False
             try:
                 if func["type"] == CurrentObjectType:
                     arg = type(current_object)(untyped_arg)
@@ -395,7 +418,7 @@ async def parse_object(
     stop_token=None,
     outer_element_objects=None,
 ):
-    if not outer_element_objects:
+    if outer_element_objects is None:
         outer_element_objects = []
     current_object = None
     pointer = 0
