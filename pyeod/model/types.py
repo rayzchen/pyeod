@@ -578,7 +578,7 @@ class Database(SavableMixin):
     async def set_combo_result(
         self, combo: Tuple[Element, ...], result: Element
     ) -> None:
-        async with (self.element_lock.writer, self.complexity_lock.writer):
+        async with self.element_lock.writer:
             sorted_combo = tuple(sorted(elem.id for elem in combo))
             if sorted_combo in self.combos:
                 raise InternalError("Combo exists", "That combo already exists")
@@ -592,7 +592,8 @@ class Database(SavableMixin):
                     "Failed getting complexity",
                     "No combo found with existing complexity",
                 )
-            self.path_lookup[result.id] = set(await self.get_path(result))
+            async with self.complexity_lock.writer:
+                self.path_lookup[result.id] = set(await self.get_path(result))
         else:
             await self.update_element_info(result, sorted_combo)
         async with self.element_lock.writer:
