@@ -160,13 +160,13 @@ class GameInstance(SavableMixin):
 
     async def check_single_poll(self, poll: Poll) -> bool:
         if abs(poll.votes) >= self.vote_req:
+            async with self.db.poll_lock.writer:
+                poll.author.active_polls -= 1
+                self.db.polls.remove(poll)
             if poll.votes >= self.vote_req:
                 # Poll was accepted
                 poll.accepted = True
                 await poll.resolve(self.db)
-            async with self.db.poll_lock.writer:
-                poll.author.active_polls -= 1
-                self.db.polls.remove(poll)
             return True
         return False
 
