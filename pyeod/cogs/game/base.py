@@ -196,7 +196,7 @@ class Base(commands.Cog):
             return
         # Allow users to do potential dumb formatting shit, but also allow normal use of these strings
         # Backslash escape all fucked up discord shit
-        for bad_string in ["\\", "</", "<#", "_", "|", "```", "*", ">", "<:"]:
+        for bad_string in ["\\", "</", "<#", "_", "|", "```", "*", ">", "<:", "<sound"]:
             name = name.replace(bad_string, f"\\{bad_string}")
         name = name.replace("\u200C", "")  # ZWNJ
 
