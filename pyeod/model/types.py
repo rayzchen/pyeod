@@ -485,8 +485,6 @@ class Database(SavableMixin):
     async def update_element_info(
         self, element: Element, combo: Tuple[int, ...]
     ) -> None:
-        if self.complexity_lock.writer.locked:
-            raise InternalError("Complexity lock", "Complexity calculations in process")
         async with self.complexity_lock.writer:
             new_complexity = max(self.complexities[x] for x in combo)
             if new_complexity < self.complexities[element.id]:
