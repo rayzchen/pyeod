@@ -119,7 +119,11 @@ async def build_info_embed(
         progress_set = instance.db.path_lookup[element.id] & set(user.inv)
         progress = f"{len(progress_set) / tree_size * 100:.2f}%"
 
-    categories = sorted(instance.db.category_lookup[element.id])
+    categories = sorted(
+        instance.db.category_lookup[element.id]
+        if element.id in instance.db.category_lookup
+        else []
+    )
     if len(categories) < 4:
         if not categories:
             category_list = "N/A"
