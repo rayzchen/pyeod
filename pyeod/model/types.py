@@ -616,7 +616,11 @@ class Database(SavableMixin):
 
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "Database":
-        starters = tuple(loader.elem_id_lookup[elem] for elem in data.get("starters"))
+        try:
+            starters = tuple(loader.elem_id_lookup[elem] for elem in data.get("starters"))
+        except KeyError as e:
+            #Really bad error that somehow happened
+            raise InternalError("Starters not found", "Starters not found") from e
         combos = {}
         for combo_ids, combo_result in data.get("combos").items():
             key = tuple(int(id) for id in combo_ids.split(","))
