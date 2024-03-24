@@ -128,11 +128,8 @@ class Info(commands.Cog):
                     await ctx.respond("🔴 Invalid image!")
                     return
         else:
-            if image.content_type in config.IMAGE_TYPES:
-                image_link = image.url
-            else:
-                await ctx.respond("🔴 Invalid image!")
-                return
+            await ctx.respond("🔴 You cannot use this command as a slash command!", ephemeral = True)
+            return
 
         user = await server.login_user(ctx.author.id)
         elem = await server.check_element(element)
@@ -165,11 +162,8 @@ class Info(commands.Cog):
                     await ctx.respond("🔴 Invalid image!")
                     return
         else:
-            if icon.content_type in config.IMAGE_TYPES:
-                icon_link = icon.url
-            else:
-                await ctx.respond("🔴 Invalid image!")
-                return
+            await ctx.respond("🔴 You cannot use this command as a slash command!", ephemeral = True)
+            return
 
         user = await server.login_user(ctx.author.id)
         elem = await server.check_element(element)
