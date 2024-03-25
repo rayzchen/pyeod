@@ -98,7 +98,10 @@ class Main(commands.Cog):
         if ctx.author.id not in config.SERVER_CONTROL_USERS:
             await ctx.respond("🔴 You don't have permission to do that!")
             return
-        msg = await ctx.respond("💽 Updating...")
+        if ctx.is_app:
+            msg = await ctx.respond("💽 Updating...", ephemeral = True)
+        else:
+            msg = await ctx.respond("💽 Updating...")
         p = subprocess.Popen(["git", "pull"], stderr=subprocess.PIPE)
         _, stderr = p.communicate()
         if p.returncode != 0:
