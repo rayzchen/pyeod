@@ -142,7 +142,7 @@ class Main(commands.Cog):
         if ctx.author.id not in config.SERVER_CONTROL_USERS:
             await ctx.respond("🔴 You don't have permission to do that!")
             return
-        if object == "current polls":
+        if object_to_get == "current polls":
             server = InstanceManager.current.get_or_create(ctx.guild.id)
             await ctx.reply(server.db.polls)
             return
