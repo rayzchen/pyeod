@@ -57,12 +57,31 @@ class Categories(commands.Cog):
                         f"🔴 Cannot add elements to category **{category}**!"
                     )
                     return
-            elif len(category) > 256:
-                await ctx.respond("🔴 Category names cannot be longer than 256 characters!")
-                return
-            elif "|" in category:
-                await ctx.respond("🔴 Category names cannot contain | !")
-                return
+            else:
+                if len(category) > 256:
+                    await ctx.respond("🔴 Category names cannot be longer than 256 characters!")
+                    return
+                if category.startswith("#"):
+                    await ctx.respond("🔴 Category names cannot start with **#**!")
+                    return
+                if "\n" in category:
+                    await ctx.respond("🔴 Category names cannot contain newlines!")
+                    return
+                if "<@" in category:
+                    await ctx.respond("🔴 Category names cannot contain **<@**!")
+                    return
+                # Allow users to do potential dumb formatting shit, but also allow normal use of these strings
+                # Backslash escape all fucked up discord shit
+                for bad_string in ["\\", "</", "<#", "_", "|", "```", "*", ">", "<:", "<sound"]:
+                    category = category.replace(bad_string, f"\\{bad_string}")
+                category = category.replace("\u200C", "")  # ZWNJ
+
+                if len(category) > 256:
+                    await ctx.respond("🔴 Category names cannot be longer than 256 characters!")
+                    return
+                if category == "":
+                    await ctx.respond("🔴 Please give a valid category name!")
+                    return
 
         user = await server.login_user(ctx.author.id)
         elements = await server.check_elements(element_list)
