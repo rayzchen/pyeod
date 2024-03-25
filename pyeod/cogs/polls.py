@@ -106,10 +106,10 @@ class Polls(commands.Cog):
                 and str(payload.emoji) == Polls.DOWNVOTE
             ):
                 author_downvote = True
-        total_vote_count = len(server.upvoters[payload.message_id]) - len(
+        poll.votes = len(server.upvoters[payload.message_id]) - len(
             server.downvoters[payload.message_id]
         )
-        if not author_downvote and abs(total_vote_count) < server.vote_req:
+        if not author_downvote and abs(poll.votes) < server.vote_req:
             # Quit early
             server.processing_polls.remove(payload.message_id)
             return
@@ -132,7 +132,6 @@ class Polls(commands.Cog):
                 # downvotes = get(message.reactions, emoji=Polls.DOWNVOTE)
 
                 # poll.votes = (upvotes.count if upvotes else 0) - (downvotes.count if downvotes else 0)
-                poll.votes = total_vote_count
                 try:
                     resolve_poll = await server.check_single_poll(poll)
                 except InternalError as e:
