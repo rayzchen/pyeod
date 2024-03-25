@@ -591,7 +591,10 @@ class AddCategoryPoll(Poll):
                     self.category, self.elements
                 )
                 for element in self.elements:
-                    database.category_lookup[element.id].add(self.category)
+                    if element.id in database.category_lookup:
+                        database.category_lookup[element.id].add(category.name)
+                    else:
+                        database.category_lookup[element.id] = {category.name}
             else:
                 category = database.categories[self.category.lower()]
                 if not isinstance(category, ElementCategory):
