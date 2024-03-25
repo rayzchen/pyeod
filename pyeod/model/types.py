@@ -245,6 +245,9 @@ class Poll(SavableMixin):
     def get_description(self) -> str:
         pass
 
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__} by {self.author.name} polling at {self.votes} | {self.creation_time}>"
+
 
 class Category(SavableMixin):
     __slots__ = ("name")

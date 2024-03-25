@@ -135,6 +135,18 @@ class Main(commands.Cog):
             content=f"💽 Updated successfully to commit {stdout.decode()[:7]}. Restarting"
         )
 
+    @bridge.bridge_command()
+    @bridge.has_permissions(manage_messages=True)
+    async def prod(self, ctx: bridge.Context, *, object_to_get: str = ""):
+        """Allows you to see the direct python data of certain objects"""
+        if ctx.author.id not in config.SERVER_CONTROL_USERS:
+            await ctx.respond("🔴 You don't have permission to do that!")
+            return
+        if object == "current polls":
+            server = InstanceManager.current.get_or_create(ctx.guild.id)
+            await ctx.reply(server.db.polls)
+            return
+
     @tasks.loop(seconds=2, reconnect=True)
     async def restart_checker(self):
         if os.path.isfile(config.stopfile):

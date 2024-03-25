@@ -37,7 +37,7 @@ class ElementPoll(Poll):
         self.combo = combo
         self.result = result
         self.exists = exists
-        self.id_override = None
+        self.id_override = None 
 
     async def resolve(self, database: Database) -> Element:  # Return Element back
         async with database.element_lock.writer:
