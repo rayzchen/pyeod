@@ -72,7 +72,7 @@ class Info(commands.Cog):
         if not ctx.is_app:
             element, color = element.rsplit("|", 1)
         user = await server.login_user(ctx.author.id)
-        elem = await server.check_element(element.strip())
+        elem = await server.get_element_by_str(user, element.strip())
         color = color.strip()
         if color.startswith("#"):
             color = color[1:]
@@ -122,7 +122,7 @@ class Info(commands.Cog):
             raise GameError("No slash", "You cannot use this command as a slash command!")
 
         user = await server.login_user(ctx.author.id)
-        elem = await server.check_element(element)
+        elem = await server.get_element_by_str(user, element.strip())
 
         poll = await server.suggest_poll(ImagePoll(user, elem, image_link.strip()))
 
@@ -153,7 +153,7 @@ class Info(commands.Cog):
             raise GameError("No slash", "You cannot use this command as a slash command!")
 
         user = await server.login_user(ctx.author.id)
-        elem = await server.check_element(element)
+        elem = await server.get_element_by_str(user, element.strip())
 
         poll = await server.suggest_poll(IconPoll(user, elem, icon_link.strip()))
 
@@ -206,7 +206,7 @@ class Info(commands.Cog):
             split_msg = element.split("|")
             if len(split_msg) < 2:
                 raise GameError("Invalid Separator", "Please separate the element and the mark with a | !")
-            elem = await server.check_element(split_msg[0].strip())
+            elem = await server.get_element_by_str(user, split_msg[0].strip())
             for i in (
                 split_msg[1]
                 .strip()
@@ -292,7 +292,7 @@ class Info(commands.Cog):
             split_msg = element.split("|")
             if len(split_msg) < 2:
                 raise GameError("Invalid Separator", "Please separate each parameter with a | !")
-            elem = await server.check_element(split_msg[0].strip())
+            elem = await server.get_element_by_str(user, split_msg[0].strip())
             for i in (
                 split_msg[1].strip().replace(",", " ").replace("|", " ").split(" ")
             ):
