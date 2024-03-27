@@ -499,7 +499,7 @@ class Database(SavableMixin):
             raise GameError(
                 "Already have element",
                 f"You made {element.name}, but you already have it",
-                {"element": element},
+                {"element": element, "emoji":"🟦"},
             )
         async with self.element_lock.writer:
             self.found_by_lookup[element.id].add(user.id)

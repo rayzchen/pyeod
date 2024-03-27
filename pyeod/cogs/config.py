@@ -87,8 +87,7 @@ class Config(commands.Cog):
     ):
         """Imports an instance into a server"""
         if ctx.author.id not in config.SERVER_CONTROL_USERS:
-            await ctx.respond("🔴 You don't have permission to do that!")
-            return
+            raise GameError("No permission", "You don't have permission to do that!")
 
         path = os.path.join(config.package, "db", str(guild_id) + ".eod")
         if guild_id not in InstanceManager.current.instances:
@@ -179,8 +178,7 @@ class Config(commands.Cog):
     async def active_servers(self, ctx: bridge.Context):
         """Servers with the bot added"""
         if ctx.author.id not in config.SERVER_CONTROL_USERS:
-            await ctx.respond("🔴 You don't have permission to do that!")
-            return
+            raise GameError("No permission", "You don't have permission to do that!")
 
         servers = InstanceManager.current.instances
 
@@ -210,15 +208,13 @@ class Config(commands.Cog):
     ):
         """Downloads an instance"""
         if ctx.author.id not in config.SERVER_CONTROL_USERS:
-            await ctx.respond("🔴 You don't have permission to do that!")
-            return
+            raise GameError("No permission", "You don't have permission to do that!")
 
         if guild_id is None:
             guild_id = ctx.guild.id
 
         if guild_id not in InstanceManager.current.instances:
-            await ctx.respond("🔴 Server not found!")
-            return
+            raise GameError("Server not found", "Could not find server!")
 
         await ctx.defer()
         path = os.path.join(config.package, "db", str(guild_id) + ".eod")
@@ -282,7 +278,7 @@ class Config(commands.Cog):
                 f"🤖 Successfully removed <#{channel.id}> as a play channel!"
             )
         else:
-            await ctx.respond(f"🔴 That is not a play channel!")
+            raise GameError("Not a play channel", "This channel is not a play channel!")
 
     @bridge.bridge_command()
     @bridge.guild_only()
@@ -310,12 +306,9 @@ class Config(commands.Cog):
     async def edit_element_name(self, ctx: bridge.Context, elem_id: int, *, name: str):
         """Replaces an element's name"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
-        if elem_id not in server.db.elem_id_lookup:
-            await ctx.respond(f"🔴 No element with id #{elem_id}!")
-            return
 
         async with server.db.element_lock.writer:
-            element = server.db.elem_id_lookup[elem_id]
+            element = await server.db.get_element_by_str("#" + str(elem_id))
             old_name = element.name
             element.name = name
             server.db.elements.pop(old_name.lower())

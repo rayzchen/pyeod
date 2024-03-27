@@ -8,6 +8,7 @@ from pyeod.frontend import (
     generate_embed_list,
     get_page_limit,
 )
+from pyeod.errors import GameError
 from discord import Embed, EmbedField, User
 from discord.ext import bridge, commands
 from typing import Optional
@@ -26,8 +27,7 @@ class Lists(commands.Cog):
         if user is None:
             user = ctx.author
         elif user.id not in server.db.users:
-            await ctx.respond("🔴 User not found!")
-            return
+            raise GameError("No user", "User not found!")
 
         logged_in = await server.login_user(user.id)
         inv = [server.db.elem_id_lookup[e] for e in logged_in.inv]
@@ -44,8 +44,7 @@ class Lists(commands.Cog):
             user = ctx.author
         elif user.id not in server.db.users:
             # If user was None, this shouldn't run
-            await ctx.respond("🔴 User not found!")
-            return
+            raise GameError("No user", "User not found!")
 
         logged_in = await server.login_user(user.id)
         async with server.db.user_lock.reader:
@@ -71,8 +70,7 @@ class Lists(commands.Cog):
             user = ctx.author
         elif user.id not in server.db.users:
             # If user was None, this shouldn't run
-            await ctx.respond("🔴 User not found!")
-            return
+            raise GameError("No user", "User not found!")
 
         logged_in = await server.login_user(user.id)
         async with server.db.user_lock.reader:
@@ -151,8 +149,7 @@ class Lists(commands.Cog):
             user = ctx.author
         elif user.id not in server.db.users:
             # If user was None, this shouldn't run
-            await ctx.respond("🔴 User not found!")
-            return
+            raise GameError("No user", "User not found!")
 
         logged_in = await server.login_user(user.id)
         icons = []

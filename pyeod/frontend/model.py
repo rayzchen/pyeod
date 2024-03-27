@@ -1,7 +1,7 @@
 __all__ = ["ChannelList", "DiscordGameInstance", "InstanceManager"]
 
 from pyeod import config
-from pyeod.errors import InternalError
+from pyeod.errors import InternalError, GameError
 from pyeod.model import (
     ColorPoll,
     Database,
@@ -10,6 +10,7 @@ from pyeod.model import (
     IconPoll,
     ImagePoll,
     Poll,
+    User,
 )
 from discord import Embed
 from typing import Dict, List, Tuple, Union, TypeVar, Optional
@@ -117,6 +118,7 @@ class DiscordGameInstance(GameInstance):
         # Cheesy: How do new users know how to delete polls tho?
         embed.set_footer(text="You can change your vote")
         return embed
+        
 
 
 InstT = TypeVar("InstT", bound=GameInstance)

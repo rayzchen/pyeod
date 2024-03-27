@@ -6,6 +6,7 @@ from pyeod.frontend import (
     autocomplete_elements,
     prepare_file,
 )
+from pyeod.errors import GameError
 from discord.commands import option as option_decorator
 from discord.ext import bridge, commands
 import io
@@ -24,25 +25,17 @@ class Path(commands.Cog):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if server.db.complexity_lock.reader.locked:
             raise InternalError("Complexity lock", "Complexity calculations in process")
-        if element.startswith("#"):
-            id_str = element[1:].strip()
-            if not id_str.isdecimal():
-                await ctx.respond(f"🔴 Element ID **{id_str}** doesn't exist!")
-                return
-            elem_id = int(id_str)
-            async with server.db.element_lock.reader:
-                if elem_id not in server.db.elem_id_lookup:
-                    await ctx.respond(f"🔴 Element ID **{elem_id}** doesn't exist!")
-                    return
-                elem = server.db.elem_id_lookup[elem_id]
-        else:
-            elem = await server.check_element(element)
+        
+        logged_in = await server.login_user(ctx.author.id)
+        elem = await server.get_element_by_str(logged_in, element)
 
         if not ctx.author.guild_permissions.manage_guild:
-            logged_in = await server.login_user(ctx.author.id)
             if elem.id not in logged_in.inv:
-                await ctx.respond(f"🔴 You don't have **{elem.name}**!")
-                return
+                raise GameError(
+                    "Not in inv",
+                    f"You don't have {element.name}!",
+                    {"element": element, "user": user},
+                )
 
         path = await server.db.get_path(elem)
         async with server.db.element_lock.reader:

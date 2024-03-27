@@ -6,7 +6,7 @@ from pyeod.model.achievements import achievements, user_icons
 from pyeod.model.mixins import SavableMixin
 from pyeod.model.polls import ElementPoll
 from pyeod.model.types import Database, Element, Poll, User
-from pyeod.utils import int_to_roman
+from pyeod.utils import int_to_roman, format_list
 from typing import List, Tuple, Union, Optional
 import asyncio
 import copy
@@ -56,17 +56,11 @@ class GameInstance(SavableMixin):
         self, element_name: str, user: Optional[User] = None
     ) -> Element:
         async with self.db.element_lock.reader:
-            if not await self.db.has_element(element_name):
-                raise GameError(
-                    "Not an element",
-                    "The element requested does not exist",
-                    {"name": element_name},
-                )
-            element = self.db.elements[element_name.lower()]
+            element = await self.get_element_by_str(user, element_name)
             if user is not None and element.id not in user.inv:
                 raise GameError(
                     "Not in inv",
-                    "The user does not have the element requested",
+                    f"You don't have {element.name}!",
                     {"element": element, "user": user},
                 )
             return element
@@ -80,25 +74,27 @@ class GameInstance(SavableMixin):
         for i in element_name_list:
             try:
                 elements.append(await self.check_element(i, user))
-            except GameError as g:
-                if g.type == "Not in inv":
-                    unobtained.add(g.meta["element"])
-                elif g.type == "Not an element":
-                    nonexistent.add(g.meta["name"])
+            except GameError as e:
+                if e.type == "Not in inv":
+                    unobtained.add(e.meta["element"])
+                elif e.type == "Element does not exist":
+                    nonexistent.add(e.meta["element_name"])
                 else:
-                    raise g
+                    raise e
+        
         if unobtained:
-            element_list = sorted(unobtained, key=lambda elem: elem.id)
+            unobtained = sorted(list(unobtained), key=lambda elem: elem.id)
             raise GameError(
                 "Not in inv",
-                "The user does not have the element requested",
-                {"elements": element_list, "user": user},
+                f"You don't have {format_list([i.name for i in unobtained])}!",
+                {"elements": unobtained, "user": user},
             )
         if nonexistent:
+            nonexistent = sorted(list(nonexistent))
             raise GameError(
-                "Do not exist",
-                "The elements requested do not exist",
-                {"elements": sorted(nonexistent), "user": user},
+                "Elements do not exist",
+                f"Elements {format_list(nonexistent, 'and')} don't exist!",
+                {"elements": nonexistent, "user": user},
             )
         return tuple(elements)
 
@@ -107,7 +103,8 @@ class GameInstance(SavableMixin):
         user.last_combo = tuple(sorted(element_combo))
         result = await self.db.get_combo_result(element_combo)
         if result is None:
-            raise GameError("Not a combo", "That combo does not exist")
+            user.last_element = None
+            raise GameError("Not a combo", "Not a combo! Use **!s <element_name>** to suggest an element!", meta={"emoji": "🟥", "element": result})
         user.last_element = result
         await self.db.give_element(user, result)
         return result
@@ -251,8 +248,31 @@ class GameInstance(SavableMixin):
         else:
             raise GameError(
                 "Cannot use icon",
-                "You do not have the achievement required to use that icon",
+                "You do not have the achievement required to use that icon!",
             )
+    
+    async def get_element_by_str(self, user: User, string:str) -> Element:
+        async with self.db.element_lock.reader:
+            if not string:
+                if user.last_element is not None:
+                    return user.last_element
+                else:
+                    raise GameError("No previous element", "Combine something first!", {"element_name": string, "user": user})
+            if string.startswith("#"):
+                elem_id = string[1:].strip()
+                if elem_id.isdecimal() and int(elem_id) in self.db.elem_id_lookup:
+                    return self.db.elem_id_lookup[int(elem_id)]
+                elif elem_id in ["l", "last"] and user is not None:
+                    if user.last_element is not None:
+                        return user.last_element
+                    else:
+                        raise GameError("No previous element", "Combine something first!", {"element_name": string, "user": user})
+                else:
+                    raise GameError("Element id does not exist", f"Element with ID **#{elem_id}** doesn't exist!", {"element_name": string, "user": user})
+            if string.lower() in self.db.elements:
+                return self.db.elements[string.lower()]
+            else:
+                raise GameError("Element does not exist", f"Element **{string}** doesn't exist!", {"element_name": string, "user": user})
 
     def convert_to_dict(self, data: dict) -> None:
         data["db"] = self.db

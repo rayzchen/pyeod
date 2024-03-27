@@ -42,28 +42,11 @@ class Main(commands.Cog):
             err = err.original
         handled = False
         if isinstance(err, GameError):
-            if err.type == "Not an element":
-                await ctx.respond(f"🔴 Element **{err.meta['name']}** doesn't exist!")
-                handled = True
-            elif err.type == "Do not exist":
-                if err.meta["user"] is not None:
-                    err.meta["user"].last_element = None
-                    err.meta["user"].last_combo = ()
-                element_list = [f"**{elem}**" for elem in err.meta["elements"]]
-                if len(element_list) == 1:
-                    await ctx.respond(f"🔴 Element {element_list[0]} doesn't exist!")
-                    handled = True
-                else:
-                    await ctx.respond(
-                        f"🔴 Elements {format_list(element_list, 'and')} don't exist!"
-                    )
-                    handled = True
-            elif err.type == "Not in inv":
-                err.meta["user"].last_element = None
-                err.meta["user"].last_combo = ()
-                element_list = [f"**{elem.name}**" for elem in err.meta["elements"]]
-                await ctx.respond(f"🔴 You don't have {format_list(element_list)}!")
-                handled = True
+            if "emoji" not in err.meta:
+                await ctx.respond(f"🔴 {err.message}", ephemeral = True)
+            else:
+                await ctx.respond(f"{err.meta['emoji']} {err.message}", ephemeral = True)
+            return
         elif isinstance(err, InternalError):
             if err.type == "Complexity lock":
                 await ctx.respond(
@@ -96,8 +79,7 @@ class Main(commands.Cog):
     async def update(self, ctx: bridge.Context, *, revision: str = ""):
         """Updates to the latest github commit"""
         if ctx.author.id not in config.SERVER_CONTROL_USERS:
-            await ctx.respond("🔴 You don't have permission to do that!")
-            return
+            raise GameError("No permission", "You don't have permission to do that!")
         if ctx.is_app:
             msg = await ctx.respond("💽 Updating...", ephemeral = True)
         else:
@@ -140,8 +122,7 @@ class Main(commands.Cog):
     async def prod(self, ctx: bridge.Context, *, object_to_get: str = ""):
         """Allows you to see the direct python data of certain objects"""
         if ctx.author.id not in config.SERVER_CONTROL_USERS:
-            await ctx.respond("🔴 You don't have permission to do that!")
-            return
+            raise GameError("No permission", "You don't have permission to do that!")
         if object_to_get == "current polls":
             server = InstanceManager.current.get_or_create(ctx.guild.id)
             await ctx.reply(server.db.polls)

@@ -97,15 +97,9 @@ class Profiles(commands.Cog):
         try:
             icon_id = server.get_icon_by_emoji(icon_emoji)
         except KeyError:
-            await ctx.respond("🔴 Not an icon")
-            return
+            raise GameError("Not an icon", "Not an icon!")
 
-        try:
-            await server.set_icon(logged_in, icon_id)
-        except GameError as e:
-            if e.type == "Cannot use icon":
-                await ctx.respond("🔴 You cannot use this icon")
-                return
+        await server.set_icon(logged_in, icon_id)
 
         await ctx.respond(f"✨ Successfully set {icon_emoji} as your icon")
 

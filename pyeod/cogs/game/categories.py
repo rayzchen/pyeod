@@ -35,13 +35,7 @@ class Categories(commands.Cog):
             element_list = parse_element_list(element_list)
         else:
             element_list = [element]
-        for i in range(len(element_list)):
-            if element_list[i].strip().startswith("#"):
-                number = element_list[i].strip().split("#", 1)[1]
-                if not number.isdecimal() or int(number) not in server.db.elem_id_lookup:
-                    await ctx.respond(f"🔴 Invalid ID: {number}!")
-                    return
-                element_list[i] = server.db.elem_id_lookup[int(number)].name
+        element_list = [await server.get_element_by_str(user,i).name for i in element_list]
 
         # python>=3.7 only
         element_list = list(dict.fromkeys(element_list))
@@ -113,13 +107,9 @@ class Categories(commands.Cog):
             element_list = parse_element_list(element_list)
         else:
             element_list = [element]
+        logged_in = await server.login_user(ctx.author.id)
         for i in range(len(element_list)):
-            if element_list[i].strip().startswith("#"):
-                number = element_list[i].strip().split("#", 1)[1]
-                if not number.isdecimal() or int(number) not in server.db.elem_id_lookup:
-                    await ctx.respond(f"🔴 Invalid ID: {number}!")
-                    return
-                element_list[i] = server.db.elem_id_lookup[int(number)].name
+            element_list[i] = await server.get_element_by_str(user, element_list[i])
 
         # python>=3.7 only
         element_list = list(dict.fromkeys(element_list))

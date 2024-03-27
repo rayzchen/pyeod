@@ -8,6 +8,7 @@ from pyeod.frontend import (
     get_page_limit,
 )
 from pyeod.utils import obtain_emoji
+from pyeod.errors import GameError
 from discord.commands import option as option_decorator
 from discord.ext import bridge, commands
 from typing import Optional
@@ -49,8 +50,7 @@ class Hint(commands.Cog):
             else:
                 # User has all elements
                 if last_element + 1 not in server.db.elem_id_lookup:
-                    await ctx.respond("🔴 Could not get next element!")
-                    return
+                    raise GameError("No more elements", "You have all the elements!")
             element = server.db.elem_id_lookup[last_element + 1]
 
             lines = []
@@ -101,26 +101,11 @@ class Hint(commands.Cog):
                                 choices.add(i)
                 if not len(choices):
                     # User has every single element
-                    await ctx.respond("🔴 Could not get any hints!")
-                    return
+                    raise GameError("No more elements", "You have all the elements!")
 
                 elem = server.db.elem_id_lookup[random.choice(list(choices))]
             else:
-                if element.startswith("#"):
-                    id_str = element[1:].strip()
-                    if not id_str.isdecimal():
-                        await ctx.respond(f"🔴 Element ID **{id_str}** doesn't exist!")
-                        return
-                    elem_id = int(id_str)
-                    async with server.db.element_lock.reader:
-                        if elem_id not in server.db.elem_id_lookup:
-                            await ctx.respond(
-                                f"🔴 Element ID **{elem_id}** doesn't exist!"
-                            )
-                            return
-                        elem = server.db.elem_id_lookup[elem_id]
-                else:
-                    elem = await server.check_element(element)
+                elem = await server.get_element_by_str(user, element)
 
             lines = []
             for combo in server.db.combo_lookup[elem.id]:
@@ -152,13 +137,7 @@ class Hint(commands.Cog):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         user = await server.login_user(ctx.author.id)
 
-        if element:
-            elem = await server.check_element(element)
-        elif not user.last_element:
-            await ctx.respond("🔴 Combine something first")
-            return
-        else:
-            elem = user.last_element
+        elem = await server.get_element_by_str(user, element)
 
         async with server.db.element_lock.reader:
             lines = []
