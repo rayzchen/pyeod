@@ -52,35 +52,25 @@ class GameInstance(SavableMixin):
                 self.db.created_by_lookup[user_id] = []
             return self.db.users[user_id]
 
-    async def check_element(
-        self, element_name: str, user: Optional[User] = None
-    ) -> Element:
-        async with self.db.element_lock.reader:
-            element = await self.get_element_by_str(user, element_name)
-            if user is not None and element.id not in user.inv:
-                raise GameError(
-                    "Not in inv",
-                    f"You don't have {element.name}!",
-                    {"element": element, "user": user},
-                )
-            return element
-
     async def check_elements(
         self, element_name_list: Tuple[str, ...], user: Optional[User] = None
     ) -> Tuple[Element, ...]:
         elements = []
         unobtained = set()
         nonexistent = set()
-        for i in element_name_list:
-            try:
-                elements.append(await self.check_element(i, user))
-            except GameError as e:
-                if e.type == "Not in inv":
-                    unobtained.add(e.meta["element"])
-                elif e.type == "Element does not exist":
-                    nonexistent.add(e.meta["element_name"])
-                else:
-                    raise e
+        async with self.db.element_lock.reader:
+            for i in element_name_list:
+                try:
+                    element = await self.get_element_by_str(user, i)
+                    if user is not None and element.id not in user.inv:
+                        unobtained.add(element)
+                    else:
+                        elements.append(element)
+                except GameError as e:
+                    if e.type == "Element does not exist":
+                        nonexistent.add(e.meta["element_name"])
+                    else:
+                        raise e
         
         if unobtained:
             unobtained = sorted(list(unobtained), key=lambda elem: elem.id)

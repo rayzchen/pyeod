@@ -186,7 +186,7 @@ class Info(commands.Cog):
         user = await server.login_user(ctx.author.id)
         extra_authors = []
         if ctx.is_app:
-            elem = await server.check_element(element)
+            elem = await server.get_element_by_str(user, element)
             for i in [
                 collaborator1,
                 collaborator2,
@@ -272,7 +272,7 @@ class Info(commands.Cog):
         user = await server.login_user(ctx.author.id)
         extra_authors = []
         if ctx.is_app:
-            elem = await server.check_element(element)
+            elem = await server.get_element_by_str(user, element)
             for i in [
                 collaborator1,
                 collaborator2,
