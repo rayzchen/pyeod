@@ -115,7 +115,7 @@ class Base(commands.Cog):
 
         element = await server.combine(user, tuple(elements))
         await msg.reply(f"🆕 You made **{element.name}**!")
-        await self.bot.award_achievements(server, msg)
+        #await self.bot.award_achievements(server, msg)
 
     async def suggest_element(
         self, server: DiscordGameInstance, name: str, msg: Message, autocapitalize: bool

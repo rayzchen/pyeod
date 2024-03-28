@@ -26,6 +26,7 @@ class Main(commands.Cog):
         print("Logged in as:", self.bot.user)
         print("ID:", self.bot.user.id)
         self.restart_checker.start()
+        self.achievement_checker.start()
 
     @commands.Cog.listener()
     async def on_bridge_command_error(
@@ -140,6 +141,12 @@ class Main(commands.Cog):
             print("Restarting")
             self.restart_checker.stop()
             await self.bot.close()
+
+    @tasks.loop(seconds=3, reconnect=True)
+    async def achievement_checker(self):
+        for server in InstanceManager.current.instances.values():
+            for user in server.db.users.values():
+                await self.bot.award_achievements(server, user=user)
 
     @bridge.bridge_command()
     async def help(self, ctx: bridge.Context):
