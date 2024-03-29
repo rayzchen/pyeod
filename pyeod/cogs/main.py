@@ -73,8 +73,14 @@ class Main(commands.Cog):
     async def on_command_error(  # Suppress stderr printing on already handled errors
         self, ctx: commands.Context, err: commands.errors.CommandError
     ):
-        pass  # Handle all errors in the above listener
-
+        pass
+    
+    @commands.Cog.listener()
+    async def on_application_command_error(
+        self, ctx: ApplicationContext, err: commands.errors.CommandError
+    ):
+        pass
+    
     @bridge.bridge_command(aliases=["ms"])
     async def ping(self, ctx: bridge.Context):
         """Gets the current ping between the bot and discord"""
