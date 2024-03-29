@@ -9,7 +9,7 @@ __all__ = [
 
 
 from abc import ABCMeta, abstractmethod
-from typing import Dict, Generic, TypeVar, Optional
+from typing import Dict, Type, Tuple, Generic, TypeVar, Optional
 import gzip
 
 
@@ -41,6 +41,9 @@ class SavableMixinMapping(Generic[KT, VT], metaclass=ABCMeta):
             self.mapping = {}
         else:
             self.mapping = mapping
+
+    def set_mro(self, mro: Tuple[Type]):
+        pass
 
     @abstractmethod
     def get(self, key: str, default: VT = None) -> VT:
@@ -78,81 +81,66 @@ class IntKeySavableMixinMapping(PlainSavableMixinMapping[int, VT]):
         "GameInstance.db": 1,
         "GameInstance.vote_req": 2,
         "GameInstance.poll_limit": 3,
-        "Element.name": 4,
-        "Element.author": 5,
-        "Element.created": 6,
-        "Element.id": 7,
-        "Element.mark": 8,
-        "Element.marker": 9,
-        "Element.color": 10,
-        "Element.colorer": 11,
-        "Element.extra_authors": 12,
-        "Element.image": 13,
-        "Element.imager": 14,
-        "Element.icon": 15,
-        "Element.iconer": 16,
-        "User.id": 17,
-        "User.inv": 18,
-        "User.active_polls": 19,
-        "Database.users": 20,
-        "Database.elements": 21,
-        "Database.starters": 22,
-        "Database.combos": 23,
-        "Database.polls": 24,
-        "ElementPoll.author": 25,
-        "ElementPoll.votes": 26,
-        "ElementPoll.combo": 27,
-        "ElementPoll.result": 28,
-        "ElementPoll.exists": 29,
-        "ElementPoll.creation_time": 30,
-        "MarkPoll.author": 31,
-        "MarkPoll.votes": 32,
-        "MarkPoll.marked_element": 33,
-        "MarkPoll.mark": 34,
-        "MarkPoll.creation_time": 35,
-        "ColorPoll.author": 36,
-        "ColorPoll.votes": 37,
-        "ColorPoll.colored_element": 38,
-        "ColorPoll.color": 39,
-        "ColorPoll.creation_time": 40,
-        "ImagePoll.author": 41,
-        "ImagePoll.votes": 42,
+        "DiscordGameInstance.channels": 4,
+        "DiscordGameInstance.poll_msg_lookup": 5,
+        "DiscordGameInstance.combo_limit": 6,
+        "Element.name": 7,
+        "Element.author": 8,
+        "Element.created": 9,
+        "Element.id": 10,
+        "Element.mark": 11,
+        "Element.marker": 12,
+        "Element.color": 13,
+        "Element.colorer": 14,
+        "Element.extra_authors": 15,
+        "Element.image": 16,
+        "Element.imager": 17,
+        "Element.icon": 18,
+        "Element.iconer": 19,
+        "User.id": 20,
+        "User.inv": 21,
+        "User.active_polls": 22,
+        "User.created_combo_count": 23,
+        "User.votes_cast_count": 24,
+        "User.achievements": 25,
+        "User.icon": 26,
+        "Database.users": 27,
+        "Database.elements": 28,
+        "Database.starters": 29,
+        "Database.combos": 30,
+        "Database.polls": 31,
+        "Database.categories": 32,
+        "Poll.author": 33,
+        "Poll.votes": 34,
+        "Poll.creation_time": 35,
+        "ElementPoll.combo": 36,
+        "ElementPoll.result": 37,
+        "ElementPoll.exists": 38,
+        "MarkPoll.marked_element": 39,
+        "MarkPoll.mark": 40,
+        "ColorPoll.colored_element": 41,
+        "ColorPoll.color": 42,
         "ImagePoll.imaged_element": 43,
         "ImagePoll.image": 44,
-        "ImagePoll.creation_time": 45,
-        "IconPoll.author": 46,
-        "IconPoll.votes": 47,
-        "IconPoll.iconed_element": 48,
-        "IconPoll.icon": 49,
-        "IconPoll.creation_time": 50,
-        "AddCollabPoll:author": 51,
-        "AddCollabPoll:votes": 52,
-        "AddCollabPoll:element": 53,
-        "AddCollabPoll:extra_authors": 54,
-        "AddCollabPoll:creation_time": 55,
-        "RemoveCollabPoll:author": 56,
-        "RemoveCollabPoll:votes": 57,
-        "RemoveCollabPoll:element": 58,
-        "RemoveCollabPoll:extra_authors": 59,
-        "RemoveCollabPoll:creation_time": 60,
-        "DiscordGameInstance.db": 61,
-        "DiscordGameInstance.vote_req": 62,
-        "DiscordGameInstance.poll_limit": 63,
-        "DiscordGameInstance.channels": 64,
-        "DiscordGameInstance.poll_msg_lookup": 65,
-        "User.created_combo_count": 66,
-        "User.votes_cast_count": 67,
-        "User.achievements": 68,
-        "User.icon": 69,
-        "DiscordGameInstance.combo_limit": 70,
-        "Database.categories": 71,
-        "ElementCategory.name": 72,
-        "ElementCategory.elements": 73,
-        "AddCategoryPoll.category": 74,
-        "AddCategoryPoll.elements": 75,
-        "RemoveCategoryPoll.category": 76,
-        "RemoveCategoryPoll.elements": 77,
+        "IconPoll.iconed_element": 45,
+        "IconPoll.icon": 46,
+        "AddCollabPoll.element": 47,
+        "AddCollabPoll.extra_authors": 48,
+        "RemoveCollabPoll.element": 49,
+        "RemoveCollabPoll.extra_authors": 50,
+        "ElementCategory.name": 51,
+        "ElementCategory.elements": 52,
+        "AddCategoryPoll.category": 53,
+        "AddCategoryPoll.elements": 54,
+        "RemoveCategoryPoll.category": 55,
+        "RemoveCategoryPoll.elements": 56,
+        "GameInstance.polls_rejected": 57,
+        "DiscordGameInstance.commands_used": 58,
     }
+
+    def __init__(self, mapping: Optional[Dict[KT, VT]] = None) -> None:
+        super(IntKeySavableMixinMapping, self).__init__(mapping)
+        self.mro = ()
 
     def get(self, key: str, default: VT = None) -> VT:
         return super().get(self.encode_key(key), default)
@@ -163,11 +151,21 @@ class IntKeySavableMixinMapping(PlainSavableMixinMapping[int, VT]):
     def __contains__(self, key: str) -> bool:
         return self.encode_key(key) in self.mapping
 
+    def set_mro(self, mro: Tuple[Type]):
+        self.mro = mro
+
     def encode_key(self, key: str) -> int:
         if key == self.indicator:
             return self.indicator
-        type = self.mapping[self.indicator]
-        return self.KEYS[type + "." + key]
+        if self.mro:
+            for type in self.mro:
+                field = type.__name__ + "." + key
+                if field in self.KEYS:
+                    return self.KEYS[field]
+            raise KeyError(self.mapping[self.indicator] + "." + key)
+        else:
+            type = self.mapping[self.indicator]
+            return self.KEYS[type + "." + key]
 
 
 class CompressedIntKeySavableMixinMapping(IntKeySavableMixinMapping[VT]):
@@ -185,4 +183,4 @@ class CompressedIntKeySavableMixinMapping(IntKeySavableMixinMapping[VT]):
         self.mapping[self.encode_key(key)] = value
 
 
-DefaultSavableMixinMapping = PlainSavableMixinMapping
+DefaultSavableMixinMapping = IntKeySavableMixinMapping

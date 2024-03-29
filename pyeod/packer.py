@@ -67,6 +67,7 @@ def convert_to_dict(
 
     data = mapping_type()
     data[mapping_type.indicator] = type(obj).__name__
+    data.set_mro(type(obj).mro())
     obj.convert_to_dict(data)
     return data.mapping
 
@@ -81,6 +82,7 @@ def convert_from_dict(
 
     data = mapping_type(data)
     type = type_dict[data.get(mapping_type.indicator)]
+    data.set_mro(type.mro())
     return type.convert_from_dict(loader, data)
 
 
