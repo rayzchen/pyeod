@@ -498,7 +498,7 @@ class Database(SavableMixin):
         if element.id in user.inv:
             raise GameError(
                 "Already have element",
-                f"You made {element.name}, but you already have it",
+                f"You made **{element.name}**, but you already have it",
                 {"element": element, "emoji":"🟦"},
             )
         async with self.element_lock.writer:
