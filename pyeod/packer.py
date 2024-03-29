@@ -124,7 +124,8 @@ def load_instance(file: str) -> GameInstance:
             break
     if mapping_type is None:
         print(
-            "Warning: could not find suitable mapping type to use, defaulting to DefaultSavableMixinMapping"
+            "Warning: could not find suitable mapping type to use, "
+            "defaulting to DefaultSavableMixinMapping"
         )
         mapping_type = DefaultSavableMixinMapping
 

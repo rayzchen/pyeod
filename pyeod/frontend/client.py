@@ -25,19 +25,20 @@ from discord import (
     errors,
     ui,
 )
-from discord.ext import bridge, pages
+from discord.ext.pages import Paginator, PaginatorButton
+from discord.ext import bridge
 import random
 
 
-class FooterPaginator(pages.Paginator):
+class FooterPaginator(Paginator):
     def __init__(self, page_list, footer_text: str = "", loop: bool = True) -> None:
         buttons = [
-            pages.PaginatorButton(
+            PaginatorButton(
                 "prev",
                 emoji="<:leftarrow:1182293710684295178>",
                 style=ButtonStyle.blurple,
             ),
-            pages.PaginatorButton(
+            PaginatorButton(
                 "next",
                 emoji="<:rightarrow:1182293601540132945>",
                 style=ButtonStyle.blurple,
@@ -120,33 +121,34 @@ async def create_leaderboard(sorting_option, ctx, user):
         else:
             raise GameError("Invalid sort", "Failed to find sort function")
 
-        for user_id, user in sorted(
+        for user_id, player in sorted(
             server.db.users.items(),
             key=lambda pair: find_value(pair[1]),
             reverse=True,
         ):
             i += 1
-            player_value = find_value(user)
+            player_value = find_value(player)
             if logged_in is not None and user_id == logged_in.id:
                 user_index = i
                 user_inv = player_value
                 lines.append(
-                    f"{i}\. {server.get_icon(user.icon)} <@{user_id}> *You* - {player_value:,}"
+                    f"{i}\\. {server.get_icon(player.icon)} <@{user_id}> *You* - {player_value:,}"
                 )
             else:
                 lines.append(
-                    f"{i}\. {server.get_icon(user.icon)} <@{user_id}> - {player_value:,}"
+                    f"{i}\\. {server.get_icon(player.icon)} <@{user_id}> - {player_value:,}"
                 )
 
     limit = get_page_limit(server, ctx.channel.id)
     pages = generate_embed_list(lines, title, limit)
     for page in pages:
         page.add_field(name=f"\nYou are #{user_index} on this leaderboard", value="")
-    if logged_in is not None and user_id == logged_in.id:
+    if logged_in is not None:
         for page in pages:
-            if f"<@{user_id}>" not in page.description:
+            if f"<@{logged_in.id}>" not in page.description:
+                profile_name = f"{server.get_icon(logged_in.icon)} <@{logged_in.id}>"
                 page.description += (
-                    f"\n\n{user_index}\. <@{user_id} *You* - {user_inv:,}"
+                    f"\n\n{user_index}\\. {profile_name} *You* - {user_inv:,}"
                 )
     return pages
 
@@ -499,17 +501,17 @@ async def create_element_leaderboard(sorting_option, ctx, user):
             if logged_in is not None and element.id in logged_in.inv:
                 if sorting_option != "Difficulty":
                     lines.append(
-                        f"{i}\. 📫 **{element.name}** - {element_value:,} *You have this*"
+                        f"{i}\\. 📫 **{element.name}** - {element_value:,} *You have this*"
                     )
                 else:
                     lines.append(
-                        f"{i}\. 📫 **{element.name}** - {element_value:,.2f} *You have this*"
+                        f"{i}\\. 📫 **{element.name}** - {element_value:,.2f} *You have this*"
                     )
             else:
                 if sorting_option != "Difficulty":
-                    lines.append(f"{i}\. 📭 **{element.name}** - {element_value:,}")
+                    lines.append(f"{i}\\. 📭 **{element.name}** - {element_value:,}")
                 else:
-                    lines.append(f"{i}\. 📭 **{element.name}** - {element_value:,.2f}")
+                    lines.append(f"{i}\\. 📭 **{element.name}** - {element_value:,.2f}")
 
     limit = get_page_limit(server, ctx.channel.id)
     pages = generate_embed_list(lines, title, limit)
@@ -646,14 +648,15 @@ class ElementalBot(bridge.AutoShardedBot):
         unlocked_icons = []
 
         for achievement in new_achievements:
+            name = await server.get_achievement_name(achievement)
             if msg is not None:
                 await msg.reply(
-                    f"🌟 Achievement unlocked: **{await server.get_achievement_name(achievement)}**"
+                    f"🌟 Achievement unlocked: **{name}**"
                 )
             if server.channels.news_channel is not None:
                 news_channel = await self.fetch_channel(server.channels.news_channel)
                 await news_channel.send(
-                    f"🌟 <@{user.id}> Achievement unlocked: **{await server.get_achievement_name(achievement)}**"
+                    f"🌟 <@{user.id}> Achievement unlocked: **{name}**"
                 )
             unlocked_icons += [
                 server.get_icon(icon)

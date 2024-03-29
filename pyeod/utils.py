@@ -29,10 +29,7 @@ def format_list(items: list, final_sep: str = "or") -> str:
 
 
 def obtain_emoji(obtainable):
-    if obtainable:
-        return "<:eodCheck:1139996144093646989>"
-    else:
-        return "❌"
+    return "<:eodCheck:1139996144093646989>" if obtainable else "❌"
 
 
 def int_to_roman(num: int) -> str:
