@@ -7,9 +7,11 @@ from pyeod.frontend import (
     InstanceManager,
     generate_embed_list,
     get_page_limit,
+    autocomplete_elements,
 )
 from pyeod.errors import GameError
 from discord import Embed, EmbedField, User
+from discord.commands import option as option_decorator
 from discord.ext import bridge, commands
 from typing import Optional
 
@@ -212,6 +214,23 @@ class Lists(commands.Cog):
             ],
         )
         await ctx.respond(embed=embed)
+    
+    @bridge.bridge_command(aliases=["f"])
+    @bridge.guild_only()
+    @option_decorator("element", autocomplete=autocomplete_elements)
+    async def found(self, ctx: bridge.Context, *, element):
+        
+        server = InstanceManager.current.get_or_create(ctx.guild.id)
+        user = await server.login_user(ctx.author.id)
+        
+        elem = await server.get_element_by_str(user, element)
+        found = [f"<@{user.id}>" for user in server.db.users.values() if elem.id in user.inv]
+        title = "Users who have found " + elem.name + f" ({len(found)})"
+        limit = get_page_limit(server, ctx.channel.id)
+        embeds = generate_embed_list(found, title, limit)
+        
+        paginator = FooterPaginator(embeds)
+        await paginator.respond(ctx)
 
 
 def setup(client):
