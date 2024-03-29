@@ -26,6 +26,7 @@ class GameInstance(SavableMixin):
         poll_limit: int = 32,
         combo_limit: int = 21,
         starter_elements: Optional[Tuple[Element, ...]] = None,
+        polls_rejected: Optional[int] = 0,
     ) -> None:
         if db is None:
             if starter_elements is None:
@@ -36,6 +37,7 @@ class GameInstance(SavableMixin):
         self.vote_req = vote_req
         self.poll_limit = poll_limit
         self.combo_limit = combo_limit
+        self.polls_rejected = polls_rejected
 
     # Deprecate this function?
     async def normalize_starter(self, element: Element) -> Element:

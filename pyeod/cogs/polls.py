@@ -146,6 +146,8 @@ class Polls(commands.Cog):
                             server.channels.news_channel
                         )
                         news_message = await poll.get_news_message(server)
+                        if not poll.accepted:
+                            server.polls_rejected += 1
                         if isinstance(news_message, tuple):  # (msg, embed)
                             await news_channel.send(
                                 news_message[0], embed=news_message[1]

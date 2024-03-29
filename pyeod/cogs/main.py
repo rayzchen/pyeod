@@ -29,6 +29,11 @@ class Main(commands.Cog):
         self.achievement_checker.start()
 
     @commands.Cog.listener()
+    async def on_bridge_command(self, ctx: bridge.Context):
+        server = InstanceManager.current.get_or_create(ctx.guild.id)
+        server.commands_used += 1
+    
+    @commands.Cog.listener()
     async def on_bridge_command_error(
         self, ctx: bridge.Context, err: commands.errors.CommandError
     ):

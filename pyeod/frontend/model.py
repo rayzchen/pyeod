@@ -44,6 +44,7 @@ class DiscordGameInstance(GameInstance):
         # active_polls: Optional[Dict[int, Poll]] = [],
         poll_msg_lookup: Optional[Dict[int, Poll]] = None,
         starter_elements: Optional[Tuple[Element, ...]] = None,
+        commands_used: Optional[int] = 0,
     ) -> None:
         super().__init__(db, vote_req, poll_limit, combo_limit, starter_elements)
         if channels is None:
@@ -57,6 +58,7 @@ class DiscordGameInstance(GameInstance):
         self.upvoters = {id: set() for id in self.poll_msg_lookup}
         self.downvoters = {id: set() for id in self.poll_msg_lookup}
         self.processing_polls = set()
+        self.commands_used = commands_used
 
     def convert_to_dict(self, data: dict) -> None:
         super(DiscordGameInstance, self).convert_to_dict(data)

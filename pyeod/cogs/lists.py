@@ -173,12 +173,14 @@ class Lists(commands.Cog):
     @bridge.bridge_command()
     @bridge.guild_only()
     async def stats(self, ctx: bridge.Context):
+        import time
         """Shows the server stats"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         elements = len(server.db.elements)
         combinations = len(server.db.combos)
         users = len(server.db.users)
-
+        categorized_element_ids = set()
+        
         found = 0
         cast = 0
         achievements = 0
@@ -187,6 +189,13 @@ class Lists(commands.Cog):
             cast += user.votes_cast_count
             achievements += len(user.achievements)
 
+        #For some reason this operation slows down the bot
+        #But when timed it isn't a significant difference???
+        for cat_id, category in server.db.categories.items():
+            for element in await category.get_elements(server.db):
+                if element.id not in categorized_element_ids:
+                    categorized_element_ids.add(element.id)
+        
         embed = Embed(
             color=config.EMBED_COLOR,
             title="Stats",
@@ -195,11 +204,11 @@ class Lists(commands.Cog):
                 EmbedField("🔄 Combination Count", f"{combinations:,}", True),
                 EmbedField("🧑‍🤝‍🧑 User Count", f"{users:,}", True),
                 EmbedField("🔍 Elements Found", f"{found:,}", True),
-                EmbedField("📁 Elements Categorized", "N/A", True),
-                EmbedField("👨‍💻 Commands Used", "N/A", True),
+                EmbedField("📁 Elements Categorized", f"{len(categorized_element_ids):,}", True),
+                EmbedField("👨‍💻 Commands Used", f"{server.commands_used:,}", True),
                 EmbedField("🗳️ Votes Cast", f"{cast:,}", True),
                 EmbedField("🏆 Achievements Earned", f"{achievements:,}", True),
-                EmbedField("❌ Polls Rejected", "N/A", True),
+                EmbedField("❌ Polls Rejected", f"{server.polls_rejected:,}", True),
             ],
         )
         await ctx.respond(embed=embed)
