@@ -97,7 +97,7 @@ class Info(commands.Cog):
             except:
                 return False
 
-    @bridge.bridge_command()
+    @bridge.bridge_command(aliases=["img"])
     @bridge.guild_only()
     @option_decorator("element", autocomplete=autocomplete_elements)
     async def image(
