@@ -66,7 +66,7 @@ class FooterPaginator(pages.Paginator):
             page.set_footer(text=footer)
         return buttons
 
-    async def respond(*args, **kwargs):
+    async def respond(self, *args, **kwargs):
         try:
             return await super(FooterPaginator, self).respond(*args, **kwargs)
         except errors.NotFound as e:
