@@ -37,7 +37,7 @@ class Categories(commands.Cog):
             element_list = [element]
         
         user = await server.login_user(ctx.author.id)
-        element_list = [await server.get_element_by_str(user,i).name for i in element_list]
+        element_list = [(await server.get_element_by_str(user,i)).name for i in element_list]
 
         # python>=3.7 only
         element_list = list(dict.fromkeys(element_list))
