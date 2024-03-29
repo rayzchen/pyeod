@@ -349,6 +349,21 @@ class Config(commands.Cog):
         server.combo_limit = combo_limit
         await ctx.respond(f"🤖 Successfully set the combo limit to {combo_limit}")
 
+    @bridge.bridge_command()
+    @bridge.guild_only()
+    @bridge.has_permissions(administrator=True)
+    async def reset_server(self, ctx: bridge.Context, confirmation_code: int = 0):
+        server = InstanceManager.current.get_or_create(ctx.guild.id)
+
+        if confirmation_code != hash(ctx.guild.name):
+            await ctx.respond(f"Are you absolutely sure? This will __completely wipe **ALL** data__. This cannot be undone.\n To fully delete the server redo the command with this confirmation code: {hash(ctx.guild.name)}")
+        #! Delete server from instance manager AND delete save file
+        else:
+            InstanceManager.current.instances.pop(ctx.guild.id)
+            db_path = os.path.join(os.path.dirname(__file__), '..', 'db', f"{ctx.guild.id}.eod")
+            if os.path.exists(db_path):
+                os.remove(db_path)
+                await ctx.respond("Server has been reset\n*Sad to see you go :pensive:*")
 
 def setup(client):
     client.add_cog(Config(client))
