@@ -37,7 +37,7 @@ class ElementPoll(Poll):
         self.combo = combo
         self.result = result
         self.exists = exists
-        self.id_override = None 
+        self.id_override = None
 
     async def resolve(self, database: Database) -> Element:  # Return Element back
         async with database.element_lock.writer:
@@ -589,9 +589,8 @@ class AddCategoryPoll(Poll):
         # Extra lookup table checks in case of mismatch
         async with database.category_lock.reader:
             if self.category.lower() not in database.categories:
-                database.categories[self.category.lower()] = ElementCategory(
-                    self.category, self.elements
-                )
+                category = ElementCategory(self.category, self.elements)
+                database.categories[self.category.lower()] = category
                 for element in self.elements:
                     database.category_lookup[element.id].add(category.name)
             else:
