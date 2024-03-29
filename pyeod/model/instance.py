@@ -10,6 +10,7 @@ from pyeod.utils import int_to_roman, format_list
 from typing import List, Tuple, Union, Optional
 import asyncio
 import copy
+import random
 
 AIR = Element("Air", id=1, color=0x99E5DC)
 EARTH = Element("Earth", id=2, color=0x806043)
@@ -259,6 +260,10 @@ class GameInstance(SavableMixin):
                         return user.last_element
                     else:
                         raise GameError("No previous element", "Combine something first!", {"element_name": string, "user": user})
+                elif elem_id in ["r", "random"]:
+                    return random.choice(list(self.db.elements.values()))
+                elif elem_id in ["ri", "randomininv"]:
+                    return self.db.elem_id_lookup[random.choice(user.inv)]
                 else:
                     raise GameError("Element id does not exist", f"Element with ID **#{elem_id}** doesn't exist!", {"element_name": string, "user": user})
             if string.lower() in self.db.elements:
