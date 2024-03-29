@@ -35,9 +35,11 @@ class Categories(commands.Cog):
             element_list = parse_element_list(element_list)
         else:
             element_list = [element]
-        
+
         user = await server.login_user(ctx.author.id)
-        element_list = [(await server.get_element_by_str(user,i)).name for i in element_list]
+        element_list = [
+            (await server.get_element_by_str(user, i)).name for i in element_list
+        ]
 
         # python>=3.7 only
         element_list = list(dict.fromkeys(element_list))
@@ -55,7 +57,9 @@ class Categories(commands.Cog):
                     return
             else:
                 if len(category) > 256:
-                    await ctx.respond("🔴 Category names cannot be longer than 256 characters!")
+                    await ctx.respond(
+                        "🔴 Category names cannot be longer than 256 characters!"
+                    )
                     return
                 if category.startswith("#"):
                     await ctx.respond("🔴 Category names cannot start with **#**!")
@@ -68,12 +72,25 @@ class Categories(commands.Cog):
                     return
                 # Allow users to do potential dumb formatting shit, but also allow normal use of these strings
                 # Backslash escape all fucked up discord shit
-                for bad_string in ["\\", "</", "<#", "_", "|", "```", "*", ">", "<:", "<sound"]:
+                for bad_string in [
+                    "\\",
+                    "</",
+                    "<#",
+                    "_",
+                    "|",
+                    "```",
+                    "*",
+                    ">",
+                    "<:",
+                    "<sound",
+                ]:
                     category = category.replace(bad_string, f"\\{bad_string}")
                 category = category.replace("\u200C", "")  # ZWNJ
 
                 if len(category) > 256:
-                    await ctx.respond("🔴 Category names cannot be longer than 256 characters!")
+                    await ctx.respond(
+                        "🔴 Category names cannot be longer than 256 characters!"
+                    )
                     return
                 if category == "":
                     await ctx.respond("🔴 Please give a valid category name!")

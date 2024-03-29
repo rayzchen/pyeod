@@ -1,4 +1,4 @@
-from pyeod.errors import InternalError
+from pyeod.errors import GameError, InternalError
 from pyeod.frontend import (
     DiscordGameInstance,
     ElementalBot,
@@ -6,7 +6,6 @@ from pyeod.frontend import (
     autocomplete_elements,
     prepare_file,
 )
-from pyeod.errors import GameError
 from discord.commands import option as option_decorator
 from discord.ext import bridge, commands
 import io
@@ -25,7 +24,7 @@ class Path(commands.Cog):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if server.db.complexity_lock.reader.locked:
             raise InternalError("Complexity lock", "Complexity calculations in process")
-        
+
         logged_in = await server.login_user(ctx.author.id)
         elem = await server.get_element_by_str(logged_in, element)
 

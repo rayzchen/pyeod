@@ -1,3 +1,4 @@
+from pyeod.errors import GameError
 from pyeod.frontend import (
     DiscordGameInstance,
     ElementalBot,
@@ -8,7 +9,6 @@ from pyeod.frontend import (
     get_page_limit,
 )
 from pyeod.utils import obtain_emoji
-from pyeod.errors import GameError
 from discord.commands import option as option_decorator
 from discord.ext import bridge, commands
 from typing import Optional

@@ -41,17 +41,31 @@ async def cache_element_stats(instance, user):
             "highest_tree_size": 0,
             "highest_difficulty": 0,
         }
-    for element_id in user.inv[element_stats_cache[id(instance)][user.id]["last_checked_inv_pos"] :]:
+    for element_id in user.inv[
+        element_stats_cache[id(instance)][user.id]["last_checked_inv_pos"] :
+    ]:
         complexity = instance.db.complexities[element_id]
-        if complexity > element_stats_cache[id(instance)][user.id]["highest_complexity"]:
-            element_stats_cache[id(instance)][user.id]["highest_complexity"] = complexity
+        if (
+            complexity
+            > element_stats_cache[id(instance)][user.id]["highest_complexity"]
+        ):
+            element_stats_cache[id(instance)][user.id][
+                "highest_complexity"
+            ] = complexity
         tree_size = len(instance.db.path_lookup[element_id])
         if tree_size > element_stats_cache[id(instance)][user.id]["highest_tree_size"]:
             element_stats_cache[id(instance)][user.id]["highest_tree_size"] = tree_size
         difficulty = calculate_difficulty(tree_size, complexity)
-        if difficulty > element_stats_cache[id(instance)][user.id]["highest_difficulty"]:
-            element_stats_cache[id(instance)][user.id]["highest_difficulty"] = difficulty
-    element_stats_cache[id(instance)][user.id]["last_checked_inv_pos"] = len(user.inv) - 1
+        if (
+            difficulty
+            > element_stats_cache[id(instance)][user.id]["highest_difficulty"]
+        ):
+            element_stats_cache[id(instance)][user.id][
+                "highest_difficulty"
+            ] = difficulty
+    element_stats_cache[id(instance)][user.id]["last_checked_inv_pos"] = (
+        len(user.inv) - 1
+    )
 
 
 async def cache_element_info(instance, user):

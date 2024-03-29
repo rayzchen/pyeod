@@ -1,4 +1,5 @@
 from pyeod import config
+from pyeod.errors import GameError
 from pyeod.frontend import (
     DiscordGameInstance,
     ElementalBot,
@@ -13,7 +14,6 @@ from pyeod.model import (
     MarkPoll,
     RemoveCollabPoll,
 )
-from pyeod.errors import GameError
 from discord import Attachment, NotFound, User
 from discord.commands import option as option_decorator
 from discord.ext import bridge, commands
@@ -49,12 +49,17 @@ class Info(commands.Cog):
         else:
             split_msg = marked_element.split("|", 1)
             if len(split_msg) < 2:
-                raise GameError("Invalid Separator", "Please separate the element and the mark with a | !")
+                raise GameError(
+                    "Invalid Separator",
+                    "Please separate the element and the mark with a | !",
+                )
             marked_element = split_msg[0].strip()
             mark = split_msg[1].strip()
         element = await server.get_element_by_str(user, marked_element)
         if len(mark) > 3000:
-            raise GameError("Too long", "Mark cannot be over 3000 characters in length!")
+            raise GameError(
+                "Too long", "Mark cannot be over 3000 characters in length!"
+            )
         poll = await server.suggest_poll(MarkPoll(user, element, mark))
 
         await self.bot.add_poll(
@@ -118,7 +123,9 @@ class Info(commands.Cog):
                 else:
                     raise GameError("Cannot cast", "Invalid image!")
         else:
-            raise GameError("No slash", "You cannot use this command as a slash command!")
+            raise GameError(
+                "No slash", "You cannot use this command as a slash command!"
+            )
 
         user = await server.login_user(ctx.author.id)
         elem = await server.get_element_by_str(user, element.strip())
@@ -149,7 +156,9 @@ class Info(commands.Cog):
                 else:
                     raise GameError("Cannot cast", "Invalid image!")
         else:
-            raise GameError("No slash", "You cannot use this command as a slash command!")
+            raise GameError(
+                "No slash", "You cannot use this command as a slash command!"
+            )
 
         user = await server.login_user(ctx.author.id)
         elem = await server.get_element_by_str(user, element.strip())
@@ -204,7 +213,10 @@ class Info(commands.Cog):
         else:
             split_msg = element.split("|")
             if len(split_msg) < 2:
-                raise GameError("Invalid Separator", "Please separate the element and the mark with a | !")
+                raise GameError(
+                    "Invalid Separator",
+                    "Please separate the element and the mark with a | !",
+                )
             elem = await server.get_element_by_str(user, split_msg[0].strip())
             for i in (
                 split_msg[1]
@@ -221,7 +233,10 @@ class Info(commands.Cog):
                 try:
                     await self.bot.fetch_user(id)
                 except NotFound:
-                    raise GameError("Invalid user", "Please only enter valid users, using the @<user> syntax separated by spaces!")
+                    raise GameError(
+                        "Invalid user",
+                        "Please only enter valid users, using the @<user> syntax separated by spaces!",
+                    )
                 extra_authors.append(id)
         authors = []
         for i in extra_authors:
@@ -235,9 +250,14 @@ class Info(commands.Cog):
                 authors.append(await server.login_user(i))
 
         if len(authors) == 0:
-            raise GameError("Unknown error", "Please make sure you entered a valid user created element and valid users!")
+            raise GameError(
+                "Unknown error",
+                "Please make sure you entered a valid user created element and valid users!",
+            )
         if len(authors) + len(elem.extra_authors) > 10:
-            raise GameError("Too long", "You cannot add more than 10 collaborators to an element!")
+            raise GameError(
+                "Too long", "You cannot add more than 10 collaborators to an element!"
+            )
         poll = await server.suggest_poll(AddCollabPoll(user, elem, tuple(authors)))
         await self.bot.add_poll(
             server,
@@ -290,7 +310,9 @@ class Info(commands.Cog):
         else:
             split_msg = element.split("|")
             if len(split_msg) < 2:
-                raise GameError("Invalid Separator", "Please separate each parameter with a | !")
+                raise GameError(
+                    "Invalid Separator", "Please separate each parameter with a | !"
+                )
             elem = await server.get_element_by_str(user, split_msg[0].strip())
             for i in (
                 split_msg[1].strip().replace(",", " ").replace("|", " ").split(" ")
@@ -301,7 +323,10 @@ class Info(commands.Cog):
                 try:
                     await self.bot.fetch_user(id)
                 except NotFound:
-                    raise GameError("Invalid user", "Please only enter valid users, using the @<user> syntax separated by spaces!")
+                    raise GameError(
+                        "Invalid user",
+                        "Please only enter valid users, using the @<user> syntax separated by spaces!",
+                    )
                 extra_authors.append(id)
         authors = []
         for i in extra_authors:
@@ -315,7 +340,10 @@ class Info(commands.Cog):
                 authors.append(await server.login_user(i))
 
         if len(authors) == 0:
-            raise GameError("Unknown error", "Please make sure you entered a valid user created element and valid users!")
+            raise GameError(
+                "Unknown error",
+                "Please make sure you entered a valid user created element and valid users!",
+            )
         poll = await server.suggest_poll(RemoveCollabPoll(user, elem, tuple(authors)))
         await self.bot.add_poll(
             server,

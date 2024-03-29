@@ -212,7 +212,7 @@ class Poll(SavableMixin):
         self.creation_time = round(time.time())
 
     @abstractmethod
-    def resolve(self, database: "Database"):
+    async def resolve(self, database: "Database"):
         pass
 
     def get_time(self):
@@ -234,7 +234,7 @@ class Poll(SavableMixin):
         return string
 
     @abstractmethod
-    def get_news_message(self, instance: "GameInstance") -> str:
+    async def get_news_message(self, instance: "GameInstance") -> str:
         pass
 
     @abstractmethod
@@ -250,7 +250,7 @@ class Poll(SavableMixin):
 
 
 class Category(SavableMixin):
-    __slots__ = ("name")
+    __slots__ = "name"
 
     def __init__(self, name: str) -> None:
         self.name = name
@@ -366,6 +366,8 @@ class Database(SavableMixin):
 
         self.complexities = {}
         self.min_elem_tree = {}
+        self.path_lookup = {}
+        self.category_lookup = {}
 
     async def acquire_all_locks(self):
         await self.complexity_lock.reader.acquire()
@@ -499,7 +501,7 @@ class Database(SavableMixin):
             raise GameError(
                 "Already have element",
                 f"You made **{element.name}**, but you already have it",
-                {"element": element, "emoji":"🟦"},
+                {"element": element, "emoji": "🟦"},
             )
         async with self.element_lock.writer:
             self.found_by_lookup[element.id].add(user.id)
@@ -620,9 +622,11 @@ class Database(SavableMixin):
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "Database":
         try:
-            starters = tuple(loader.elem_id_lookup[elem] for elem in data.get("starters"))
+            starters = tuple(
+                loader.elem_id_lookup[elem] for elem in data.get("starters")
+            )
         except KeyError as e:
-            #Really bad error that somehow happened
+            # Really bad error that somehow happened
             raise InternalError("Starters not found", "Starters not found") from e
         combos = {}
         for combo_ids, combo_result in data.get("combos").items():

@@ -6,11 +6,11 @@ from pyeod.model.achievements import achievements, user_icons
 from pyeod.model.mixins import SavableMixin
 from pyeod.model.polls import ElementPoll
 from pyeod.model.types import Database, Element, Poll, User
-from pyeod.utils import int_to_roman, format_list
+from pyeod.utils import format_list, int_to_roman
 from typing import List, Tuple, Union, Optional
-import asyncio
 import copy
 import random
+import asyncio
 
 AIR = Element("Air", id=1, color=0x99E5DC)
 EARTH = Element("Earth", id=2, color=0x806043)
@@ -97,7 +97,11 @@ class GameInstance(SavableMixin):
         result = await self.db.get_combo_result(element_combo)
         if result is None:
             user.last_element = None
-            raise GameError("Not a combo", "Not a combo! Use **!s <element_name>** to suggest an element!", meta={"emoji": "🟥", "element": result})
+            raise GameError(
+                "Not a combo",
+                "Not a combo! Use **!s <element_name>** to suggest an element!",
+                meta={"emoji": "🟥", "element": result},
+            )
         user.last_element = result
         await self.db.give_element(user, result)
         return result
@@ -247,13 +251,17 @@ class GameInstance(SavableMixin):
                 "You do not have the achievement required to use that icon!",
             )
 
-    async def get_element_by_str(self, user: User, string:str) -> Element:
+    async def get_element_by_str(self, user: User, string: str) -> Element:
         async with self.db.element_lock.reader:
             if not string:
                 if user.last_element is not None:
                     return user.last_element
                 else:
-                    raise GameError("No previous element", "Combine something first!", {"element_name": string, "user": user})
+                    raise GameError(
+                        "No previous element",
+                        "Combine something first!",
+                        {"element_name": string, "user": user},
+                    )
             if string.startswith("#"):
                 elem_id = string[1:].strip()
                 if elem_id.isdecimal() and int(elem_id) in self.db.elem_id_lookup:
@@ -262,17 +270,29 @@ class GameInstance(SavableMixin):
                     if user.last_element is not None:
                         return user.last_element
                     else:
-                        raise GameError("No previous element", "Combine something first!", {"element_name": string, "user": user})
+                        raise GameError(
+                            "No previous element",
+                            "Combine something first!",
+                            {"element_name": string, "user": user},
+                        )
                 elif elem_id in ["r", "random"]:
                     return random.choice(list(self.db.elements.values()))
                 elif elem_id in ["ri", "randomininv"]:
                     return self.db.elem_id_lookup[random.choice(user.inv)]
                 else:
-                    raise GameError("Element id does not exist", f"Element with ID **#{elem_id}** doesn't exist!", {"element_name": string, "user": user})
+                    raise GameError(
+                        "Element id does not exist",
+                        f"Element with ID **#{elem_id}** doesn't exist!",
+                        {"element_name": string, "user": user},
+                    )
             if string.lower() in self.db.elements:
                 return self.db.elements[string.lower()]
             else:
-                raise GameError("Element does not exist", f"Element **{string}** doesn't exist!", {"element_name": string, "user": user})
+                raise GameError(
+                    "Element does not exist",
+                    f"Element **{string}** doesn't exist!",
+                    {"element_name": string, "user": user},
+                )
 
     def convert_to_dict(self, data: dict) -> None:
         data["db"] = self.db

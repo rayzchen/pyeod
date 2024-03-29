@@ -1,8 +1,14 @@
 from pyeod import config
 from pyeod.errors import GameError
-from pyeod.frontend import (DiscordGameInstance, ElementalBot, InstanceManager,
-                            autocomplete_categories, build_info_embed,
-                            get_multiplier, parse_element_list)
+from pyeod.frontend import (
+    DiscordGameInstance,
+    ElementalBot,
+    InstanceManager,
+    autocomplete_categories,
+    build_info_embed,
+    get_multiplier,
+    parse_element_list,
+)
 from pyeod.utils import format_list
 from discord import Embed, Message
 from discord.commands import option as option_decorator
@@ -31,7 +37,9 @@ class Base(commands.Cog):
             return
         user = await server.login_user(msg.author.id)
 
-        embed = await build_info_embed(server, await server.get_element_by_str(user, element_str), user)
+        embed = await build_info_embed(
+            server, await server.get_element_by_str(user, element_str), user
+        )
         await msg.reply(embed=embed)
 
     async def combine_elements(self, server: DiscordGameInstance, msg: Message) -> None:
@@ -52,7 +60,10 @@ class Base(commands.Cog):
                 name, count = get_multiplier(msg.content, last_element_name)
                 if name.lower() in server.db.elements:
                     if count > server.combo_limit:
-                        raise GameError("Too many elements", f"You cannot combine more than {server.combo_limit} elements!")
+                        raise GameError(
+                            "Too many elements",
+                            f"You cannot combine more than {server.combo_limit} elements!",
+                        )
                     elements = [name] * count
             if not len(elements):
                 combined_items = parse_element_list(msg.content)
@@ -66,11 +77,17 @@ class Base(commands.Cog):
                 if item.startswith("*"):
                     name, count = get_multiplier(item, last_element_name)
                     if len(elements) + count > server.combo_limit:
-                        raise GameError("Too many elements", f"You cannot combine more than {server.combo_limit} elements!")
+                        raise GameError(
+                            "Too many elements",
+                            f"You cannot combine more than {server.combo_limit} elements!",
+                        )
                     elements += [name] * count
                 else:
                     if len(elements) + 1 > server.combo_limit:
-                        raise GameError("Too many elements", f"You cannot combine more than {server.combo_limit} elements!")
+                        raise GameError(
+                            "Too many elements",
+                            f"You cannot combine more than {server.combo_limit} elements!",
+                        )
                     elements.append(item)
 
         if msg.content.startswith("+") and "\n" not in msg.content:
@@ -89,7 +106,10 @@ class Base(commands.Cog):
         if len(elements) < 2:
             return
         if len(elements) > server.combo_limit:
-            raise GameError("Too many elements", f"You cannot combine more than {server.combo_limit} elements!")
+            raise GameError(
+                "Too many elements",
+                f"You cannot combine more than {server.combo_limit} elements!",
+            )
             return
 
         notfound = []
@@ -97,7 +117,7 @@ class Base(commands.Cog):
             for i in range(len(elements)):
                 if elements[i].startswith("#"):
                     elem_id = elements[i][1:].strip()
-                    #Reserved keywords
+                    # Reserved keywords
                     if elem_id in ["last", "random", "randomininv"]:
                         continue
                     if elem_id.isdecimal() and int(elem_id) in server.db.elem_id_lookup:
@@ -107,14 +127,20 @@ class Base(commands.Cog):
 
         if notfound:
             if len(notfound) == 1:
-                raise GameError("Element id does not exist", f"Element with ID **#{notfound[0]}** doesn't exist!")
+                raise GameError(
+                    "Element id does not exist",
+                    f"Element with ID **#{notfound[0]}** doesn't exist!",
+                )
             else:
                 id_list = [f"**{elem_id}**" for elem_id in notfound]
-                raise GameError("Element ids don't exist", f"Element IDs {format_list(id_list, 'and')} don't exist!")
+                raise GameError(
+                    "Element ids don't exist",
+                    f"Element IDs {format_list(id_list, 'and')} don't exist!",
+                )
 
         element = await server.combine(user, tuple(elements))
         await msg.reply(f"🆕 You made **{element.name}**!")
-        #await self.bot.award_achievements(server, msg)
+        # await self.bot.award_achievements(server, msg)
 
     async def suggest_element(
         self, server: DiscordGameInstance, name: str, msg: Message, autocapitalize: bool
@@ -127,7 +153,9 @@ class Base(commands.Cog):
             await msg.reply("🤖 Server not configured, please set news channel")
             return
         if msg.channel.id not in server.channels.play_channels:
-            raise GameError("Not a play channel", "You can only suggest in play channels!")
+            raise GameError(
+                "Not a play channel", "You can only suggest in play channels!"
+            )
 
         if user.last_combo == ():
             raise GameError("No previous element", "Combine something first!")
@@ -141,11 +169,17 @@ class Base(commands.Cog):
             name = name.strip()
 
         if name.startswith("#"):
-            raise GameError("Invalid element name", "Element names cannot start with **#**!")
+            raise GameError(
+                "Invalid element name", "Element names cannot start with **#**!"
+            )
         if "\n" in name:
-            raise GameError("Invalid element name", "Element names cannot contain newlines!")
+            raise GameError(
+                "Invalid element name", "Element names cannot contain newlines!"
+            )
         if "<@" in name:
-            raise GameError("Invalid element name", "Element names cannot contain **<@**!")
+            raise GameError(
+                "Invalid element name", "Element names cannot contain **<@**!"
+            )
         # Allow users to do potential dumb formatting shit, but also allow normal use of these strings
         # Backslash escape all fucked up discord shit
         for bad_string in ["\\", "</", "<#", "_", "|", "```", "*", ">", "<:", "<sound"]:
@@ -153,7 +187,10 @@ class Base(commands.Cog):
         name = name.replace("\u200C", "")  # ZWNJ
 
         if len(name) > 256:
-            raise GameError("Invalid element name", "Element names cannot be longer than 256 characters!")
+            raise GameError(
+                "Invalid element name",
+                "Element names cannot be longer than 256 characters!",
+            )
         if name == "":
             raise GameError("Invalid element name", "Please give a valid element name!")
 
@@ -230,7 +267,10 @@ class Base(commands.Cog):
         user = await server.login_user(ctx.author.id)
         combo = []
         if not (1 < number_of_elements <= server.combo_limit):
-            raise GameError("Invalid number of elements", f"Number of elements must be between 2 and {server.combo_limit}")
+            raise GameError(
+                "Invalid number of elements",
+                f"Number of elements must be between 2 and {server.combo_limit}",
+            )
         async with server.db.element_lock.reader:
             if category is None:
                 for _ in range(number_of_elements):
@@ -240,13 +280,21 @@ class Base(commands.Cog):
                     if category.lower().strip() in server.db.categories:
                         possible_elements = set(
                             [server.db.elem_id_lookup[i] for i in user.inv]
-                        ) & set(await server.db.categories[category.lower().strip()].get_elements(server.db))
+                        ) & set(
+                            await server.db.categories[
+                                category.lower().strip()
+                            ].get_elements(server.db)
+                        )
                         combo = [
                             random.sample(possible_elements, 1)[0].name
                             for _ in range(number_of_elements)
                         ]
                     else:
-                        raise GameError("Category does not exist", f"Category **{category}** doesn't exist!", {"category": category})
+                        raise GameError(
+                            "Category does not exist",
+                            f"Category **{category}** doesn't exist!",
+                            {"category": category},
+                        )
         description = (
             f"Combined:\n> \n> **{'** + **'.join(combo)}**\n> \n\nResult:\n> \n> "
         )
