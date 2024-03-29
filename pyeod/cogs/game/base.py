@@ -1,14 +1,8 @@
 from pyeod import config
 from pyeod.errors import GameError
-from pyeod.frontend import (
-    DiscordGameInstance,
-    ElementalBot,
-    InstanceManager,
-    build_info_embed,
-    get_multiplier,
-    parse_element_list,
-    autocomplete_categories,
-)
+from pyeod.frontend import (DiscordGameInstance, ElementalBot, InstanceManager,
+                            autocomplete_categories, build_info_embed,
+                            get_multiplier, parse_element_list)
 from pyeod.utils import format_list
 from discord import Embed, Message
 from discord.commands import option as option_decorator
@@ -102,7 +96,7 @@ class Base(commands.Cog):
         async with server.db.element_lock.reader:
             for i in range(len(elements)):
                 if elements[i].startswith("#"):
-                    elem_id = elements[i][1]
+                    elem_id = elements[i][1:].strip()
                     #Reserved keywords
                     if elem_id in ["last", "random", "randomininv"]:
                         continue
