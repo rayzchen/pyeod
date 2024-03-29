@@ -33,6 +33,8 @@ class Base(commands.Cog):
         self, server: DiscordGameInstance, msg: Message
     ) -> None:
         element_str = msg.content[1:].strip()
+        if element_str == "":
+            return
         user = await server.login_user(msg.author.id)
 
         embed = await build_info_embed(server, await server.get_element_by_str(user, element_str), user)
