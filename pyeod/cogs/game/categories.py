@@ -35,6 +35,8 @@ class Categories(commands.Cog):
             element_list = parse_element_list(element_list)
         else:
             element_list = [element]
+        
+        user = await server.login_user(ctx.author.id)
         element_list = [await server.get_element_by_str(user,i).name for i in element_list]
 
         # python>=3.7 only
@@ -76,8 +78,6 @@ class Categories(commands.Cog):
                 if category == "":
                     await ctx.respond("🔴 Please give a valid category name!")
                     return
-
-        user = await server.login_user(ctx.author.id)
         elements = await server.check_elements(element_list)
         elements = tuple(sorted(elements, key=lambda e: e.id))
         poll = await server.suggest_poll(AddCategoryPoll(user, category, elements))
