@@ -102,7 +102,10 @@ class Base(commands.Cog):
         async with server.db.element_lock.reader:
             for i in range(len(elements)):
                 if elements[i].startswith("#"):
-                    elem_id = elements[i][1] ##############################################################################
+                    elem_id = elements[i][1]
+                    #Reserved keywords
+                    if elem_id in ["last", "random", "randomininv"]:
+                        continue
                     if elem_id.isdecimal() and int(elem_id) in server.db.elem_id_lookup:
                         elements[i] = server.db.elem_id_lookup[int(elem_id)].name
                     else:
