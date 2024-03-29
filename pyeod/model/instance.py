@@ -26,8 +26,8 @@ class GameInstance(SavableMixin):
         vote_req: int = 4,
         poll_limit: int = 32,
         combo_limit: int = 21,
-        starter_elements: Optional[Tuple[Element, ...]] = None,
         polls_rejected: Optional[int] = 0,
+        starter_elements: Optional[Tuple[Element, ...]] = None,
     ) -> None:
         if db is None:
             if starter_elements is None:
@@ -74,7 +74,7 @@ class GameInstance(SavableMixin):
                         nonexistent.add(e.meta["element_name"])
                     else:
                         raise e
-        
+
         if unobtained:
             unobtained = sorted(list(unobtained), key=lambda elem: elem.id)
             raise GameError(
@@ -246,7 +246,7 @@ class GameInstance(SavableMixin):
                 "Cannot use icon",
                 "You do not have the achievement required to use that icon!",
             )
-    
+
     async def get_element_by_str(self, user: User, string:str) -> Element:
         async with self.db.element_lock.reader:
             if not string:
@@ -279,6 +279,7 @@ class GameInstance(SavableMixin):
         data["vote_req"] = self.vote_req
         data["poll_limit"] = self.poll_limit
         data["combo_limit"] = self.combo_limit
+        data["polls_rejected"] = self.polls_rejected
 
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "GameInstance":
@@ -287,6 +288,7 @@ class GameInstance(SavableMixin):
             data.get("vote_req", 4),
             data.get("poll_limit", 32),
             data.get("combo_limit", 21),
+            data.get("polls_rejected", 0),
         )
 
 

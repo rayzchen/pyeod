@@ -37,14 +37,14 @@ class DiscordGameInstance(GameInstance):
     def __init__(
         self,
         db: Optional[Database] = None,
-        vote_req: int = 0,
+        vote_req: int = 4,
         poll_limit: int = 21,
         combo_limit: int = 21,
         channels: Optional[ChannelList] = None,
-        # active_polls: Optional[Dict[int, Poll]] = [],
         poll_msg_lookup: Optional[Dict[int, Poll]] = None,
-        starter_elements: Optional[Tuple[Element, ...]] = None,
         commands_used: Optional[int] = 0,
+        polls_rejected: Optional[int] = 0,
+        starter_elements: Optional[Tuple[Element, ...]] = None,
     ) -> None:
         super().__init__(db, vote_req, poll_limit, combo_limit, starter_elements)
         if channels is None:
@@ -55,10 +55,11 @@ class DiscordGameInstance(GameInstance):
             self.poll_msg_lookup = {}
         else:
             self.poll_msg_lookup = poll_msg_lookup
+        self.commands_used = commands_used
+
         self.upvoters = {id: set() for id in self.poll_msg_lookup}
         self.downvoters = {id: set() for id in self.poll_msg_lookup}
         self.processing_polls = set()
-        self.commands_used = commands_used
 
     def convert_to_dict(self, data: dict) -> None:
         super(DiscordGameInstance, self).convert_to_dict(data)
@@ -74,6 +75,7 @@ class DiscordGameInstance(GameInstance):
             if poll in self.db.polls:
                 lookup[id] = self.db.polls.index(poll)
         data["poll_msg_lookup"] = lookup
+        data["commands_used"] = self.commands_used
 
     @staticmethod
     def convert_from_dict(loader, data: dict) -> "DiscordGameInstance":
@@ -101,6 +103,8 @@ class DiscordGameInstance(GameInstance):
             data.get("combo_limit", 21),
             channel_list,
             lookup,
+            data.get("commands_used", 0),
+            data.get("polls_rejected", 0),
         )
 
     async def convert_poll_to_embed(self, poll: Poll):
@@ -120,7 +124,6 @@ class DiscordGameInstance(GameInstance):
         # Cheesy: How do new users know how to delete polls tho?
         embed.set_footer(text="You can change your vote")
         return embed
-        
 
 
 InstT = TypeVar("InstT", bound=GameInstance)
