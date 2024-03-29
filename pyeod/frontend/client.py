@@ -22,6 +22,7 @@ from discord import (
     Interaction,
     Message,
     SelectOption,
+    errors,
     ui,
 )
 from discord.ext import bridge, pages
@@ -64,6 +65,15 @@ class FooterPaginator(pages.Paginator):
             #     footer += " • " + page.footer.text
             page.set_footer(text=footer)
         return buttons
+
+    async def respond(*args, **kwargs):
+        try:
+            return await super(FooterPaginator, self).respond(*args, **kwargs)
+        except errors.NotFound as e:
+            if e.code == 10062:
+                print("Exception ignored in FooterPaginator.respond:", str(e))
+            else:
+                raise
 
 
 async def create_leaderboard(sorting_option, ctx, user):
@@ -579,6 +589,16 @@ class ElementLeaderboardPaginator(FooterPaginator):
 
 
 class ElementalBot(bridge.AutoShardedBot):
+    async def on_connect(self):
+        if self.auto_sync_commands:
+            try:
+                await self.sync_commands()
+            except errors.Forbidden as e:
+                if e.code == 50001:
+                    print("Exception ignored in on_connect:", str(e))
+                else:
+                    raise
+
     async def add_poll(
         self,
         server: DiscordGameInstance,

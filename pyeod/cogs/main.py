@@ -25,14 +25,17 @@ class Main(commands.Cog):
         print("Bot is ready")
         print("Logged in as:", self.bot.user)
         print("ID:", self.bot.user.id)
-        self.restart_checker.start()
-        self.achievement_checker.start()
+
+        if not self.restart_checker.is_running():
+            self.restart_checker.start()
+        if not self.achievement_checker.is_running():
+            self.achievement_checker.start()
 
     @commands.Cog.listener()
     async def on_bridge_command(self, ctx: bridge.Context):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         server.commands_used += 1
-    
+
     @commands.Cog.listener()
     async def on_bridge_command_error(
         self, ctx: bridge.Context, err: commands.errors.CommandError
@@ -49,9 +52,9 @@ class Main(commands.Cog):
         handled = False
         if isinstance(err, GameError):
             if "emoji" not in err.meta:
-                await ctx.respond(f"🔴 {err.message}", ephemeral = True)
+                await ctx.respond(f"🔴 {err.message}", ephemeral=True)
             else:
-                await ctx.respond(f"{err.meta['emoji']} {err.message}", ephemeral = True)
+                await ctx.respond(f"{err.meta['emoji']} {err.message}", ephemeral=True)
             return
         elif isinstance(err, InternalError):
             if err.type == "Complexity lock":
@@ -63,24 +66,24 @@ class Main(commands.Cog):
             return
 
         lines = traceback.format_exception(type(err), err, err.__traceback__)
-        sys.stderr.write("".join(lines))
         error = format_traceback(err)
         await ctx.respond("⚠️ There was an error processing the command:\n" + error)
 
     # General command error listener
     # Listens to bridge commands even if an on_bridge_command_error listener is already present. For some reason.
+    # TODO: listener exception filtering using on_error
     @commands.Cog.listener()
     async def on_command_error(  # Suppress stderr printing on already handled errors
         self, ctx: commands.Context, err: commands.errors.CommandError
     ):
         pass
-    
+
     @commands.Cog.listener()
     async def on_application_command_error(
         self, ctx: ApplicationContext, err: commands.errors.CommandError
     ):
         pass
-    
+
     @bridge.bridge_command(aliases=["ms"])
     async def ping(self, ctx: bridge.Context):
         """Gets the current ping between the bot and discord"""
@@ -93,7 +96,7 @@ class Main(commands.Cog):
         if ctx.author.id not in config.SERVER_CONTROL_USERS:
             raise GameError("No permission", "You don't have permission to do that!")
         if ctx.is_app:
-            msg = await ctx.respond("💽 Updating...", ephemeral = True)
+            msg = await ctx.respond("💽 Updating...", ephemeral=True)
         else:
             msg = await ctx.respond("💽 Updating...")
         p = subprocess.Popen(["git", "pull"], stderr=subprocess.PIPE)
