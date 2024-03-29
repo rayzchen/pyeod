@@ -55,7 +55,6 @@ class Info(commands.Cog):
         element = await server.get_element_by_str(user, marked_element)
         if len(mark) > 3000:
             raise GameError("Too long", "Mark cannot be over 3000 characters in length!")
-        element = server.db.elements[marked_element]
         poll = await server.suggest_poll(MarkPoll(user, element, mark))
 
         await self.bot.add_poll(
