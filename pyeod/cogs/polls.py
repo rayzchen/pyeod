@@ -146,8 +146,6 @@ class Polls(commands.Cog):
                             server.channels.news_channel
                         )
                         news_message = await poll.get_news_message(server)
-                        if not poll.accepted:
-                            server.polls_rejected += 1
                         if isinstance(news_message, tuple):  # (msg, embed)
                             await news_channel.send(
                                 news_message[0], embed=news_message[1]
@@ -164,7 +162,7 @@ class Polls(commands.Cog):
             if resolve_poll:
                 for user_id in list(voters) + [poll.author.id]:
                     user = await server.login_user(user_id)
-                    #await self.bot.award_achievements(server, user=user)
+                    # await self.bot.award_achievements(server, user=user)
         except Exception as e:
             if isinstance(e, errors.NotFound):
                 return

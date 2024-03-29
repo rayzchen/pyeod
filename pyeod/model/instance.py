@@ -143,6 +143,7 @@ class GameInstance(SavableMixin):
                     # Poll was denied
                     deleted_polls.append(poll)
                     poll.author.active_polls -= 1
+                    self.polls_rejected += 1
                 else:
                     new_polls.append(poll)
             self.db.polls = new_polls
@@ -157,6 +158,8 @@ class GameInstance(SavableMixin):
                 # Poll was accepted
                 poll.accepted = True
                 await poll.resolve(self.db)
+            else:
+                self.polls_rejected += 1
             return True
         return False
 
