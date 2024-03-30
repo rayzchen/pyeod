@@ -456,7 +456,7 @@ class ElementPaginator(FooterPaginator):
         return paginator
 
 
-async def create_element_leaderboard(sorting_option, ctx, user):
+async def create_element_leaderboard(sorting_option, ctx, user, start, end):
     server = InstanceManager.current.get_or_create(ctx.guild.id)
     # Don't add new user to db
     if user.id in server.db.users:
@@ -491,8 +491,11 @@ async def create_element_leaderboard(sorting_option, ctx, user):
         else:
             raise GameError("Invalid sort", "Failed to find sort function")
 
+        if end == -1:
+            end = len(server.db.elements.values()) - 1
+        
         for element in sorted(
-            server.db.elements.values(),
+            list(server.db.elements.values())[start:end],
             key=lambda elem: find_value(elem),
             reverse=True,
         ):
@@ -564,8 +567,10 @@ class ElementLeaderboardSortingDropdown(ui.Select):
     async def callback(self, interaction: Interaction):
         ctx = self.paginator.ctx
         user = self.paginator.target_user
+        start = self.paginator.start
+        end = self.paginator.end
 
-        pages = await create_element_leaderboard(self.values[0], ctx, user)
+        pages = await create_element_leaderboard(self.values[0], ctx, user, start, end)
 
         self.paginator.pages = pages
         self.paginator.current_page = 0
@@ -577,12 +582,14 @@ class ElementLeaderboardSortingDropdown(ui.Select):
 
 class ElementLeaderboardPaginator(FooterPaginator):
     def __init__(
-        self, page_list, ctx, user, footer_text: str = "", loop: bool = True
+        self, page_list, ctx, user, start, end, footer_text: str = "", loop: bool = True
     ) -> None:
         super(ElementLeaderboardPaginator, self).__init__(page_list, footer_text, loop)
         self.show_menu = True
         self.ctx = ctx
         self.target_user = user
+        self.start = start
+        self.end = end
 
     def add_menu(self):
         self.menu = ElementLeaderboardSortingDropdown()
