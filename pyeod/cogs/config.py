@@ -87,16 +87,16 @@ class Config(commands.Cog):
     ):
         """Imports an instance into a server"""
         if ctx.author.id not in config.SERVER_CONTROL_USERS:
-            raise GameError("No permission", "You don't have permission to do that!")
+            raise GameError("No permission", "You don't have permission to do that")
 
         path = os.path.join(config.package, "db", str(guild_id) + ".eod")
         if guild_id not in InstanceManager.current.instances:
-            msg = await ctx.respond("🤖 Server not found, uploading fresh database")
+            msg = await ctx.respond(" Server not found, uploading fresh database")
             old_data = None
             with open(path, "wb+") as f:
                 f.write(await file.read())
         else:
-            msg = await ctx.respond("🤖 Server found, backing up original database")
+            msg = await ctx.respond(" Server found, backing up original database")
             with open(path, "rb") as f:
                 old_data = f.read()
             with open(path, "wb") as f:
@@ -108,12 +108,12 @@ class Config(commands.Cog):
                 InstanceManager.current.remove_instance(guild_id)
             InstanceManager.current.add_instance(guild_id, instance)
 
-        await ctx.respond("🤖 Loaded new instance")
+        await ctx.respond(" Loaded new instance")
 
         if old_data is not None:
             stream = io.BytesIO(old_data)
             file = File(stream, filename=str(guild_id) + ".eod")
-            await ctx.respond("🤖 Old instance backup:", file=file)
+            await ctx.respond(" Old instance backup:", file=file)
 
     @bridge.bridge_command()
     @bridge.guild_only()
@@ -148,7 +148,7 @@ class Config(commands.Cog):
                     else:
                         raise
 
-        msg = f"🤖 Successfully imported inv for user **{user.display_name}**"
+        msg = f" Successfully imported inv for user **{user.display_name}**"
         msg += f"\n> Added {found} elements"
         msg += f"\n> Skipped {skipped} elements"
         msg += f"\n> Could not find {notfound} elements"
@@ -178,7 +178,7 @@ class Config(commands.Cog):
     async def active_servers(self, ctx: bridge.Context):
         """Servers with the bot added"""
         if ctx.author.id not in config.SERVER_CONTROL_USERS:
-            raise GameError("No permission", "You don't have permission to do that!")
+            raise GameError("No permission", "You don't have permission to do that")
 
         servers = InstanceManager.current.instances
 
@@ -208,13 +208,13 @@ class Config(commands.Cog):
     ):
         """Downloads an instance"""
         if ctx.author.id not in config.SERVER_CONTROL_USERS:
-            raise GameError("No permission", "You don't have permission to do that!")
+            raise GameError("No permission", "You don't have permission to do that")
 
         if guild_id is None:
             guild_id = ctx.guild.id
 
         if guild_id not in InstanceManager.current.instances:
-            raise GameError("Server not found", "Could not find server!")
+            raise GameError("Server not found", "Could not find server")
 
         await ctx.defer()
         path = os.path.join(config.package, "db", str(guild_id) + ".eod")
@@ -222,7 +222,7 @@ class Config(commands.Cog):
             data = f.read()
         stream = io.BytesIO(data)
         file = prepare_file(stream, filename=str(guild_id) + ".eod")
-        await ctx.respond(f"🤖 Instance download for {guild_id}:", file=file)
+        await ctx.respond(f" Instance download for {guild_id}:", file=file)
 
     @bridge.bridge_command()
     @bridge.guild_only()
@@ -263,7 +263,7 @@ class Config(commands.Cog):
 
         if channel.id not in server.channels.play_channels:
             server.channels.play_channels.append(channel.id)
-        await ctx.respond(f"🤖 Successfully added <#{channel.id}> as a play channel!")
+        await ctx.respond(f" Successfully added <#{channel.id}> as a play channel")
 
     @bridge.bridge_command()
     @bridge.guild_only()
@@ -275,10 +275,10 @@ class Config(commands.Cog):
         if channel.id in server.channels.play_channels:
             server.channels.play_channels.remove(channel.id)
             await ctx.respond(
-                f"🤖 Successfully removed <#{channel.id}> as a play channel!"
+                f" Successfully removed <#{channel.id}> as a play channel"
             )
         else:
-            raise GameError("Not a play channel", "This channel is not a play channel!")
+            raise GameError("Not a play channel", "This channel is not a play channel")
 
     @bridge.bridge_command()
     @bridge.guild_only()
@@ -288,7 +288,7 @@ class Config(commands.Cog):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
         server.channels.news_channel = channel.id
-        await ctx.respond(f"🤖 Successfully set <#{channel.id}> as the news channel!")
+        await ctx.respond(f" Successfully set <#{channel.id}> as the news channel")
 
     @bridge.bridge_command()
     @bridge.guild_only()
@@ -298,7 +298,7 @@ class Config(commands.Cog):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
         server.channels.voting_channel = channel.id
-        await ctx.respond(f"🤖 Successfully set <#{channel.id}> as the voting channel!")
+        await ctx.respond(f"Successfully set <#{channel.id}> as the voting channel")
 
     @bridge.bridge_command()
     @bridge.guild_only()
@@ -314,22 +314,14 @@ class Config(commands.Cog):
             server.db.elements.pop(old_name.lower())
             server.db.elements[name.lower()] = element
         await ctx.respond(
-            f"🤖 Renamed element #{elem_id} (**{old_name}**) to **{name}** successfully!"
+            f" Renamed element #{elem_id} (**{old_name}**) to **{name}** successfully"
         )
         if server.channels.news_channel is not None:
             channel = await self.bot.fetch_channel(server.channels.news_channel)
             await channel.send(
-                f"🤖 Renamed element #{elem_id} (**{old_name}**) to **{name}**"
+                f" Renamed element #{elem_id} (**{old_name}**) to **{name}**"
             )
 
-    @bridge.bridge_command()
-    @bridge.guild_only()
-    @bridge.has_permissions(manage_channels=True)
-    async def set_vote_req(self, ctx: bridge.Context, vote_req: int):
-        server = InstanceManager.current.get_or_create(ctx.guild.id)
-
-        server.vote_req = vote_req
-        await ctx.respond(f"🤖 Successfully set the vote requirement to {vote_req}")
 
     @bridge.bridge_command()
     @bridge.guild_only()
@@ -338,16 +330,7 @@ class Config(commands.Cog):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
         server.poll_limit = poll_limit
-        await ctx.respond(f"🤖 Successfully set the vote requirement to {poll_limit}")
-
-    @bridge.bridge_command()
-    @bridge.guild_only()
-    @bridge.has_permissions(manage_channels=True)
-    async def set_combo_limit(self, ctx: bridge.Context, combo_limit: int):
-        server = InstanceManager.current.get_or_create(ctx.guild.id)
-
-        server.combo_limit = combo_limit
-        await ctx.respond(f"🤖 Successfully set the combo limit to {combo_limit}")
+        await ctx.respond(f" Successfully set the vote requirement to {poll_limit}")
 
     @bridge.bridge_command()
     @bridge.guild_only()

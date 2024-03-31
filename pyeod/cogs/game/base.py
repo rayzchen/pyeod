@@ -14,9 +14,8 @@ from discord import Embed, Message
 from discord.commands import option as option_decorator
 from discord.ext import bridge, commands
 from typing import Union
-import random
+import random, time
 import functools
-
 
 def capitalize(name: str) -> str:
     if name.lower() != name:
@@ -32,6 +31,7 @@ class Base(commands.Cog):
     async def show_element_info(
         self, server: DiscordGameInstance, msg: Message
     ) -> None:
+        time.sleep(random.uniform(0,1.5))
         element_str = msg.content[1:].strip()
         if element_str == "":
             return
@@ -43,6 +43,7 @@ class Base(commands.Cog):
         await msg.reply(embed=embed)
 
     async def combine_elements(self, server: DiscordGameInstance, msg: Message) -> None:
+        time.sleep(random.uniform(0,1.5))
         if msg.channel.id not in server.channels.play_channels:
             return
         user = await server.login_user(msg.author.id)
@@ -139,12 +140,21 @@ class Base(commands.Cog):
                 )
 
         element = await server.combine(user, tuple(elements))
-        await msg.reply(f"🆕 You made **{element.name}**!")
+        if random.randint(0,50) != 0:
+            await msg.reply(f"You made **{element.name}**!")
+        else:
+            random_element_name = random.choice(list(server.db.elements.values())).name
+            await msg.reply(f"You did not make **{random_element_name}**!")
         # await self.bot.award_achievements(server, msg)
 
     async def suggest_element(
         self, server: DiscordGameInstance, name: str, msg: Message, autocapitalize: bool
     ) -> None:
+        
+        if random.randint(0, 10) == 0:
+            return
+        
+        time.sleep(random.uniform(0,1.5))
         user = await server.login_user(msg.author.id)
         if server.channels.voting_channel is None:
             await msg.reply("🤖 Server not configured, please set voting channel")
@@ -245,72 +255,13 @@ class Base(commands.Cog):
     async def suggest(
         self, ctx: bridge.Context, *, element_name: str, autocapitalize: bool = True
     ):
+        time.sleep(random.uniform(0,1.5))
         """Suggests a result for an element combo to be voted on"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if ctx.channel.id not in server.channels.play_channels:
             raise GameError("Not a play channel", "This channel is not a play channel!")
         # Only required methods of ctx is .author, .channel and .reply
         await self.suggest_element(server, element_name, ctx, autocapitalize)
-
-    @bridge.bridge_command(aliases=["rcom"])
-    @bridge.guild_only()
-    @option_decorator("category", autocomplete=autocomplete_categories)
-    async def random_combination(
-        self,
-        ctx: bridge.Context,
-        number_of_elements: int = 2,
-        *,
-        category: str = None,
-    ):
-        """Combines random elements from your inventory"""
-        server = InstanceManager.current.get_or_create(ctx.guild.id)
-        user = await server.login_user(ctx.author.id)
-        combo = []
-        if not (1 < number_of_elements <= server.combo_limit):
-            raise GameError(
-                "Invalid number of elements",
-                f"Number of elements must be between 2 and {server.combo_limit}",
-            )
-        async with server.db.element_lock.reader:
-            if category is None:
-                for _ in range(number_of_elements):
-                    combo.append(server.db.elem_id_lookup[random.choice(user.inv)].name)
-            else:
-                async with server.db.category_lock.reader:
-                    if category.lower().strip() in server.db.categories:
-                        possible_elements = set(
-                            [server.db.elem_id_lookup[i] for i in user.inv]
-                        ) & set(
-                            await server.db.categories[
-                                category.lower().strip()
-                            ].get_elements(server.db)
-                        )
-                        combo = [
-                            random.sample(possible_elements, 1)[0].name
-                            for _ in range(number_of_elements)
-                        ]
-                    else:
-                        raise GameError(
-                            "Category does not exist",
-                            f"Category **{category}** doesn't exist!",
-                            {"category": category},
-                        )
-        description = (
-            f"Combined:\n> \n> **{'** + **'.join(combo)}**\n> \n\nResult:\n> \n> "
-        )
-        try:
-            element = await server.combine(user, tuple(combo))
-            description += f"🆕 You made **{element.name}**!"
-        except GameError as g:
-            if "emoji" not in g.meta:
-                description += f"🔴 {g.message}"
-            else:
-                description += f"{g.meta['emoji']} {g.message}"
-        description += "\n> \u200c"  # ZWNJ
-        embed = Embed(
-            title="Random Combo", description=description, color=config.EMBED_COLOR
-        )
-        await ctx.respond(embed=embed)
 
 
 def setup(client):

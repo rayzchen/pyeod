@@ -4,7 +4,7 @@ from discord import Message, TextChannel, errors
 from discord.ext import bridge, commands, tasks
 from discord.utils import get
 from typing import Optional
-import traceback
+import traceback, asyncio
 
 
 class Polls(commands.Cog):
@@ -69,6 +69,7 @@ class Polls(commands.Cog):
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
+        await asyncio.sleep(0,2)
         if payload.guild_id not in InstanceManager.current.instances:
             return
         server = InstanceManager.current.instances[payload.guild_id]
@@ -196,7 +197,7 @@ class Polls(commands.Cog):
             for user in server.db.users.values():
                 user.active_polls = 0
         # TODO: delete polls and notify in news
-        await ctx.respond("🧹 Cleared polls!")
+        await ctx.respond("Cleared polls")
 
 
 def setup(client):

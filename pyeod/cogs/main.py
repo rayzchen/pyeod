@@ -14,6 +14,7 @@ import typing
 import inspect
 import traceback
 import subprocess
+import asyncio,random
 
 
 class Main(commands.Cog):
@@ -28,8 +29,6 @@ class Main(commands.Cog):
 
         if not self.restart_checker.is_running():
             self.restart_checker.start()
-        if not self.achievement_checker.is_running():
-            self.achievement_checker.start()
 
     @commands.Cog.listener()
     async def on_bridge_command(self, ctx: bridge.Context):
@@ -42,7 +41,7 @@ class Main(commands.Cog):
     ):
         # Handle different exceptions from parsing arguments here
         if isinstance(err, commands.errors.BadArgument):
-            await ctx.respond("🔴 " + str(err))
+            await ctx.respond("" + str(err))
             return
 
         if isinstance(
@@ -52,14 +51,14 @@ class Main(commands.Cog):
         handled = False
         if isinstance(err, GameError):
             if "emoji" not in err.meta:
-                await ctx.respond(f"🔴 {err.message}", ephemeral=True)
+                await ctx.respond(f"{err.message}", ephemeral=True)
             else:
-                await ctx.respond(f"{err.meta['emoji']} {err.message}", ephemeral=True)
+                await ctx.respond(f"{err.message}", ephemeral=True)
             return
         elif isinstance(err, InternalError):
             if err.type == "Complexity lock":
                 await ctx.respond(
-                    f"🔴 Complexity calculations ongoing, cannot access element data"
+                    f"Complexity calculations ongoing, cannot access element data"
                 )
                 handled = True
         if handled:
@@ -67,7 +66,7 @@ class Main(commands.Cog):
 
         lines = traceback.format_exception(type(err), err, err.__traceback__)
         error = format_traceback(err)
-        await ctx.respond("⚠️ There was an error processing the command:\n" + error)
+        await ctx.respond("There was an error processing the command:\n" + error)
 
     # General command error listener
     # Listens to bridge commands even if an on_bridge_command_error listener is already present. For some reason.
@@ -86,15 +85,16 @@ class Main(commands.Cog):
 
     @bridge.bridge_command(aliases=["ms"])
     async def ping(self, ctx: bridge.Context):
+        await asyncio.sleep(random.randint(10,20))
         """Gets the current ping between the bot and discord"""
-        await ctx.respond(f"🏓 Pong! {round(self.bot.latency*1000)}ms")
+        await ctx.respond(f"Pong! 0ms")
 
     @bridge.bridge_command()
     @bridge.has_permissions(manage_messages=True)
     async def update(self, ctx: bridge.Context, *, revision: str = ""):
         """Updates to the latest github commit"""
         if ctx.author.id not in config.SERVER_CONTROL_USERS:
-            raise GameError("No permission", "You don't have permission to do that!")
+            raise GameError("No permission", "You don't have permission to do that")
         if ctx.is_app:
             msg = await ctx.respond("💽 Updating...", ephemeral=True)
         else:
@@ -132,17 +132,6 @@ class Main(commands.Cog):
             content=f"💽 Updated successfully to commit {stdout.decode()[:7]}. Restarting"
         )
 
-    @bridge.bridge_command()
-    @bridge.has_permissions(manage_messages=True)
-    async def prod(self, ctx: bridge.Context, *, object_to_get: str = ""):
-        """Allows you to see the direct python data of certain objects"""
-        if ctx.author.id not in config.SERVER_CONTROL_USERS:
-            raise GameError("No permission", "You don't have permission to do that!")
-        if object_to_get == "current polls":
-            server = InstanceManager.current.get_or_create(ctx.guild.id)
-            await ctx.reply(server.db.polls)
-            return
-
     @tasks.loop(seconds=2, reconnect=True)
     async def restart_checker(self):
         if os.path.isfile(config.stopfile):
@@ -155,12 +144,6 @@ class Main(commands.Cog):
             print("Restarting")
             self.restart_checker.stop()
             await self.bot.close()
-
-    @tasks.loop(seconds=3, reconnect=True)
-    async def achievement_checker(self):
-        for server in InstanceManager.current.instances.values():
-            for user in server.db.users.values():
-                await self.bot.award_achievements(server, user=user)
 
     @bridge.bridge_command()
     async def help(self, ctx: bridge.Context):
@@ -180,7 +163,7 @@ class Main(commands.Cog):
 
             # Fucked up code I wrote a while ago
             # Works and that's about it
-            command_desc = "\n!" + command.name
+            command_desc = "\n" + command.name
             type_names = {
                 int: "Number",
                 str: "Text",
@@ -228,7 +211,7 @@ class Main(commands.Cog):
             if command.aliases:
                 embed.add_field(
                     name="Aliases",
-                    value=format_list(["!" + i for i in command.aliases]),
+                    value=format_list(["" + i for i in command.aliases]),
                 )
             if command.cog_name not in help_pages:
                 help_pages[command.cog_name] = [embed]

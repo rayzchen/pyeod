@@ -79,14 +79,14 @@ class GameInstance(SavableMixin):
             unobtained = sorted(list(unobtained), key=lambda elem: elem.id)
             raise GameError(
                 "Not in inv",
-                f"You don't have {format_list([i.name for i in unobtained])}!",
+                f"You don't have {format_list([i.name for i in unobtained])}",
                 {"elements": unobtained, "user": user},
             )
         if nonexistent:
             nonexistent = sorted(list(nonexistent))
             raise GameError(
                 "Elements do not exist",
-                f"Elements {format_list(nonexistent, 'and')} don't exist!",
+                f"Elements {format_list(nonexistent, 'and')} don't exist",
                 {"elements": nonexistent, "user": user},
             )
         return tuple(elements)
@@ -99,7 +99,7 @@ class GameInstance(SavableMixin):
             user.last_element = None
             raise GameError(
                 "Not a combo",
-                "Not a combo! Use **!s <element_name>** to suggest an element!",
+                "Not a combo! Use **!s <element_name>** to suggest an element",
                 meta={"emoji": "🟥", "element": result},
             )
         user.last_element = result
@@ -248,7 +248,7 @@ class GameInstance(SavableMixin):
         else:
             raise GameError(
                 "Cannot use icon",
-                "You do not have the achievement required to use that icon!",
+                "You do not have the achievement required to use that icon",
             )
 
     async def get_element_by_str(self, user: User, string: str) -> Element:
@@ -259,7 +259,7 @@ class GameInstance(SavableMixin):
                 else:
                     raise GameError(
                         "No previous element",
-                        "Combine something first!",
+                        "Combine something first",
                         {"element_name": string, "user": user},
                     )
             if string.startswith("#"):
@@ -272,7 +272,7 @@ class GameInstance(SavableMixin):
                     else:
                         raise GameError(
                             "No previous element",
-                            "Combine something first!",
+                            "Combine something first",
                             {"element_name": string, "user": user},
                         )
                 elif elem_id in ["r", "random"]:
@@ -282,7 +282,7 @@ class GameInstance(SavableMixin):
                 else:
                     raise GameError(
                         "Element id does not exist",
-                        f"Element with ID **#{elem_id}** doesn't exist!",
+                        f"Element with ID **#{elem_id}** doesn't exist",
                         {"element_name": string, "user": user},
                     )
             if string.lower() in self.db.elements:
@@ -290,7 +290,7 @@ class GameInstance(SavableMixin):
             else:
                 raise GameError(
                     "Element does not exist",
-                    f"Element **{string}** doesn't exist!",
+                    f"Element **{string}** doesn't exist",
                     {"element_name": string, "user": user},
                 )
 

@@ -88,7 +88,7 @@ class ElementPoll(Poll):
                     msg += "Element"
                 msg += f" - **{self.result}** (Lasted **{self.get_time()}** • "
                 msg += (
-                    f"By {instance.get_icon(self.author.icon)} <@{self.author.id}>) - "
+                    f"By {''} <@{self.author.id}>) - "
                 )
                 if self.exists:
                     msg += "Combination "
@@ -103,7 +103,7 @@ class ElementPoll(Poll):
                 else:
                     msg += "Element"
                 msg += f" - **{self.result}** (Lasted **{self.get_time()}** • "
-                msg += f"By {instance.get_icon(self.author.icon)} <@{self.author.id}>) "
+                msg += f"By {''} <@{self.author.id}>) "
             return msg
 
     def get_title(self) -> str:
@@ -178,12 +178,12 @@ class MarkPoll(Poll):
                 msg += ":scroll: "  # Scroll emoji, not unicode cus for some reason it doesn't work
                 msg += "Mark"
                 msg += f" - **{self.marked_element.name}** (Lasted **{self.get_time()}** • "
-                msg += f"By {instance.get_icon(self.author.icon)} <@{self.author.id}>)"
+                msg += f"By {''} <@{self.author.id}>)"
             else:
                 msg += "❌ Poll Rejected - "
                 msg += "Mark"
                 msg += f" - **{self.marked_element.name}** (Lasted **{self.get_time()}** • "
-                msg += f"By {instance.get_icon(self.author.icon)} <@{self.author.id}>) "
+                msg += f"By {''} <@{self.author.id}>) "
             return msg
 
     def get_title(self) -> str:
@@ -247,12 +247,12 @@ class ColorPoll(Poll):
                 msg += "🎨 "
                 msg += "Color"
                 msg += f" - **{self.colored_element.name}** (Lasted **{self.get_time()}** • "
-                msg += f"By {instance.get_icon(self.author.icon)} <@{self.author.id}>)"
+                msg += f"By {''} <@{self.author.id}>)"
             else:
                 msg += "❌ Poll Rejected - "
                 msg += "Color"
                 msg += f" - **{self.colored_element.name}** (Lasted **{self.get_time()}** • "
-                msg += f"By {instance.get_icon(self.author.icon)} <@{self.author.id}>) "
+                msg += f"By {''} <@{self.author.id}>) "
             return msg
 
     def get_title(self) -> str:
@@ -325,7 +325,7 @@ class ImagePoll(Poll):
                 msg += "🖼️ "
                 msg += "Image"
                 msg += f" - **{self.imaged_element.name}** (Lasted **{self.get_time()}** • "
-                msg += f"By {instance.get_icon(self.author.icon)} <@{self.author.id}>)"
+                msg += f"By {''} <@{self.author.id}>)"
                 embed = Embed(
                     title="New Image", image=self.image, color=self.imaged_element.color
                 )
@@ -334,7 +334,7 @@ class ImagePoll(Poll):
                 msg += "❌ Poll Rejected - "
                 msg += "Image"
                 msg += f" - **{self.imaged_element.name}** (Lasted **{self.get_time()}** • "
-                msg += f"By {instance.get_icon(self.author.icon)} <@{self.author.id}>) "
+                msg += f"By {''} <@{self.author.id}>) "
                 return msg
 
     def get_title(self) -> str:
@@ -397,12 +397,12 @@ class IconPoll(Poll):
                 msg += "📍 "
                 msg += "Icon"
                 msg += f" - **{self.iconed_element.name}** (Lasted **{self.get_time()}** • "
-                msg += f"By {instance.get_icon(self.author.icon)} <@{self.author.id}>)"
+                msg += f"By {''} <@{self.author.id}>)"
             else:
                 msg += "❌ Poll Rejected - "
                 msg += "Icon"
                 msg += f" - **{self.iconed_element.name}** (Lasted **{self.get_time()}** • "
-                msg += f"By {instance.get_icon(self.author.icon)} <@{self.author.id}>) "
+                msg += f"By {''} <@{self.author.id}>) "
             return msg
 
     def get_title(self) -> str:
@@ -466,12 +466,12 @@ class AddCollabPoll(Poll):
                 msg += "👥 "
                 msg += "Collab"
                 msg += f" - **{self.element.name}** (Lasted **{self.get_time()}** • "
-                msg += f"By {instance.get_icon(self.author.icon)} <@{self.author.id}>)"
+                msg += f"By {''} <@{self.author.id}>)"
             else:
                 msg += "❌ Poll Rejected - "
                 msg += "Collab"
                 msg += f" - **{self.element.name}** (Lasted **{self.get_time()}** • "
-                msg += f"By {instance.get_icon(self.author.icon)} <@{self.author.id}>) "
+                msg += f"By {''} <@{self.author.id}>) "
             return msg
 
     def get_title(self) -> str:
@@ -532,12 +532,12 @@ class RemoveCollabPoll(Poll):
                 msg += "🚷 "
                 msg += "Remove Collaborators"
                 msg += f" - **{self.element.name}** (Lasted **{self.get_time()}** • "
-                msg += f"By {instance.get_icon(self.author.icon)} <@{self.author.id}>)"
+                msg += f"By {''} <@{self.author.id}>)"
             else:
                 msg += "❌ Poll Rejected - "
                 msg += "Remove Collaborators"
                 msg += f" - **{self.element.name}** (Lasted **{self.get_time()}** • "
-                msg += f"By {instance.get_icon(self.author.icon)} <@{self.author.id}>) "
+                msg += f"By {''} <@{self.author.id}>) "
             return msg
 
     def get_title(self) -> str:
@@ -610,12 +610,12 @@ class AddCategoryPoll(Poll):
             if len(self.elements) > 1:
                 msg += "s"
             msg += f" to category **{self.category}** (Lasted **{self.get_time()}** • "
-            msg += f"By {instance.get_icon(self.author.icon)} <@{self.author.id}>)"
+            msg += f"By {''} <@{self.author.id}>)"
         else:
             msg += "❌ Poll Rejected - "
             msg += "Add to category "
             msg += f"**{self.category}** (Lasted **{self.get_time()}** • "
-            msg += f"By {instance.get_icon(self.author.icon)} <@{self.author.id}>) "
+            msg += f"By {''} <@{self.author.id}>) "
         return msg
 
     def get_title(self) -> str:
@@ -692,19 +692,19 @@ class RemoveCategoryPoll(Poll):
                 msg += "📂 "
                 msg += f"Deleted category **{self.category}**"
                 msg += f" (Lasted **{self.get_time()}** • "
-                msg += f"By {instance.get_icon(self.author.icon)} <@{self.author.id}>)"
+                msg += f"By {''} <@{self.author.id}>)"
             else:
                 msg += "📂 "
                 msg += f"Removed **{len(self.elements)}** element"
                 if len(self.elements) > 1:
                     msg += "s"
                 msg += f" from category **{self.category}** (Lasted **{self.get_time()}** • "
-                msg += f"By {instance.get_icon(self.author.icon)} <@{self.author.id}>)"
+                msg += f"By {''} <@{self.author.id}>)"
         else:
             msg += "❌ Poll Rejected - "
             msg += "Remove from category "
             msg += f"**{self.category}** (Lasted **{self.get_time()}** • "
-            msg += f"By {instance.get_icon(self.author.icon)} <@{self.author.id}>) "
+            msg += f"By {''} <@{self.author.id}>) "
         return msg
 
     def get_title(self) -> str:

@@ -193,7 +193,7 @@ class User(SavableMixin):
             data.get("created_combo_count", 0),
             data.get("votes_cast_count", 0),
             data.get("achievements", []),
-            data.get("icon", 0),
+            0,
         )
         for i in user.achievements:
             i[0] = int(i[0])

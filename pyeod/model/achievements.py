@@ -466,7 +466,7 @@ async def difficulty_progress(instance, user):
 
 achievements = {
     -1: {
-        "names": ["Achievement get!"],
+        "names": ["Achievement get"],
         "default": "Achiever",
         "req_func": achievement_achievement_check,
         "progress_func": achievement_achievement_progress,
@@ -517,7 +517,7 @@ achievements = {
     },
     2: {
         "names": [
-            "I Voted!",
+            "I Voted",
             "New Voter",
             "Voter",
             "Keen Voter",
@@ -719,7 +719,7 @@ achievements = {
 # TODO - Change this to a list
 
 user_icons = {
-    0: {"emoji": "👤", "req": None},  # The default icon available to everyone
+    0: {"emoji": "", "req": None},  # The default icon available to everyone
     1: {"emoji": "🔝", "req": [3, 3]},
     2: {"emoji": "🏵️", "req": [3, 0]},
     3: {"emoji": "🧑‍⚖️", "req": [2, 6]},

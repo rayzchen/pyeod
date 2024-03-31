@@ -249,57 +249,6 @@ class ElementListMenu(ui.Select):
                 description="Sorts by the order the elements were found",
                 emoji="\U0001F392",  # Black freaks out here if the actual char is used
             ),
-            SelectOption(
-                label="Created",
-                description="Sorts by when the element was created",
-                emoji="🪄",
-            ),
-            SelectOption(
-                label="Alphabetical",
-                description="Sorts by alphabetical order",
-                emoji="🔠",
-            ),
-            SelectOption(
-                label="ID",
-                description="Sorts by ID",
-                emoji="#️⃣",
-            ),
-            # SelectOption(
-            #     label="Time Created",
-            #     description="Sorts by time the element was created",
-            #     emoji="📅",
-            # ),
-            SelectOption(
-                label="Difficulty",
-                description="Sorts by difficulty",
-                emoji="📛",
-            ),
-            SelectOption(
-                label="Tier",
-                description="Sorts by tier",
-                emoji="📶",
-            ),
-            SelectOption(
-                label="Tree Size",
-                description="Sorts by tree size",
-                emoji="🌲",
-            ),
-            SelectOption(
-                label="Creator",
-                description="Sorts by who created the element",
-                emoji="✍",
-            ),
-            SelectOption(
-                label="Random",
-                description="Randomly orders all elements",
-                emoji="🎲",
-            ),
-            SelectOption(
-                label="Length",
-                description="Sorts by element name length",
-                emoji="\u2194",
-            ),
-            # Add more options as needed
         ]
         super().__init__(
             placeholder="Choose a sorting option...",

@@ -97,9 +97,9 @@ class DiscordGameInstance(GameInstance):
             channel_list = ChannelList()
         return DiscordGameInstance(
             db,
-            data.get("vote_req", 4),
+            3,
             data.get("poll_limit", 32),
-            data.get("combo_limit", 21),
+            2,
             channel_list,
             lookup,
             data.get("commands_used", 0),

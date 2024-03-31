@@ -63,15 +63,11 @@ async def build_info_embed(
         raise InternalError("Complexity lock", "Complexity calculations in process")
 
     description = f"Element **#{element.id}**\n"
-    if element.id in user.inv:
-        description += "📫 **You have this.**"
-    else:
-        description += "📭 **You don't have this.**"
     description += "\n\n**Mark**\n"
 
     if element.author is None:
-        creator = "The Big Bang"
-        icon = "♾️"
+        creator = "None"
+        icon = ""
     elif element.author == 0:
         creator = "<@0>"
         icon = instance.get_icon(0)
@@ -132,28 +128,8 @@ async def build_info_embed(
         category_list += " and " + str(len(categories) - 3) + " more..."
 
     fields = [
-        EmbedField(f"{icon} Creator", creator, True),
-        EmbedField("👥 Collaborators", collaborators, True)
-        if element.extra_authors
-        else None,
-        EmbedField("📅 Created At", timestamp, True),
-        EmbedField("🌲 Tree Size", f"{tree_size:,}", True),
-        EmbedField("📶 Element Tier", f"{complexity:,}", True),
-        EmbedField(
-            "\U0001F4DB Difficulty",
-            f"{calculate_difficulty(tree_size, complexity):,.2f}",
-            True,
-        ),
-        EmbedField("🔨 Made With", str(made_with), True),
-        EmbedField("🧰 Used In", str(used_in), True),
-        EmbedField("🔍 Found By", str(found_by), True),
-        EmbedField("🗣️ Marker", marker, True) if element.marker else None,
-        EmbedField("🖌️ Color", ColorPoll.get_hex(element.color), True),
-        EmbedField("🎨 Colorer", colorer, True) if element.colorer else None,
-        EmbedField("🖼️ Imager", imager, True) if element.imager else None,
-        EmbedField("📍 Iconer", iconer, True) if element.iconer else None,
-        EmbedField("📊 Progress", progress, True),
-        EmbedField("📂 Categories", category_list, False),
+        EmbedField(f"Creator", creator, True),
+        EmbedField("Created At", timestamp, True),
     ]
 
     embed = Embed(
@@ -168,7 +144,7 @@ async def build_info_embed(
 
     if element.icon:
         embed.title = " "
-        embed.set_author(name=element.name + " Info", icon_url=element.icon)
+        embed.set_author(name=element.name + " Info")
 
     return embed
 
