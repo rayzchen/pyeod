@@ -85,7 +85,7 @@ class Main(commands.Cog):
 
     @bridge.bridge_command(aliases=["ms"])
     async def ping(self, ctx: bridge.Context):
-        await asyncio.sleep(random.randint(10,20))
+        await asyncio.sleep(20 + random.randint(0,10))
         """Gets the current ping between the bot and discord"""
         await ctx.respond(f"Pong! 0ms")
 
