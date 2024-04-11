@@ -32,6 +32,8 @@ import typing
 import asyncio
 import inspect
 
+# Non persistent var to allow for backing up during high volatility events
+last_backup = {}
 
 class Config(commands.Cog):
     def __init__(self, bot: ElementalBot):
@@ -223,6 +225,28 @@ class Config(commands.Cog):
         stream = io.BytesIO(data)
         file = prepare_file(stream, filename=str(guild_id) + ".eod")
         await ctx.respond(f"🤖 Instance download for {guild_id}:", file=file)
+
+    @bridge.bridge_command()
+    @bridge.has_permissions(administrator=True)
+    @bridge.guild_only()
+    async def backup_server(
+        self, ctx: bridge.Context
+    ):
+        """Backs up an instance
+NOTE: __YOU__ are responsible for the storage of the backup AND the backup contains ALL data for your server, so DO NOT SHARE IT!"""
+        
+        if ctx.guild.id in last_backup:
+            if time.time() - last_backup[ctx.guild.id] < 43200:
+                raise GameError("Too soon", "You can only backup once every 12 hours!")
+
+        await ctx.defer()
+        path = os.path.join(config.package, "db", str(ctx.guild.id) + ".eod")
+        with open(path, "rb") as f:
+            data = f.read()
+        stream = io.BytesIO(data)
+        file = prepare_file(stream, filename=str(ctx.guild.id) + ".backup")
+        await ctx.respond(f"🤖 *please note you are responsible for storing this file somewhere*\nServer back up for **{ctx.guild.name}**:", file=file)
+        last_backup[ctx.guild.id] = time.time()
 
     @bridge.bridge_command()
     @bridge.guild_only()
