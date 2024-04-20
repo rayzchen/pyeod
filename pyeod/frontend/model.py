@@ -36,7 +36,7 @@ class DiscordGameInstance(GameInstance):
     def __init__(
         self,
         db: Optional[Database] = None,
-        vote_req: int = 4,
+        vote_req: int = 2,
         poll_limit: int = 21,
         combo_limit: int = 21,
         channels: Optional[ChannelList] = None,

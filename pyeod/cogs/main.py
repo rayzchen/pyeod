@@ -90,7 +90,6 @@ class Main(commands.Cog):
         await ctx.respond(f"🏓 Pong! {round(self.bot.latency*1000)}ms")
 
     @bridge.bridge_command()
-    @bridge.has_permissions(manage_messages=True)
     async def update(self, ctx: bridge.Context, *, revision: str = ""):
         """Updates to the latest github commit"""
         if ctx.author.id not in config.SERVER_CONTROL_USERS:
@@ -133,7 +132,7 @@ class Main(commands.Cog):
         )
 
     @bridge.bridge_command()
-    @bridge.has_permissions(manage_messages=True)
+    @bridge.guild_only()
     async def prod(self, ctx: bridge.Context, *, object_to_get: str = ""):
         """Allows you to see the direct python data of certain objects"""
         if ctx.author.id not in config.SERVER_CONTROL_USERS:
