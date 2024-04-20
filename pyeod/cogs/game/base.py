@@ -243,7 +243,7 @@ class Base(commands.Cog):
     @bridge.guild_only()
     @option_decorator("element_name", required=True)
     async def suggest(
-        self, ctx: bridge.Context, *, element_name: str, autocapitalize: bool = True
+        self, ctx: bridge.BridgeExtContext, *, element_name: str, autocapitalize: bool = True
     ):
         """Suggests a result for an element combo to be voted on"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
@@ -257,7 +257,7 @@ class Base(commands.Cog):
     @option_decorator("category", autocomplete=autocomplete_categories)
     async def random_combination(
         self,
-        ctx: bridge.Context,
+        ctx: bridge.BridgeExtContext,
         number_of_elements: int = 2,
         *,
         category: str = None,

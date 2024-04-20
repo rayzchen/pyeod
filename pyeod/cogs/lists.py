@@ -22,7 +22,7 @@ class Lists(commands.Cog):
 
     @bridge.bridge_command()
     @bridge.guild_only()
-    async def inv(self, ctx: bridge.Context, user: Optional[User] = None):
+    async def inv(self, ctx: bridge.BridgeExtContext, user: Optional[User] = None):
         """Shows your elements"""
 
         server = InstanceManager.current.get_or_create(ctx.guild.id)
@@ -39,7 +39,7 @@ class Lists(commands.Cog):
 
     @bridge.bridge_command()
     @bridge.guild_only()
-    async def achievements(self, ctx: bridge.Context, user: Optional[User] = None):
+    async def achievements(self, ctx: bridge.BridgeExtContext, user: Optional[User] = None):
         """Shows earned achievements"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if user is None:
@@ -64,7 +64,7 @@ class Lists(commands.Cog):
     @bridge.bridge_command()
     @bridge.guild_only()
     async def achievement_progress(
-        self, ctx: bridge.Context, user: Optional[User] = None
+        self, ctx: bridge.BridgeExtContext, user: Optional[User] = None
     ):
         """Shows earned achievements"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
@@ -144,7 +144,7 @@ class Lists(commands.Cog):
 
     @bridge.bridge_command()
     @bridge.guild_only()
-    async def list_icons(self, ctx: bridge.Context, user: Optional[User] = None):
+    async def list_icons(self, ctx: bridge.BridgeExtContext, user: Optional[User] = None):
         """Shows all available icons"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         if user is None:
@@ -174,7 +174,7 @@ class Lists(commands.Cog):
 
     @bridge.bridge_command()
     @bridge.guild_only()
-    async def stats(self, ctx: bridge.Context):
+    async def stats(self, ctx: bridge.BridgeExtContext):
         import time
 
         """Shows the server stats"""
@@ -221,7 +221,7 @@ class Lists(commands.Cog):
     @bridge.bridge_command(aliases=["f"])
     @bridge.guild_only()
     @option_decorator("element", autocomplete=autocomplete_elements)
-    async def found(self, ctx: bridge.Context, *, element):
+    async def found(self, ctx: bridge.BridgeExtContext, *, element):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         user = await server.login_user(ctx.author.id)
 

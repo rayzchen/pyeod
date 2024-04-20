@@ -32,13 +32,13 @@ class Main(commands.Cog):
             self.achievement_checker.start()
 
     @commands.Cog.listener()
-    async def on_bridge_command(self, ctx: bridge.Context):
+    async def on_bridge_command(self, ctx: bridge.BridgeExtContext):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         server.commands_used += 1
 
     @commands.Cog.listener()
     async def on_bridge_command_error(
-        self, ctx: bridge.Context, err: commands.errors.CommandError
+        self, ctx: bridge.BridgeExtContext, err: commands.errors.CommandError
     ):
         # Handle different exceptions from parsing arguments here
         if isinstance(err, commands.errors.BadArgument):
@@ -85,12 +85,12 @@ class Main(commands.Cog):
         pass
 
     @bridge.bridge_command(aliases=["ms"])
-    async def ping(self, ctx: bridge.Context):
+    async def ping(self, ctx: bridge.BridgeExtContext):
         """Gets the current ping between the bot and discord"""
         await ctx.respond(f"🏓 Pong! {round(self.bot.latency*1000)}ms")
 
     @bridge.bridge_command()
-    async def update(self, ctx: bridge.Context, *, revision: str = ""):
+    async def update(self, ctx: bridge.BridgeExtContext, *, revision: str = ""):
         """Updates to the latest github commit"""
         if ctx.author.id not in config.SERVER_CONTROL_USERS:
             raise GameError("No permission", "You don't have permission to do that!")
@@ -133,7 +133,7 @@ class Main(commands.Cog):
 
     @bridge.bridge_command()
     @bridge.guild_only()
-    async def prod(self, ctx: bridge.Context, *, object_to_get: str = ""):
+    async def prod(self, ctx: bridge.BridgeExtContext, *, object_to_get: str = ""):
         """Allows you to see the direct python data of certain objects"""
         if ctx.author.id not in config.SERVER_CONTROL_USERS:
             raise GameError("No permission", "You don't have permission to do that!")
@@ -162,7 +162,7 @@ class Main(commands.Cog):
                 await self.bot.award_achievements(server, user=user)
 
     @bridge.bridge_command()
-    async def help(self, ctx: bridge.Context):
+    async def help(self, ctx: bridge.BridgeExtContext):
         """Shows this command"""
         help_pages = {}
         for command in self.bot.commands:

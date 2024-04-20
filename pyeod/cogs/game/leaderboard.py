@@ -18,7 +18,7 @@ class Leaderboard(commands.Cog):
 
     @bridge.bridge_command(aliases=["leaderboard"])
     @bridge.guild_only()
-    async def lb(self, ctx: bridge.Context, *, user: Optional[User] = None):
+    async def lb(self, ctx: bridge.BridgeExtContext, *, user: Optional[User] = None):
         """Shows the leaderboard of who has the most elements
         Has other sorting options available"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
@@ -32,7 +32,7 @@ class Leaderboard(commands.Cog):
 
     @bridge.bridge_command(aliases=["element_leaderboard", "elb"])
     @bridge.guild_only()
-    async def element_lb(self, ctx: bridge.Context, start=1, end = -1):
+    async def element_lb(self, ctx: bridge.BridgeExtContext, start=1, end = -1):
         """Shows the leaderboard of elements with the highest difficulty
         Has other sorting options available"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)

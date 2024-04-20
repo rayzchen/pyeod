@@ -12,7 +12,7 @@ class Profiles(commands.Cog):
 
     @bridge.bridge_command(aliases=["prof"])
     @bridge.guild_only()
-    async def profile(self, ctx: bridge.Context, *, user: Optional[User] = None):
+    async def profile(self, ctx: bridge.BridgeExtContext, *, user: Optional[User] = None):
         """Shows your profile and your own personal stats"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
@@ -88,7 +88,7 @@ class Profiles(commands.Cog):
 
     @bridge.bridge_command(aliases=["ui"])
     @bridge.guild_only()
-    async def user_icon(self, ctx: bridge.Context, *, icon_emoji: str):
+    async def user_icon(self, ctx: bridge.BridgeExtContext, *, icon_emoji: str):
         """Sets your icon that will appear next to your name"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 

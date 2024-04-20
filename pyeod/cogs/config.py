@@ -85,7 +85,7 @@ class Config(commands.Cog):
     @bridge.bridge_command(guild_ids=[config.MAIN_SERVER])
     @bridge.guild_only()
     async def import_instance(
-        self, ctx: bridge.Context, guild_id: int, file: Attachment
+        self, ctx: bridge.BridgeExtContext, guild_id: int, file: Attachment
     ):
         """Imports an instance into a server"""
         if ctx.author.id not in config.SERVER_CONTROL_USERS:
@@ -121,7 +121,7 @@ class Config(commands.Cog):
     @bridge.guild_only()
     @bridge.has_permissions(manage_channels=True)
     async def import_inventory(
-        self, ctx: bridge.Context, user: Member, inv: Attachment
+        self, ctx: bridge.BridgeExtContext, user: Member, inv: Attachment
     ):
         """Imports an inventory for a user"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
@@ -159,7 +159,7 @@ class Config(commands.Cog):
     @bridge.bridge_command(guild_ids=[config.MAIN_SERVER])
     @bridge.has_permissions(manage_guild=True)
     @bridge.guild_only()
-    async def missing_ids(self, ctx: bridge.Context):
+    async def missing_ids(self, ctx: bridge.BridgeExtContext):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
         async with server.db.element_lock.reader:
@@ -175,7 +175,7 @@ class Config(commands.Cog):
         await ctx.respond("\n".join(lines))
 
     @bridge.bridge_command(guild_ids=[config.MAIN_SERVER])
-    async def active_servers(self, ctx: bridge.Context):
+    async def active_servers(self, ctx: bridge.BridgeExtContext):
         """Servers with the bot added"""
         if ctx.author.id not in config.SERVER_CONTROL_USERS:
             raise GameError("No permission", "You don't have permission to do that!")
@@ -207,7 +207,7 @@ class Config(commands.Cog):
 
     @bridge.bridge_command(guild_ids=[config.MAIN_SERVER])
     async def download_instance(
-        self, ctx: bridge.Context, guild_id: Optional[int] = None
+        self, ctx: bridge.BridgeExtContext, guild_id: Optional[int] = None
     ):
         """Downloads an instance"""
         if ctx.author.id not in config.SERVER_CONTROL_USERS:
@@ -231,7 +231,7 @@ class Config(commands.Cog):
     @bridge.has_permissions(administrator=True)
     @bridge.guild_only()
     async def backup_server(
-        self, ctx: bridge.Context
+        self, ctx: bridge.BridgeExtContext
     ):
         """Backs up an instance
 NOTE: __YOU__ are responsible for the storage of the backup AND the backup contains ALL data for your server, so DO NOT SHARE IT!"""
@@ -252,7 +252,7 @@ NOTE: __YOU__ are responsible for the storage of the backup AND the backup conta
     @bridge.bridge_command()
     @bridge.guild_only()
     @default_permissions(manage_channels=True)
-    async def view_channels(self, ctx: bridge.Context):
+    async def view_channels(self, ctx: bridge.BridgeExtContext):
         """View all currently set play channels and the servers news and voting channels"""
 
         def convert_channel(channel):
@@ -282,7 +282,7 @@ NOTE: __YOU__ are responsible for the storage of the backup AND the backup conta
     @bridge.bridge_command()
     @bridge.guild_only()
     @default_permissions(manage_channels=True)
-    async def add_play_channel(self, ctx: bridge.Context, channel: TextChannel):
+    async def add_play_channel(self, ctx: bridge.BridgeExtContext, channel: TextChannel):
         """Adds a channel to be considered a play channel"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
@@ -293,7 +293,7 @@ NOTE: __YOU__ are responsible for the storage of the backup AND the backup conta
     @bridge.bridge_command()
     @bridge.guild_only()
     @default_permissions(manage_channels=True)
-    async def remove_play_channel(self, ctx: bridge.Context, channel: TextChannel):
+    async def remove_play_channel(self, ctx: bridge.BridgeExtContext, channel: TextChannel):
         """Removes a channel from being considered a play channel"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
@@ -308,7 +308,7 @@ NOTE: __YOU__ are responsible for the storage of the backup AND the backup conta
     @bridge.bridge_command()
     @bridge.guild_only()
     @default_permissions(manage_channels=True)
-    async def set_news_channel(self, ctx: bridge.Context, channel: TextChannel):
+    async def set_news_channel(self, ctx: bridge.BridgeExtContext, channel: TextChannel):
         """Sets the servers news channel"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
@@ -318,7 +318,7 @@ NOTE: __YOU__ are responsible for the storage of the backup AND the backup conta
     @bridge.bridge_command()
     @bridge.guild_only()
     @default_permissions(manage_channels=True)
-    async def set_voting_channel(self, ctx: bridge.Context, channel: TextChannel):
+    async def set_voting_channel(self, ctx: bridge.BridgeExtContext, channel: TextChannel):
         """Sets the servers voting channel"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
@@ -328,7 +328,7 @@ NOTE: __YOU__ are responsible for the storage of the backup AND the backup conta
     @bridge.bridge_command()
     @bridge.guild_only()
     @bridge.has_permissions(manage_channels=True)
-    async def edit_element_name(self, ctx: bridge.Context, elem_id: int, *, name: str):
+    async def edit_element_name(self, ctx: bridge.BridgeExtContext, elem_id: int, *, name: str):
         """Replaces an element's name"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
@@ -350,7 +350,7 @@ NOTE: __YOU__ are responsible for the storage of the backup AND the backup conta
     @bridge.bridge_command()
     @bridge.guild_only()
     @bridge.has_permissions(manage_channels=True)
-    async def set_vote_req(self, ctx: bridge.Context, vote_req: int):
+    async def set_vote_req(self, ctx: bridge.BridgeExtContext, vote_req: int):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
         server.vote_req = vote_req
@@ -359,7 +359,7 @@ NOTE: __YOU__ are responsible for the storage of the backup AND the backup conta
     @bridge.bridge_command()
     @bridge.guild_only()
     @bridge.has_permissions(manage_channels=True)
-    async def set_poll_limit(self, ctx: bridge.Context, poll_limit: int):
+    async def set_poll_limit(self, ctx: bridge.BridgeExtContext, poll_limit: int):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
         server.poll_limit = poll_limit
@@ -368,7 +368,7 @@ NOTE: __YOU__ are responsible for the storage of the backup AND the backup conta
     @bridge.bridge_command()
     @bridge.guild_only()
     @bridge.has_permissions(manage_channels=True)
-    async def set_combo_limit(self, ctx: bridge.Context, combo_limit: int):
+    async def set_combo_limit(self, ctx: bridge.BridgeExtContext, combo_limit: int):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
         server.combo_limit = combo_limit
@@ -377,7 +377,7 @@ NOTE: __YOU__ are responsible for the storage of the backup AND the backup conta
     @bridge.bridge_command()
     @bridge.guild_only()
     @bridge.has_permissions(administrator=True)
-    async def reset_server(self, ctx: bridge.Context, confirmation_code: int = 0):
+    async def reset_server(self, ctx: bridge.BridgeExtContext, confirmation_code: int = 0):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
 
         if confirmation_code != hash(ctx.guild.name):

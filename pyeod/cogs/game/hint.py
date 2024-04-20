@@ -29,7 +29,7 @@ class Hint(commands.Cog):
 
     @bridge.bridge_command(aliases=["n"])
     @bridge.guild_only()
-    async def next(self, ctx: bridge.Context):
+    async def next(self, ctx: bridge.BridgeExtContext):
         """Gives a hint for the lowest element id you are missing"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         user = await server.login_user(ctx.author.id)
@@ -79,7 +79,7 @@ class Hint(commands.Cog):
     @bridge.bridge_command(aliases=["h"])
     @bridge.guild_only()
     @option_decorator("element", autocomplete=autocomplete_elements)
-    async def hint(self, ctx: bridge.Context, *, element: str = ""):
+    async def hint(self, ctx: bridge.BridgeExtContext, *, element: str = ""):
         """Gives a random or specified hint for how to make an element"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         user = await server.login_user(ctx.author.id)
@@ -133,7 +133,7 @@ class Hint(commands.Cog):
     @bridge.bridge_command(aliases=["p", "invhint", "ih"])
     @bridge.guild_only()
     @option_decorator("element", str, autocomplete=autocomplete_elements)
-    async def products(self, ctx: bridge.Context, *, element: Optional[str] = ""):
+    async def products(self, ctx: bridge.BridgeExtContext, *, element: Optional[str] = ""):
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         user = await server.login_user(ctx.author.id)
 
