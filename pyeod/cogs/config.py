@@ -179,6 +179,7 @@ class Config(commands.Cog):
             raise GameError("No permission", "You don't have permission to do that!")
 
         servers = InstanceManager.current.instances
+        await ctx.defer()
 
         lines = []
         for guild_id, game_instance in servers.items():
