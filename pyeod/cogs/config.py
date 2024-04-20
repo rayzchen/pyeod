@@ -20,6 +20,7 @@ from discord import (
     Message,
     TextChannel,
     default_permissions,
+    errors,
 )
 from discord.ext import bridge, commands, pages, tasks
 import discord
@@ -184,12 +185,16 @@ class Config(commands.Cog):
 
         lines = []
         for guild_id, game_instance in servers.items():
-            guild = await self.bot.fetch_guild(guild_id)
+            try:
+                guild = await self.bot.fetch_guild(guild_id)
+                name = guild.name
+            except errors.NotFound:
+                name = "DELETED SERVER"
             lines.append(
                 " ".join(
                     [
-                        f"(*{guild.id}*)",
-                        f"**{guild.name}** -",
+                        f"(*{guild_id}*)",
+                        f"**{name}** -",
                         f"__{len(game_instance.db.users)}__ users,",
                         f"__{len(game_instance.db.elements)}__ elements",
                     ]
