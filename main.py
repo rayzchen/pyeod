@@ -15,7 +15,7 @@ def reset_modules():
         sys.modules.pop(mod)
 
 # Do not run web server in production
-if sys.argv[1]:
+if len(sys.argv) > 1:
     run_web_server = False
 else:
     run_web_server = True
