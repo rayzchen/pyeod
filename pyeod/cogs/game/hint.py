@@ -9,7 +9,7 @@ from pyeod.frontend import (
     get_page_limit,
 )
 from pyeod.utils import obtain_emoji
-from discord.commands import option as option_decorator
+from discord.ext.bridge import bridge_option as option_decorator
 from discord.ext import bridge, commands
 from typing import Optional
 import random

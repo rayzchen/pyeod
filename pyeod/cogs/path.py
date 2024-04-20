@@ -6,7 +6,7 @@ from pyeod.frontend import (
     autocomplete_elements,
     prepare_file,
 )
-from discord.commands import option as option_decorator
+from discord.ext.bridge import bridge_option as option_decorator
 from discord.ext import bridge, commands
 import io
 

@@ -11,7 +11,7 @@ from pyeod.frontend import (
 )
 from pyeod.utils import format_list
 from discord import Embed, Message
-from discord.commands import option as option_decorator
+from discord.ext.bridge import bridge_option as option_decorator
 from discord.ext import bridge, commands
 from typing import Union
 import random

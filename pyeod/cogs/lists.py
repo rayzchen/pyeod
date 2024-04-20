@@ -11,7 +11,7 @@ from pyeod.frontend import (
     get_page_limit,
 )
 from discord import Embed, EmbedField, User
-from discord.commands import option as option_decorator
+from discord.ext.bridge import bridge_option as option_decorator
 from discord.ext import bridge, commands
 from typing import Optional
 

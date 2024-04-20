@@ -15,7 +15,7 @@ from pyeod.model import (
     RemoveCollabPoll,
 )
 from discord import Attachment, NotFound, User
-from discord.commands import option as option_decorator
+from discord.ext.bridge import bridge_option as option_decorator
 from discord.ext import bridge, commands
 import aiohttp
 from typing import Optional

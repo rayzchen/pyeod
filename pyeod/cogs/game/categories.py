@@ -13,7 +13,7 @@ from pyeod.frontend import (
 )
 from pyeod.model import AddCategoryPoll, ElementCategory, RemoveCategoryPoll
 from pyeod.utils import format_list, obtain_emoji
-from discord.commands import option as option_decorator
+from discord.ext.bridge import bridge_option as option_decorator
 from discord.ext import bridge, commands
 
 
