@@ -175,7 +175,7 @@ class Polls(commands.Cog):
     @bridge.bridge_command()
     @bridge.guild_only()
     @bridge.has_permissions(manage_messages=True)
-    async def clear_polls(self, ctx: bridge.BridgeExtContext):
+    async def clear_polls(self, ctx: bridge.BridgeContext):
         """Clears all current polls in the poll channel"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
         # Prevent new polls

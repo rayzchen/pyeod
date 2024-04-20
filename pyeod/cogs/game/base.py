@@ -212,7 +212,7 @@ class Base(commands.Cog):
             try:
                 await func(self, msg)
             except Exception as e:
-                context = bridge.BridgeExtContext(message=msg, bot=self.bot, view=None)
+                context = bridge.BridgeContext(message=msg, bot=self.bot, view=None)
                 self.bot.dispatch("bridge_command_error", context, e)
 
         return inner
@@ -243,7 +243,7 @@ class Base(commands.Cog):
     @bridge.guild_only()
     @option_decorator("element_name", required=True)
     async def suggest(
-        self, ctx: bridge.BridgeExtContext, *, element_name: str, autocapitalize: bool = True
+        self, ctx: bridge.BridgeContext, *, element_name: str, autocapitalize: bool = True
     ):
         """Suggests a result for an element combo to be voted on"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
@@ -257,7 +257,7 @@ class Base(commands.Cog):
     @option_decorator("category", autocomplete=autocomplete_categories)
     async def random_combination(
         self,
-        ctx: bridge.BridgeExtContext,
+        ctx: bridge.BridgeContext,
         number_of_elements: int = 2,
         *,
         category: str = None,

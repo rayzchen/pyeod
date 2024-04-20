@@ -37,7 +37,7 @@ class Info(commands.Cog):
     @bridge.bridge_command(aliases=["m", "comment", "note"])
     @bridge.guild_only()
     @option_decorator("marked_element", autocomplete=autocomplete_elements)
-    async def mark(self, ctx: bridge.BridgeExtContext, *, marked_element: str, mark: str = ""):
+    async def mark(self, ctx: bridge.BridgeContext, *, marked_element: str, mark: str = ""):
         """Adds a mark to an element
         The text will be displayed on the element's info page"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
@@ -69,7 +69,7 @@ class Info(commands.Cog):
     @bridge.bridge_command(aliases=["c"])
     @bridge.guild_only()
     @option_decorator("element", autocomplete=autocomplete_elements)
-    async def color(self, ctx: bridge.BridgeExtContext, *, element: str, color: str = ""):
+    async def color(self, ctx: bridge.BridgeContext, *, element: str, color: str = ""):
         """Adds a color to an element
         The color will be put on the element's info page"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
@@ -106,7 +106,7 @@ class Info(commands.Cog):
     @bridge.guild_only()
     @option_decorator("element", autocomplete=autocomplete_elements)
     async def image(
-        self, ctx: bridge.BridgeExtContext, *, element: str, image: Optional[Attachment] = None
+        self, ctx: bridge.BridgeContext, *, element: str, image: Optional[Attachment] = None
     ):
         """Adds an image to an element
         The image will be displayed on the element's info page"""
@@ -140,7 +140,7 @@ class Info(commands.Cog):
     @bridge.guild_only()
     @option_decorator("element", autocomplete=autocomplete_elements)
     async def icon(
-        self, ctx: bridge.BridgeExtContext, *, element: str, icon: Optional[Attachment] = None
+        self, ctx: bridge.BridgeContext, *, element: str, icon: Optional[Attachment] = None
     ):
         """Adds an icon to an element
         The icon will be displayed beside the element name on the element's info page"""
@@ -174,7 +174,7 @@ class Info(commands.Cog):
     @option_decorator("element", autocomplete=autocomplete_elements)
     async def add_collaborators(
         self,
-        ctx: bridge.BridgeExtContext,
+        ctx: bridge.BridgeContext,
         *,
         element: str,
         collaborator1: Optional[User] = None,
@@ -271,7 +271,7 @@ class Info(commands.Cog):
     @option_decorator("element", autocomplete=autocomplete_elements)
     async def remove_collaborators(
         self,
-        ctx: bridge.BridgeExtContext,
+        ctx: bridge.BridgeContext,
         *,
         element: str,
         collaborator1: Optional[User] = None,
