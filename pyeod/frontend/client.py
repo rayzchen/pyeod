@@ -596,8 +596,8 @@ class ElementLeaderboardPaginator(FooterPaginator):
         self.menu.paginator = self
         self.add_item(self.menu)
 
-
-class ElementalBot(bridge.AutoShardedBot):
+#! Sharding Removed, to add back in - bridge.AutoShardedBot
+class ElementalBot(bridge.Bot):
     async def on_connect(self):
         if self.auto_sync_commands:
             try:
