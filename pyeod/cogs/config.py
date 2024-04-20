@@ -33,6 +33,8 @@ import typing
 import asyncio
 import inspect
 
+# Non persistent var to allow for backing up during high volatility events
+last_backup = {}
 
 class Config(commands.Cog):
     def __init__(self, bot: ElementalBot):
@@ -226,6 +228,28 @@ class Config(commands.Cog):
         await ctx.respond(f"🤖 Instance download for {guild_id}:", file=file)
 
     @bridge.bridge_command()
+    @bridge.has_permissions(administrator=True)
+    @bridge.guild_only()
+    async def backup_server(
+        self, ctx: bridge.Context
+    ):
+        """Backs up an instance
+NOTE: __YOU__ are responsible for the storage of the backup AND the backup contains ALL data for your server, so DO NOT SHARE IT!"""
+        
+        if ctx.guild.id in last_backup:
+            if time.time() - last_backup[ctx.guild.id] < 43200:
+                raise GameError("Too soon", "You can only backup once every 12 hours!")
+
+        await ctx.defer()
+        path = os.path.join(config.package, "db", str(ctx.guild.id) + ".eod")
+        with open(path, "rb") as f:
+            data = f.read()
+        stream = io.BytesIO(data)
+        file = prepare_file(stream, filename=str(ctx.guild.id) + ".backup")
+        await ctx.respond(f"🤖 *please note you are responsible for storing this file somewhere*\nServer back up for **{ctx.guild.name}**:", file=file)
+        last_backup[ctx.guild.id] = time.time()
+
+    @bridge.bridge_command()
     @bridge.guild_only()
     @default_permissions(manage_channels=True)
     async def view_channels(self, ctx: bridge.Context):
@@ -350,6 +374,21 @@ class Config(commands.Cog):
         server.combo_limit = combo_limit
         await ctx.respond(f"🤖 Successfully set the combo limit to {combo_limit}")
 
+    @bridge.bridge_command()
+    @bridge.guild_only()
+    @bridge.has_permissions(administrator=True)
+    async def reset_server(self, ctx: bridge.Context, confirmation_code: int = 0):
+        server = InstanceManager.current.get_or_create(ctx.guild.id)
+
+        if confirmation_code != hash(ctx.guild.name):
+            await ctx.respond(f"Are you absolutely sure? This will __completely wipe **ALL** data__. This cannot be undone.\n To fully delete the server redo the command with this confirmation code: {hash(ctx.guild.name)}")
+        #! Delete server from instance manager AND delete save file
+        else:
+            InstanceManager.current.instances.pop(ctx.guild.id)
+            db_path = os.path.join(os.path.dirname(__file__), '..', 'db', f"{ctx.guild.id}.eod")
+            if os.path.exists(db_path):
+                os.remove(db_path)
+                await ctx.respond("Server has been reset\n*Sad to see you go :pensive:*")
 
 def setup(client):
     client.add_cog(Config(client))

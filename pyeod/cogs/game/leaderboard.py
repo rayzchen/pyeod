@@ -32,16 +32,18 @@ class Leaderboard(commands.Cog):
 
     @bridge.bridge_command(aliases=["element_leaderboard", "elb"])
     @bridge.guild_only()
-    async def element_lb(self, ctx: bridge.Context, *, user: Optional[User] = None):
+    async def element_lb(self, ctx: bridge.Context, start=1, end = -1):
         """Shows the leaderboard of elements with the highest difficulty
         Has other sorting options available"""
         server = InstanceManager.current.get_or_create(ctx.guild.id)
-        if user is None:
-            user = ctx.author
+        
+        user = ctx.author
+        
+        start -= 1
 
-        pages = await create_element_leaderboard("Tree Size", ctx, user)
+        pages = await create_element_leaderboard("Tree Size", ctx, user, start, end)
 
-        paginator = ElementLeaderboardPaginator(pages, ctx, user)
+        paginator = ElementLeaderboardPaginator(pages, ctx, user, start, end)
         await paginator.respond(ctx)
 
 
