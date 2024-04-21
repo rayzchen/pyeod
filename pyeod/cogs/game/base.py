@@ -212,7 +212,7 @@ class Base(commands.Cog):
             try:
                 await func(self, msg)
             except Exception as e:
-                context = bridge.BridgeContext(message=msg, bot=self.bot, view=None)
+                context = bridge.BridgeExtContext(message=msg, bot=self.bot, view=None)
                 self.bot.dispatch("bridge_command_error", context, e)
 
         return inner
