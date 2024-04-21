@@ -28,8 +28,8 @@ class Main(commands.Cog):
 
         if not self.restart_checker.is_running():
             self.restart_checker.start()
-        #if not self.achievement_checker.is_running():
-        #    self.achievement_checker.start()
+        if not self.achievement_checker.is_running():
+            self.achievement_checker.start()
 
     @commands.Cog.listener()
     async def on_bridge_command(self, ctx: bridge.BridgeContext):
@@ -155,11 +155,12 @@ class Main(commands.Cog):
             self.restart_checker.stop()
             await self.bot.close()
 
-    @tasks.loop(seconds=10, reconnect=True)
+    @tasks.loop(seconds=15, reconnect=True)
     async def achievement_checker(self):
         for server in InstanceManager.current.instances.values():
-            for user in server.db.users.values():
+            for user in server.db.check_achievements_list:
                 await self.bot.award_achievements(server, user=user)
+            server.db.check_achievements_list = []
 
     @bridge.bridge_command()
     async def help(self, ctx: bridge.BridgeContext):
