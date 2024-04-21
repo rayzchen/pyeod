@@ -55,7 +55,9 @@ def run():
         submodule_name = rel.replace(".py", "").replace(os.path.sep, ".")
         print("Cog", submodule_name)
         bot.load_extension("pyeod." + submodule_name)
-
+    asyncio.run(bot.start(token))
+    #! Temporary return (for some reason makes bot much faster), remove SOON
+    return
     try:
         loop.run_until_complete(bot.start(token))
     except KeyboardInterrupt:
