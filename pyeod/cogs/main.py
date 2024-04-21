@@ -160,7 +160,7 @@ class Main(commands.Cog):
         for server in InstanceManager.current.instances.values():
             for user in server.db.check_achievements_list:
                 await self.bot.award_achievements(server, user=user)
-            server.db.check_achievements_list = []
+            server.db.check_achievements_list = set()
 
     @bridge.bridge_command()
     async def help(self, ctx: bridge.BridgeContext):

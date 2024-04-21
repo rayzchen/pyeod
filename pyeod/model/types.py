@@ -369,7 +369,7 @@ class Database(SavableMixin):
         self.path_lookup = {}
         self.category_lookup = {}
         
-        self.check_achievements_list = []
+        self.check_achievements_list = set()
 
     async def acquire_all_locks(self):
         await self.complexity_lock.reader.acquire()
@@ -508,7 +508,7 @@ class Database(SavableMixin):
         async with self.element_lock.writer:
             self.found_by_lookup[element.id].add(user.id)
             user.add_element(element)
-        self.check_achievements_list.append(user)
+        self.check_achievements_list.add(user)
 
     def give_element_unsafe(self, user: User, element: int) -> None:
         if element not in user.inv:

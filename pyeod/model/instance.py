@@ -162,7 +162,7 @@ class GameInstance(SavableMixin):
                 # Poll was accepted
                 poll.accepted = True
                 await poll.resolve(self.db)
-                self.db.check_achievements_list.append(poll.author)
+                self.db.check_achievements_list.add(poll.author)
             else:
                 self.polls_rejected += 1
             return True
