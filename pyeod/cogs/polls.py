@@ -1,10 +1,12 @@
 from pyeod.errors import InternalError
 from pyeod.frontend import DiscordGameInstance, ElementalBot, InstanceManager
+from pyeod.utils import defer
 from discord import Message, TextChannel, errors
 from discord.ext import bridge, commands, tasks
 from discord.utils import get
 from typing import Optional
 import traceback
+import asyncio
 
 
 class Polls(commands.Cog):
@@ -57,7 +59,7 @@ class Polls(commands.Cog):
             channel = await self.bot.fetch_channel(payload.channel_id)
             message = await channel.fetch_message(payload.message_id)
             if message.author.id == self.bot.user.id:
-                await message.delete()
+                defer(message.delete())
             return
 
         if str(payload.emoji) == Polls.UPVOTE:
@@ -82,7 +84,7 @@ class Polls(commands.Cog):
             channel = await self.bot.fetch_channel(payload.channel_id)
             message = await channel.fetch_message(payload.message_id)
             if message.author.id == self.bot.user.id:
-                await message.delete()
+                defer(message.delete())
             return
 
         if str(payload.emoji) == Polls.UPVOTE:
@@ -147,11 +149,9 @@ class Polls(commands.Cog):
                         )
                         news_message = await poll.get_news_message(server)
                         if isinstance(news_message, tuple):  # (msg, embed)
-                            await news_channel.send(
-                                news_message[0], embed=news_message[1]
-                            )
+                            defer(news_channel.send(news_message[0], embed=news_message[1]))
                         else:
-                            await news_channel.send(news_message)
+                            defer(news_channel.send(news_message))
 
                     async with server.db.user_lock.writer:
                         for voter in voters:
@@ -185,7 +185,7 @@ class Polls(commands.Cog):
                 for msg_id in server.poll_msg_lookup:
                     try:
                         message = await channel.fetch_message(msg_id)
-                        await message.delete()
+                        defer(message.delete())
                     except errors.NotFound:
                         pass
                 server.poll_msg_lookup.clear()
@@ -195,7 +195,8 @@ class Polls(commands.Cog):
         async with server.db.user_lock.writer:
             for user in server.db.users.values():
                 user.active_polls = 0
-        # TODO: delete polls and notify in news
+        news_channel = await self.bot.fetch_channel(server.channels.news_channel)
+        defer(news_channel.send("🧹 Cleared polls!"))
         await ctx.respond("🧹 Cleared polls!")
 
 
