@@ -1,7 +1,6 @@
 from pyeod import config
 from pyeod.errors import GameError
 from pyeod.frontend import (
-    DiscordGameInstance,
     ElementalBot,
     ElementPaginator,
     FooterPaginator,

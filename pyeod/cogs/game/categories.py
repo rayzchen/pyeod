@@ -1,6 +1,5 @@
 from pyeod import config
 from pyeod.frontend import (
-    DiscordGameInstance,
     ElementalBot,
     ElementPaginator,
     FooterPaginator,

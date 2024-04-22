@@ -1,7 +1,6 @@
 from pyeod import config
 from pyeod.errors import GameError
 from pyeod.frontend import (
-    DiscordGameInstance,
     ElementalBot,
     FooterPaginator,
     InstanceManager,
@@ -9,29 +8,22 @@ from pyeod.frontend import (
     prepare_file,
 )
 from pyeod.packer import load_instance, save_instance
-from pyeod.utils import format_list
 from discord import (
     Attachment,
-    ButtonStyle,
-    CheckFailure,
     Embed,
     File,
     Member,
-    Message,
     TextChannel,
     default_permissions,
     errors,
 )
-from discord.ext import bridge, commands, pages, tasks
-import discord
+from discord.ext import bridge, commands, tasks
 from typing import Optional
 import io
 import os
 import glob
 import time
-import typing
 import asyncio
-import inspect
 
 # Non persistent var to allow for backing up during high volatility events
 last_backup = {}

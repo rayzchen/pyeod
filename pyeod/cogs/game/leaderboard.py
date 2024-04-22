@@ -1,5 +1,4 @@
 from pyeod.frontend import (
-    DiscordGameInstance,
     ElementalBot,
     ElementLeaderboardPaginator,
     InstanceManager,

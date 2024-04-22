@@ -1,12 +1,9 @@
 from pyeod.errors import InternalError
-from pyeod.frontend import DiscordGameInstance, ElementalBot, InstanceManager
+from pyeod.frontend import ElementalBot, InstanceManager
 from pyeod.utils import defer
-from discord import Message, TextChannel, errors
-from discord.ext import bridge, commands, tasks
-from discord.utils import get
-from typing import Optional
+from discord import errors
+from discord.ext import bridge, commands
 import traceback
-import asyncio
 
 
 class Polls(commands.Cog):

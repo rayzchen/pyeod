@@ -1,7 +1,6 @@
 from pyeod import config
 from pyeod.errors import GameError
 from pyeod.frontend import (
-    DiscordGameInstance,
     ElementalBot,
     InstanceManager,
     autocomplete_elements,
@@ -19,7 +18,6 @@ from discord.ext.bridge import bridge_option as option_decorator
 from discord.ext import bridge, commands
 import aiohttp
 from typing import Optional
-import re
 
 
 class Info(commands.Cog):
