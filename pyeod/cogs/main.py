@@ -1,7 +1,7 @@
 from pyeod import config
 from pyeod.errors import GameError, InternalError
 from pyeod.frontend import DiscordGameInstance, ElementalBot, InstanceManager
-from pyeod.utils import format_list, format_traceback
+from pyeod.utils import format_list, format_traceback, defer
 from discord import ButtonStyle, CheckFailure, DiscordException, Embed
 from discord.commands import ApplicationContext
 from discord.errors import ApplicationCommandInvokeError
@@ -159,7 +159,7 @@ class Main(commands.Cog):
     async def achievement_checker(self):
         for server in InstanceManager.current.instances.values():
             for user in server.db.check_achievements_list:
-                await self.bot.award_achievements(server, user=user)
+                defer(self.bot.award_achievements(server, user=user))
             server.db.check_achievements_list = set()
 
     @bridge.bridge_command()
