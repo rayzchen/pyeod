@@ -4,7 +4,7 @@ import sys
 import math
 import site
 import traceback
-
+import asyncio
 
 def format_traceback(err) -> str:
     _traceback = "".join(traceback.format_exception(type(err), err, err.__traceback__))
@@ -80,3 +80,6 @@ def calculate_difficulty(tree_size, complexity):
     adjusted_difference = difference**disparity_power + 1
     difficulty /= adjusted_difference
     return difficulty
+
+def defer(coroutine: asyncio.coroutine) -> None:
+    asyncio.get_event_loop().create_task(coroutine)
