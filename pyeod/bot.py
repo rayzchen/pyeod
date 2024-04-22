@@ -44,6 +44,7 @@ def run():
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     opts["loop"] = loop
+    loop.set_debug(True)
 
     bot = ElementalBot(**opts)
     bot.remove_command("help")  # Remove default help command
