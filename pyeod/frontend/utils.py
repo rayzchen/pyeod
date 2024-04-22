@@ -5,6 +5,8 @@ __all__ = [
     "generate_embed_list",
     "prepare_file",
     "get_page_limit",
+    "get_current_theme",
+    "get_theme_category_name",
 ]
 
 
@@ -18,6 +20,8 @@ from io import BytesIO, StringIO
 from typing import List, Union, Optional
 import gzip
 import math
+import random
+from datetime import datetime
 
 
 def parse_element_list(content: str, delimiter: Optional[str] = None) -> List[str]:
@@ -218,3 +222,36 @@ def get_page_limit(instance: DiscordGameInstance, channel_id: int) -> int:
     if channel_id in instance.channels.play_channels:
         return 30
     return 10
+
+themes = [
+    ':flag_black:,:flag_white:#Flags#Flags are how nations identify themselves, show off your vexillological knowledge by making country flags as elements!',
+    ':brown_square:,:green_square:#Minecraft Recipes#Minecraft is the best selling game of all time, show your enjoyment of mining and crafting by making minecraft crafting recipes as combos!',
+    ':people_wrestling:,:person_bouncing_ball:#Sports#Sports are the best way to show off your skills in sports, show off your ability to play sports by making sports as elements!',
+    ':musical_keyboard:,:musical_note:#Music#Music is like pictures but for your ears, show off how good your ears are by making songs and albums as elements!',
+    ':alembic:,:test_tube:#Chemistry#Chemistry is all about mixing up strange liquids and seeing what they make, make chemical reactions as combos and molecules as elements!',
+    ':pancakes:,:bacon:#Food#Food is like music but for your tongue, show off your strong salivary glands by making foods as elements!',
+    ':wrench:,:hammer:#Tools#Tools are used to fix broken things, show off how not broken you are by making tools as elements!',
+    ':octagonal_sign:,:vertical_traffic_light:#Traffic Laws#Traffic laws are how you don\'t die while driving, show off how safe you are by making traffic codes as elements!',
+    ':ringed_planet:,:comet:#Planets#Planets are things in space, show your extensive space knowledge by making planets as elements!',
+    ':anatomical_heart:,:lungs:#Body Parts#Body parts are the squishy bits inside your flesh, show you have the most body parts by making body parts as elements!',
+    ':rainbow:,:paintbrush:#Colors#Colors are like food but for your eyes, show off how many colors you can see by making colors as elements!',
+    ':exploding_head:,:thinking:#Fun Facts#Fun facts are like facts but with less sadness, show off how much useless knowledge you\'ve gleaned by making fun facts as combos!',
+    ':red_square:,:rightarrow:#Youtube#Youtube is the video version of books, make youtube videos and channels as elements!',
+    ':game_die:,:slot_machine:#Random#Gambling is AWESOME, use /random_combination to make random combos!',
+    ':lotus:,:sunflower:#Flowers#Flowers are natures version of color, show your love for flowers by making flowers as elements!',
+    ':snowflake:,:snowman:#Winter#Winter is the best time of the year, show off how cold you are by making winter as elements!',
+    ':cupcake:,:cake:#Deserts#Deserts are like drugs but less cool, show off how much you love sugar by making desert recipes as combos!',
+    ':tada:,:confetti_ball:#Holidays#Holidays are when we get to stop being forced to work in this capitalistic world simply to survive, show off your celebration skills by making holidays as elements!',
+    ':video_game:,:desktop:#Video Games#Video games help us escape reality, show how much you love not touching grass by making video games as elements!',
+    ':chart_with_upwards_trend:,:chart_with_downwards_trend:#Financial Crashes#Financial crashes are when the economy collapses due to the greed of the few, show your love for the economy by making financial crashes as combos!',
+    ':1234:,:hash:#Numbers#Numbers are the best way to show off your ability to count, show off how many numbers you can count by making numbers as elements!',
+    ]
+
+def get_current_theme(instance: DiscordGameInstance, guild_id:int) -> tuple[str, str, str]:
+    themes.sort()
+    random.seed(guild_id)
+    random.shuffle(themes)
+    return themes[(datetime.now() - datetime(2024, 1, 1)).days // 7 % len(themes)].split("#")
+
+def get_theme_category_name(instance:DiscordGameInstance, guild_id:int) -> str:
+    return f"#{get_current_theme(instance, guild_id)[1]}"

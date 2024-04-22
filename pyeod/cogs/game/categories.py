@@ -15,7 +15,7 @@ from pyeod.model import AddCategoryPoll, ElementCategory, RemoveCategoryPoll
 from pyeod.utils import format_list, obtain_emoji
 from discord.ext.bridge import bridge_option as option_decorator
 from discord.ext import bridge, commands
-
+from pyeod.frontend.utils import get_theme_category_name
 
 class Categories(commands.Cog):
     def __init__(self, bot: ElementalBot):
@@ -44,6 +44,10 @@ class Categories(commands.Cog):
         # python>=3.7 only
         element_list = list(dict.fromkeys(element_list))
         category = category.strip()
+        is_weekly_theme_name = False
+        if category == "#weeklytheme":
+            category = get_theme_category_name(server, ctx.guild.id)
+            is_weekly_theme_name = True
 
         async with server.db.category_lock.reader:
             if category.lower() in server.db.categories:
@@ -61,7 +65,7 @@ class Categories(commands.Cog):
                         "🔴 Category names cannot be longer than 256 characters!"
                     )
                     return
-                if category.startswith("#"):
+                if category.startswith("#") and not is_weekly_theme_name:
                     await ctx.respond("🔴 Category names cannot start with **#**!")
                     return
                 if "\n" in category:
@@ -131,6 +135,8 @@ class Categories(commands.Cog):
         # python>=3.7 only
         element_list = list(dict.fromkeys(element_list))
         category = category.strip()
+        if category == "#weeklytheme":
+            category = get_theme_category_name(server, ctx.guild.id)
 
         async with server.db.category_lock.reader:
             if category.lower() in server.db.categories:
@@ -212,6 +218,10 @@ class Categories(commands.Cog):
             await paginator.respond(ctx)
         else:
             category_name = category.lower()
+            if category == "#weeklytheme":
+                category_name = get_theme_category_name(server, ctx.guild.id)
+                if category_name not in server.db.categories:
+                    server.db.categories[category_name] = ElementCategory(category_name, ())
             if category_name not in server.db.categories:
                 await ctx.respond(f"🔴 Category **{category}** doesn't exist!")
                 return
@@ -221,7 +231,10 @@ class Categories(commands.Cog):
             for element in elements:
                 if element.id in user.inv:
                     total += 1
-            progress = total / len(elements) * 100
+            if len(elements):
+                progress = total / len(elements) * 100
+            else:
+                progress = 0
             title = f"{category.name} ({len(elements)}, {progress:.2f}%)"
             paginator = await ElementPaginator.create(
                 "Alphabetical", ctx, ctx.author, elements, title, True
